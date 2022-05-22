@@ -1,3 +1,6 @@
+#ifndef DISPLAY_ST7789_T3__INCLUDED
+#define DISPLAY_ST7789_T3__INCLUDED
+
 #include "display_abstract.h"
 
 #include <Adafruit_GFX.h>
@@ -5,6 +8,13 @@
 #include "ST7789_t3.h"
 
 #include "tft.h"
+
+#define TFT_CS        10
+#define TFT_RST        6 // Or set to -1 and connect to Arduino RESET pin
+#define TFT_DC         9 
+
+//Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
+ST7789_t3 tft = ST7789_t3(TFT_CS, TFT_DC, TFT_RST);
 
 class DisplayTranslator_STeensy :: public DisplayTranslator {
     ST7739_t3 *tft;
@@ -87,21 +97,14 @@ class DisplayTranslator_STeensy :: public DisplayTranslator {
 }
 
 
-#define MAX_KNOB 1024
-
-Encoder knob(ENCODER_KNOB_L, ENCODER_KNOB_R);
+//#define MAX_KNOB 1024
+/*Encoder knob(ENCODER_KNOB_L, ENCODER_KNOB_R);
 Bounce pushButtonA = Bounce(PIN_BUTTON_A, 10); // 10ms debounce
 Bounce pushButtonB = Bounce(PIN_BUTTON_B, 10); // 10ms debounce
-Bounce pushButtonC = Bounce(PIN_BUTTON_C, 10); // 10ms debounce
+Bounce pushButtonC = Bounce(PIN_BUTTON_C, 10); // 10ms debounce*/
 
-#include "menu.h"
+//#include "menu.h"
 
-#define TFT_CS        10
-#define TFT_RST        6 // Or set to -1 and connect to Arduino RESET pin
-#define TFT_DC         9 
-
-//Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
-ST7789_t3 tft = ST7789_t3(TFT_CS, TFT_DC, TFT_RST);
 
 /*void testdrawtext(char *text, uint16_t color) {
   tft->setCursor(0, 0);
@@ -124,3 +127,6 @@ void tft_header(ST7789_t3 *tft, const char *text) {
     tft->setTextSize(0);
     tft->println(text);
 }*/
+
+
+#endif

@@ -157,6 +157,7 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
 
     virtual void updateDisplay() {
         //tft->updateScreenAsync(false);
+        //menu->display();
     }
 
 };

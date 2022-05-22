@@ -23,10 +23,25 @@ class Coord {
         }
 };
 
-//class Menu;
-//extern Menu menu;
-
 #include "menu.h"
 #include "menuitems.h"
+
+/*
+#ifdef ENCODER_KNOB_L
+extern Encoder knob;
+#endif
+#ifdef PIN_BUTTON_A
+extern Bounce pushButtonA;
+#endif
+#ifdef PIN_BUTTON_B
+extern Bounce pushButtonB;
+#endif
+#ifdef PIN_BUTTON_C
+extern Bounce pushButtonC;
+#endif
+*/
+
+//class Menu;
+//extern Menu menu;
 
 #endif

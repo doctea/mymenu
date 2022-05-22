@@ -1,3 +1,5 @@
+#ifndef TFT__INCLUDED
+#define TFT__INCLUDED
 #include "display_abstract.h"
 
 #ifdef TFT_ST7789_T3
@@ -34,7 +36,5 @@ void tft_print (const char *text);
 uint16_t rgb(uint8_t r, uint8_t g, uint8_t b);
 uint16_t rgb(uint32_t rgb);
 
-extern Encoder knob;
-extern Bounce pushButtonA;
-extern Bounce pushButtonB;
-extern Bounce pushButtonC;
+
+#endif

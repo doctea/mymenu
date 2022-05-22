@@ -1,6 +1,8 @@
 #include "menu.h"
 #include "menuitems.h"
 
+#define MAX_KNOB 1024
+
 // draw the menu display
 int Menu::display() {
     int y = 0;

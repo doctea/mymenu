@@ -1,7 +1,8 @@
-#ifndef MENU__INCLUDED
-#define MENU__INCLUDED
+#ifndef MENU_LIB_INCLUDED
+#define MENU_LIB_INCLUDED
 
 #include "mymenu.h"
+#include "menu_io.h"
 
 //extern Menu menu;
 //void setup_display();
@@ -20,6 +21,8 @@ class Menu {
     int button_count;
 
     void knob_turned(int knob_position) {
+        Serial.printf("knob turned %i", knob_position);
+        tft->printf("knob %i", knob_position);
         if (knob_position < last_knob_position) {
             //set_bpm(bpm_current-1);
             knob_left();
@@ -159,35 +162,44 @@ class Menu {
 
         // draw the menu display
         virtual int display();
+
         void update_inputs() {
             //static int button_count = 0;
             static int last_knob_read = 0, new_knob_read;
             //int new_knob_read;
-            new_knob_read = knob.read();///4;
-            if (new_knob_read!=last_knob_read) {
-                last_knob_read = new_knob_read/4;
-                //if (last_knob_read<0) 
-                //    last_knob_read = MAX_KNOB;
-                knob_turned(last_knob_read);
-            }
-            if (pushButtonA.update()) {
-                if (pushButtonA.fallingEdge()) {
-                    button_count++;
-                    button_select();
+            #ifdef ENCODER_KNOB_L
+                new_knob_read = knob.read();///4;
+                if (new_knob_read!=last_knob_read) {
+                    last_knob_read = new_knob_read/4;
+                    //if (last_knob_read<0) 
+                    //    last_knob_read = MAX_KNOB;
+                    knob_turned(last_knob_read);
                 }
-            }
-            if (pushButtonB.update()) {
-                if (pushButtonB.fallingEdge()) {
-                    button_count++;
-                    button_back();
+            #endif
+            #ifdef PIN_BUTTON_A
+                if (pushButtonA.update()) {
+                    if (pushButtonA.fallingEdge()) {
+                        button_count++;
+                        button_select();
+                    }
                 }
-            }
-            if (pushButtonC.update()) {
-                if (pushButtonC.fallingEdge()) {
-                    button_count++;
-                    button_right();
+            #endif
+            #ifdef PIN_BUTTON_B
+                if (pushButtonB.update()) {
+                    if (pushButtonB.fallingEdge()) {
+                        button_count++;
+                        button_back();
+                    }
                 }
-            }
+            #endif
+            #ifdef PIN_BUTTON_C
+                if (pushButtonC.update()) {
+                    if (pushButtonC.fallingEdge()) {
+                        button_count++;
+                        button_right();
+                    }
+                }
+            #endif
         }
 
 
