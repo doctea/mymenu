@@ -24,16 +24,21 @@ class MenuItem {
             return tft->getCursorY();
         }
 
-        void colours(bool selected, int fg = ST77XX_WHITE, int bg = ST77XX_BLACK) {
+        void colours(bool selected) {
+            colours(selected, tft->WHITE, tft->BLACK);
+        }
+
+        void colours(bool selected, int fg, int bg) {
             if (!selected) {
                 tft->setTextColor(fg, bg);
             } else {
+                //Serial.printf("%s selected, setting colours %02x, %02x\n", label, bg, fg);
                 tft->setTextColor(bg, fg) ;//ST77XX_BLACK, ST77XX_WHITE);
             }
         }
 
         int header(const char *text, Coord pos, bool selected = false, bool opened = false) {
-            tft->drawLine(pos.x, pos.y, tft->width(), pos.y, ST77XX_WHITE);
+            tft->drawLine(pos.x, pos.y, tft->width(), pos.y, tft->WHITE);
             tft->setCursor(pos.x, pos.y+1);
             colours(selected);
             tft->setTextSize(0);
@@ -47,8 +52,9 @@ class MenuItem {
             return tft->getCursorY();
         }
 
+        // default to returning true to exit out to main menu after setting
         virtual bool button_select() {
-            return false;
+            return true;
         }
         
         virtual bool button_back() {
@@ -75,14 +81,16 @@ class MenuItem {
 
 // generic control for selecting a number
 class NumberControl : public MenuItem {
-    int *target_variable = nullptr;
-    int internal_value = 0;
-    int minimum_value = 0;
-    int maximum_value = 4;
-
     void (*on_change_handler)(int last_value, int new_value);
 
     public:
+        int *target_variable = nullptr;
+        int internal_value = 0;
+        int minimum_value = 0;
+        int maximum_value = 4;
+        int step = 1;
+
+
         NumberControl(const char* label, int in_start_value, int min_value, int max_value) : MenuItem(label) {
             internal_value = in_start_value;
             minimum_value = min_value;
@@ -113,29 +121,41 @@ class NumberControl : public MenuItem {
             return tft->getCursorY();
         }
 
-        virtual bool knob_left() {
-            internal_value--;
+        virtual void increase_value() {
+            internal_value-=step;
             if (internal_value < minimum_value)
                 internal_value = minimum_value; // = NUM_LOOPS_PER_PROJECT-1;
             //project.select_loop_number(ui_selected_loop_number);
+        }
+        virtual void decrease_value() {
+            internal_value+=step;
+            if (internal_value >= maximum_value)
+                internal_value = maximum_value;
+        }
+
+        virtual bool knob_left() {
+            increase_value();
             return true;
         }
         virtual bool knob_right() {
-            internal_value++;
-            if (internal_value >= maximum_value)
-                internal_value = maximum_value;
+            decrease_value();
             //project.select_loop_number(internal_value);
             return true;
         }
-        virtual bool button_select() {
-            //this->target->set_transpose(internal_value);
+
+        virtual void change_value(int new_value) {
             int last_value = get_current_value();
-            set_current_value(internal_value);
+            set_current_value(new_value);
             if (on_change_handler!=nullptr) {
                 Serial.println("calling on_change_handler");
                 on_change_handler(last_value, internal_value);
             }
-            return true;
+        }
+
+        virtual bool button_select() {
+            //this->target->set_transpose(internal_value);           
+            change_value(internal_value);
+            return false;
         }
 
         // override in subclass if need to do something special eg getter/setter
@@ -152,6 +172,32 @@ class NumberControl : public MenuItem {
             if (target_variable!=nullptr)
                 *target_variable = value;
         }
+
+        virtual void setStep(int step) {
+            this->step = step;
+        }
+};
+
+class DirectNumberControl : public NumberControl {
+    public:
+    DirectNumberControl(const char* label, int *in_target_variable, int start_value, int min_value, int max_value, void (*on_change_handler)(int last_value, int new_value)) 
+            : NumberControl(label, in_target_variable, start_value, min_value, max_value, on_change_handler) {
+    }
+
+    virtual bool knob_left() {
+        Serial.printf("DirectNumberControl knob_left, internal_value=%i\n", internal_value);
+        decrease_value();
+        change_value(internal_value);
+        //project.select_loop_number(ui_selected_loop_number);
+        return true;
+    }
+    virtual bool knob_right() {
+        Serial.printf("DirectNumberControl knob_right, internal_value=%i\n", internal_value);
+        increase_value();
+        change_value(internal_value);
+        //project.select_loop_number(internal_value);
+        return true;
+    }
 };
 
 // generic control for selecting one option from a selection of values
@@ -263,7 +309,7 @@ class SelectorControl : public MenuItem {
             msg[20] = '\0'; // limit the string so we don't overflow set_last_message
             // TODO: reenable menu.set_last_message(msg);
             // TODO: reenable menu.set_message_colour(tft->GREEN);
-            return true;
+            return false;
         }
 
 };

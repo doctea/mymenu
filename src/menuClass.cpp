@@ -33,11 +33,11 @@ int Menu::display() {
                 }
             }
             //tft.fillWindow(ST77XX_BLACK);
-            tft->fillRect(0, 0, tft->width(), tft->height(), ST77XX_BLACK);
+            tft->fillRect(0, 0, tft->width(), tft->height(), tft->BLACK);
             start_panel = constrain(start_panel, 0, items.size()-1);
         } else {
             start_panel = 0;
-            tft->fillRect(0, 0, tft->width(), tft->height(), ST77XX_BLACK);
+            tft->fillRect(0, 0, tft->width(), tft->height(), tft->BLACK);
         }
 
         tft->setCursor(0,0);

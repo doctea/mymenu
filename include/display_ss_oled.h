@@ -30,11 +30,6 @@ extern SSOLED ssoled;
 // Bit-Bang the I2C bus
 #define USE_HW_I2C 1
 
-
-#define ST77XX_WHITE    0xFF
-#define ST77XX_GREEN    0xA7
-#define ST77XX_BLACK    0x00
-
 // Change this if you're using different OLED displays
 #define MY_OLED OLED_128x64
 
@@ -46,6 +41,8 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
     SSOLED ssoled;
     SSOLED *tft;
     uint8_t ucBackBuffer[1024];
+
+    int WHITE = 0xFF, BLACK = 0x00, GREEN = 0x7F;
 
     DisplayTranslator_SS_OLED() {
         this->tft = &ssoled;
@@ -87,9 +84,18 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
     virtual int getCursorY() override {
         return tft->iCursorY;
     }
-    virtual void setTextColor(uint16_t fg, uint16_t bg = ST77XX_BLACK) override {
+    virtual void setTextColor(uint16_t fg, uint16_t bg) override {
         //tft.setTextColor(fg, bg);
         // TODO: monochrome display, do nothing?  maybe invert?
+        //Serial.printf("setTextColor(%02x, %02x) vs %02x and %02x\n", fg, bg, this->BLACK, this->WHi)
+        if (fg==this->BLACK && bg==this->WHITE) {
+            //Serial.printf("black-on-white: setTextColor(%02x, %02x) vs %02x and %02x\n", fg, bg, this->BLACK, this->WHITE);
+            bInvert = true;
+        } else if (fg==this->WHITE && bg==this->BLACK) {
+            //Serial.printf("white-on-black: setTextColor(%02x, %02x) vs %02x and %02x\n", fg, bg, this->BLACK, this->WHITE);
+            bInvert = false;
+        } else
+            bInvert = false; 
     }
     virtual void drawLine(int x1, int y1, int x2, int y2, uint16_t color) override {
         //tft.drawLine(x, y, w, h, color);

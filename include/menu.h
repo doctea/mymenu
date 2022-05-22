@@ -21,8 +21,9 @@ class Menu {
     int button_count;
 
     void knob_turned(int knob_position) {
-        Serial.printf("knob turned %i", knob_position);
-        tft->printf("knob %i", knob_position);
+        Serial.printf("knob_turned %i\n", knob_position);
+        //tft->setCursor(0,0);
+        //tft->printf("knob %i", knob_position);
         if (knob_position < last_knob_position) {
             //set_bpm(bpm_current-1);
             knob_left();
@@ -42,6 +43,7 @@ class Menu {
             currently_selected--;
             if (currently_selected<0) 
                 currently_selected = items.size()-1;
+            Serial.printf("selected %i aka %s\n", currently_selected, items.get(currently_selected)->label);
         }
         return true;
     }
@@ -54,17 +56,19 @@ class Menu {
             currently_selected++;
             if (currently_selected >= items.size())
                 currently_selected = 0;
+            Serial.printf("selected %i aka %s\n", currently_selected, items.get(currently_selected)->label);
         }
         return true;
     }
     bool button_select() {
-        Serial.println("button_select()");
+        Serial.printf("button_select() on item %i\n", currently_selected);
         if (currently_opened==-1) {
             Serial.printf("button_select with currently_opened -1 - selecting %i\n", currently_selected);
             currently_opened = currently_selected;
         } else {
             Serial.printf("button_select subselect on %i\n", currently_opened);
-            items.get(currently_opened)->button_select();
+            if (items.get(currently_opened)->button_select()) 
+                button_back();
         } 
         return true;
     }
@@ -74,8 +78,10 @@ class Menu {
             Serial.printf("back with currently_opened %i and no subhandling, setting to -1\n", currently_opened);
             currently_selected = currently_opened;
             currently_opened = -1;
+        } else if (currently_opened==-1) {
+            Serial.printf("back pressed but already at top level with currently_opened %i"); //setting to -1\n", currently_opened);
         } else {
-            Serial.printf("back with currently_opened %i, handled by selected"); //setting to -1\n", currently_opened);
+            Serial.printf("back with currently_opened %i, handled by selected\n"); //setting to -1\n", currently_opened);
         }
         return true;
     }
@@ -168,9 +174,13 @@ class Menu {
             static int last_knob_read = 0, new_knob_read;
             //int new_knob_read;
             #ifdef ENCODER_KNOB_L
-                new_knob_read = knob.read();///4;
+                new_knob_read = knob.read() / ENCODER_STEP_DIVISOR;///4;
                 if (new_knob_read!=last_knob_read) {
-                    last_knob_read = new_knob_read/4;
+                    Serial.printf("new_knob_read %i changed from %i\n", new_knob_read, last_knob_read);
+                    if (ENCODER_STEP_DIVISOR>1)
+                        last_knob_read = new_knob_read; ///4; 
+                    else
+                        last_knob_read = new_knob_read; // / ENCODER_STEP_DIVISOR; ///4; 
                     //if (last_knob_read<0) 
                     //    last_knob_read = MAX_KNOB;
                     knob_turned(last_knob_read);
@@ -202,11 +212,30 @@ class Menu {
             #endif
         }
 
+        #if defined(__arm__) && defined(CORE_TEENSY)
+            extern unsigned long _heap_start;
+            extern unsigned long _heap_end;
+            extern char *__brkval;
 
-        int freeRam() {
-            Serial.println("TODO: implement free RAM report");
-            return 1337;
-        }
+            int freeRam() {
+                return (char *)&_heap_end - __brkval;
+            }
+
+            void debug_free_ram() {
+                //Serial.println(F("debug_free_ram() not implemented on Teensy"));
+                Serial.printf("debug_free_ram: %i\n", freeRam());
+            }
+        #else
+            int freeRam () {  
+                extern int __heap_start, *__brkval;
+                int v;
+                return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
+            }
+            void debug_free_ram() {
+                Serial.print(F("debug_free_ram: Free RAM is "));
+                Serial.println(freeRam());
+            }
+        #endif
 
 };
 
