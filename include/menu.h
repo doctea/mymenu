@@ -196,7 +196,7 @@ class Menu {
 
 };
 
-extern Menu menu;
+extern Menu &menu;
 
 #endif
 
