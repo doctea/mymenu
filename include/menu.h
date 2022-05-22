@@ -100,7 +100,9 @@ class Menu {
         }
 
         void setup_display() {
+            Serial.println("setup_display about to do tft->setup().."); Serial.flush();
             tft->setup();
+            Serial.println("tft->setup() done!"); Serial.flush();
         }
 
         void add(MenuItem *m) {
@@ -196,7 +198,7 @@ class Menu {
 
 };
 
-extern Menu &menu;
+extern Menu *menu;
 
 #endif
 
