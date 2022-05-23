@@ -1,6 +1,10 @@
 #ifndef DISPLAY_SS_OLED__INCLUDED
 #define DISPLAY_SS_OLED__INCLUDED
 
+#ifdef TFT_SSOLED
+
+
+
 #include "display_abstract.h"
 
 #include "ss_oled.h"
@@ -160,6 +164,10 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
         return 7; //tft->height(); // 64?
     }
 
+    virtual void clear() {
+        oledFill(tft, 0, 1);
+        tft->fillScreen(tft->BLACK);
+    }
 
     virtual void updateDisplay() {
         //tft->updateScreenAsync(false);
@@ -175,4 +183,10 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
 }
 */
 
+/*void tft_print (const char *text) {
+    tft->print(text);
+}*/
+
+
+#endif
 #endif

@@ -3,6 +3,8 @@
 
 #include "display_abstract.h"
 
+#include "menu.h"
+
 #include <Adafruit_GFX.h>
 #include  <SPI.h>
 #include "ST7789_t3.h"
@@ -14,18 +16,19 @@
 #define TFT_DC         9 
 
 //Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
-ST7789_t3 tft = ST7789_t3(TFT_CS, TFT_DC, TFT_RST);
 
-class DisplayTranslator_STeensy :: public DisplayTranslator {
-    ST7739_t3 *tft;
+class DisplayTranslator_STeensy : public DisplayTranslator {
     public:
+    ST7789_t3 *tft;
+    
+    int GREEN   = ST77XX_GREEN;
+    int WHITE   = ST77XX_WHITE;
+    int BLACK   = ST77XX_BLACK;
+    int RED     = ST77XX_RED;
+    int BLUE    = ST77XX_BLUE;
 
-    int GREEN = ST77XX_GREEN;
-    int WHITE = ST77XX_WHITE;
-    int BLACK = ST77XX_BLACK;
-
-    DisplayTranslator_STeensy(ST7739_t3 *tft) {
-        this->tft = tft;
+    DisplayTranslator_STeensy() {
+        this->tft = &ST7789_t3(TFT_CS, TFT_DC, TFT_RST);
         this->setup();
     }
 
@@ -94,8 +97,14 @@ class DisplayTranslator_STeensy :: public DisplayTranslator {
     virtual int height() {
         return tft->height();
     }
-}
 
+    virtual void clear() {
+        tft->fillScreen(BLACK);
+    }
+};
+
+
+//void tft_print(const char *text);
 
 //#define MAX_KNOB 1024
 /*Encoder knob(ENCODER_KNOB_L, ENCODER_KNOB_R);

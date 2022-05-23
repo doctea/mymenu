@@ -1,6 +1,16 @@
 #ifndef MENU_LIB_INCLUDED
 #define MENU_LIB_INCLUDED
 
+
+class Coord {
+    public:
+        int x, y;
+        Coord(int in_x, int in_y) {
+            x = in_x;
+            y = in_y;
+        }
+};
+
 #include "mymenu.h"
 #include "menu_io.h"
 
@@ -9,6 +19,15 @@
 
 #include <LinkedList.h>
 #include "menuitems.h"
+
+void setup_menu();
+
+#if defined(__arm__) && defined(CORE_TEENSY)
+    extern unsigned long _heap_start;
+    extern unsigned long _heap_end;
+    extern char *__brkval;
+#endif
+
 
 class Menu {
     int currently_selected  = -1;
@@ -139,9 +158,10 @@ class Menu {
 
         #ifdef PPQN
         #define LOOP_MARKERS
+        #define LOOP_LENGTH (PPQN * BEATS_PER_BAR * BARS_PER_PHRASE)
         virtual int draw_loop_markers() { //Coord pos) {
             //tft.setCursor(pos.x,pos.y);
-            int LOOP_LENGTH = PPQN * BEATS_PER_BAR * BARS_PER_PHRASE;
+            //int LOOP_LENGTH = PPQN * BEATS_PER_BAR * BARS_PER_PHRASE;
             int y = 0;
             //y+=2;
             float percent = float(ticks % LOOP_LENGTH) / (float)LOOP_LENGTH;
@@ -150,14 +170,14 @@ class Menu {
             tft->fillRect(0, y, (percent*(float)tft->width()), 6, ST77XX_RED);
 
             for (int i = 0 ; i < tft->width() ; i+=(tft->width()/(BEATS_PER_BAR*BARS_PER_PHRASE))) {
-                tft->drawLine(i, y, i, y+2, ST7735_WHITE);
+                tft->drawLine(i, y, i, y+2, tft->WHITE);
                 //if (i%BEATS_PER_BAR==0)
                     //tft.drawLine(i, y, i, y+4, ST7735_CYAN);
             }
 
             for (int i = 0 ; i < tft->width() ; i+=(tft->width()/4)) {
                 //tft.drawLine(i, y, i, y+4, ST7735_WHITE);
-                tft->fillRect(i, y, 2, 5, ST7735_WHITE);
+                tft->fillRect(i, y, 2, 5, tft->WHITE);
             }
 
             //Serial.printf("percent %f, width %i\n", percent, tft->width());
@@ -213,10 +233,6 @@ class Menu {
         }
 
         #if defined(__arm__) && defined(CORE_TEENSY)
-            extern unsigned long _heap_start;
-            extern unsigned long _heap_end;
-            extern char *__brkval;
-
             int freeRam() {
                 return (char *)&_heap_end - __brkval;
             }
@@ -240,6 +256,24 @@ class Menu {
 };
 
 extern Menu *menu;
+
+
+//void tft_print (char *text);
+//void tft_clear();
+/*void tft_print (char *text) {
+    menu->tft->print(text);
+}
+void tft_clear() {
+    menu->tft->clear();
+}*/
+
+
+/*void tft_print (char *text) {
+    menu->tft->print(text);
+}
+void tft_clear() {
+    menu->tft->clear();
+}*/
 
 #endif
 

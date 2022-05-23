@@ -27,6 +27,9 @@ class MenuItem {
         void colours(bool selected) {
             colours(selected, tft->WHITE, tft->BLACK);
         }
+        void colours(bool selected, int fg) {
+            colours(selected, fg, tft->BLACK);
+        }
 
         void colours(bool selected, int fg, int bg) {
             if (!selected) {
@@ -36,7 +39,7 @@ class MenuItem {
                 tft->setTextColor(bg, fg) ;//ST77XX_BLACK, ST77XX_WHITE);
             }
         }
-
+        
         int header(const char *text, Coord pos, bool selected = false, bool opened = false) {
             tft->drawLine(pos.x, pos.y, tft->width(), pos.y, tft->WHITE);
             tft->setCursor(pos.x, pos.y+1);
@@ -345,71 +348,6 @@ class HarmonyStatus : public MenuItem {
             return tft->getCursorY();
         }
 };
-
-#ifdef PPQN
-// BPM indicator
-class PositionIndicator : public MenuItem {
-    public:
-        PositionIndicator() : MenuItem("position") {};
-
-        virtual int display(Coord pos, bool selected, bool opened) override {
-            //Serial.printf("positionindicator display for %s\n", label);
-            tft->setCursor(pos.x,pos.y);
-            header("position", pos, selected, opened);
-            tft->setTextSize(2);
-            if (playing) {
-                colours(opened, ST77XX_GREEN, ST77XX_BLACK);
-            } else {
-                colours(opened, ST77XX_RED, ST77XX_BLACK);
-            }
-            tft->printf("%04i:%02i:%02i @ %03.2f\n", 
-                BPM_CURRENT_PHRASE + 1, 
-                BPM_CURRENT_BAR_OF_PHRASE + 1,
-                BPM_CURRENT_BEAT_OF_BAR + 1,
-                bpm_current
-            );
-
-            return tft->getCursorY();
-        }
-
-        virtual bool knob_left() {
-            set_bpm(bpm_current-1);
-            return true;
-        }
-        virtual bool knob_right() {
-            set_bpm(bpm_current+1);
-            return true;
-        }
-};
-#endif
-
-
-#ifdef ENABLE_USB
-    #include "multi_usb_handlers.h"
-    class USBDevicesPanel : public MenuItem {
-        public:
-            USBDevicesPanel() : MenuItem("USB Devices") {}
-
-            virtual int display(Coord pos, bool selected, bool opened) override {
-                tft->setCursor(pos.x,pos.y);
-                header("USB devices:", pos, selected, opened);
-                colours(opened);
-                tft->.setTextSize(1);
-                int connected = 0;
-                for (int i = 0 ; i < NUM_USB_DEVICES ; i++) {
-                    if (usb_midi_connected[i] && usb_midi_device[i] && usb_midi_device[i]->idVendor()>0) {
-                        connected++;
-                        tft->printf("%i %19s\n", i, usb_midi_device[i]->product());
-                        //tft->printf("%08x\n", usb_midi_connected[i]);  // packed usb vendor+product id
-                    }            
-                }
-                /*for (int i = 0 ; i < (NUM_USB_DEVICES - connected) ; i++) { // blank unused rows
-                    tft->printf("%21s\n","");
-                }*/
-                return tft->getCursorY();
-            }
-    };
-#endif
 
 
 #endif

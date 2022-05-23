@@ -10,11 +10,15 @@ class DisplayTranslator {
     int GREEN = 0x7F;
     int WHITE = 0xFF;
     int BLACK = 0x00;
+    int RED   = 0xAF;
+    int BLUE  = 0xA7;
 
     DisplayTranslator() {};
     //~DisplayTranslator() {};
 
     virtual void setup() {};
+
+    virtual void clear() {};
 
     virtual void setCursor(int x, int y) {};
     virtual void print(char *text) {};

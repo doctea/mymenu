@@ -14,6 +14,7 @@
 //#include "bpm.h"
 //#include "project.h"
 
+/*
 class Coord {
     public:
         int x, y;
@@ -22,6 +23,7 @@ class Coord {
             y = in_y;
         }
 };
+*/
 
 #include "menu.h"
 #include "menuitems.h"
