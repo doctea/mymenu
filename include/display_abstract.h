@@ -17,7 +17,7 @@ class DisplayTranslator {
     //~DisplayTranslator() {};
 
     virtual void setup() {};
-
+    virtual void start() {};
     virtual void clear() {};
 
     virtual void setCursor(int x, int y) {};

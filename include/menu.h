@@ -132,6 +132,9 @@ class Menu {
             tft->setup();
             Serial.println("tft->setup() done!"); Serial.flush();
         }
+        void start() {
+            tft->start();
+        }
 
         void add(MenuItem *m) {
             m->tft = this->tft;

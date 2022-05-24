@@ -11,6 +11,8 @@
 int Menu::display() {
     int y = 0;
     
+    tft->setTextColor(ST77XX_WHITE, ST77XX_BLACK);
+
     // now draw the menu
     if (currently_opened>=0 && items.get(currently_opened)->allow_takeover()) {
         #ifdef PPQN
