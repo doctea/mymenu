@@ -1,7 +1,6 @@
 #ifndef MENU_LIB_INCLUDED
 #define MENU_LIB_INCLUDED
 
-
 class Coord {
     public:
         int x, y;
@@ -120,7 +119,7 @@ class Menu {
 
     public:
         char last_message[20] = "...started up...";
-        uint32_t message_colour = ST77XX_WHITE;
+        uint32_t message_colour = C_WHITE;
         DisplayTranslator *tft;
 
         Menu(DisplayTranslator *dt) {
@@ -173,14 +172,14 @@ class Menu {
             tft->fillRect(0, y, (percent*(float)tft->width()), 6, ST77XX_RED);
 
             for (int i = 0 ; i < tft->width() ; i+=(tft->width()/(BEATS_PER_BAR*BARS_PER_PHRASE))) {
-                tft->drawLine(i, y, i, y+2, tft->WHITE);
+                tft->drawLine(i, y, i, y+2, C_WHITE);
                 //if (i%BEATS_PER_BAR==0)
                     //tft.drawLine(i, y, i, y+4, ST7735_CYAN);
             }
 
             for (int i = 0 ; i < tft->width() ; i+=(tft->width()/4)) {
                 //tft.drawLine(i, y, i, y+4, ST7735_WHITE);
-                tft->fillRect(i, y, 2, 5, tft->WHITE);
+                tft->fillRect(i, y, 2, 5, C_WHITE);
             }
 
             //Serial.printf("percent %f, width %i\n", percent, tft->width());

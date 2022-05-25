@@ -1,14 +1,15 @@
 #ifndef DISPLAY_ST7789_T3__INCLUDED
 #define DISPLAY_ST7789_T3__INCLUDED
 
-#define ENABLE_ST77XX_FRAMEBUFFER
+//#define ENABLE_ST77XX_FRAMEBUFFER
 
 #include "display_abstract.h"
 
 #include "menu.h"
+#include "colours.h"
 
 #include <Adafruit_GFX.h>
-#include  <SPI.h>
+#include <SPI.h>
 #include "ST7789_t3.h"
 
 #include "tft.h"
@@ -19,17 +20,18 @@
 
 //Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 
+#define C_WHITE ST77XX_WHITE
+#define BLACK   ST77XX_BLACK
+#define RED     ST77XX_RED
+#define GREEN   ST77XX_GREEN
+#define BLUE    ST77XX_BLUE
+#define YELLOW  ST77XX_YELLOW
+
 class DisplayTranslator_STeensy : public DisplayTranslator {
     public:
     ST7789_t3 actual = ST7789_t3(TFT_CS, TFT_DC, TFT_RST);
     ST7789_t3 *tft;
     
-    int GREEN   = ST77XX_GREEN;
-    int WHITE   = ST77XX_WHITE;
-    int BLACK   = ST77XX_BLACK;
-    int RED     = ST77XX_RED;
-    int BLUE    = ST77XX_BLUE;
-
     DisplayTranslator_STeensy() {
         this->tft = &actual; //ST7789_t3(TFT_CS, TFT_DC, TFT_RST);
         this->setup();
@@ -46,13 +48,6 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
         // large block of text
         //testdrawtext("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa, fringilla sed malesuada et, malesuada sit amet turpis. Sed porttitor neque ut ante pretium vitae malesuada nunc bibendum. Nullam aliquet ultrices massa eu hendrerit. Ut sed nisi lorem. In vestibulum purus a tortor imperdiet posuere. ", ST77XX_WHITE);
         //tft->useFrameBuffer(true);
-    }
-
-    virtual void start() {
-        Serial.println("Display start.."); Serial.flush();
-        //tft->updateScreenAsync(false);
-        tft->useFrameBuffer(true);
-        Serial.println("did useframebuffer()"); Serial.flush();
     }
 
     virtual void setCursor(int x, int y) override {
@@ -82,10 +77,10 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
     virtual void printf(const char *pattern) {
         tft->printf(pattern);
     }
-    virtual void printf(const char *pattern, const char param1) {
+    virtual void printf(const char *pattern, char *param1) {
         tft->printf(pattern, param1);
     }
-    virtual void printf(const char *pattern, const char param1, const char param2) {
+    virtual void printf(const char *pattern, char *param1, char *param2) {
         tft->printf(pattern, param1, param2);
     }
     virtual void printf(char *pattern, int param1, int param2) {
@@ -99,10 +94,6 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
         tft->println(txt);
     }
 
-    virtual void updateDisplay() {
-        Serial.println("updateDisplay..");
-        tft->updateScreenAsync(false);
-    }
 
     virtual int width() {
         return tft->width();
@@ -113,6 +104,19 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
 
     virtual void clear() {
         tft->fillScreen(BLACK);
+    }
+
+
+    virtual void start() {
+        Serial.println("Display start.."); Serial.flush();
+        //tft->updateScreenAsync(false);
+        //stft->useFrameBuffer(true);
+        Serial.println("did useframebuffer()"); Serial.flush();
+    }
+
+    virtual void updateDisplay() {
+        Serial.println("updateDisplay..");
+        tft->updateScreenAsync(false);
     }
 };
 

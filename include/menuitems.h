@@ -14,8 +14,11 @@ class MenuItem {
             strcpy(label, in_label);
         }
         virtual int display(Coord pos, bool selected, bool opened) {
-            //Serial.printf("base display for %s\n", label);
+            //Serial.printf("MenuItem display()")
+            //tft_print("hello?");
+            //Serial.printf("MenuItem: base display for %s\n", label);
             // display this item however that may be
+            tft->fillRect(random(20), random(20), random(20), random(20), C_WHITE);
             tft->setCursor(pos.x,pos.y);
             //tft->setTextColor(ST77XX_WHITE, ST77XX_BLACK);
             colours(selected);
@@ -25,10 +28,10 @@ class MenuItem {
         }
 
         void colours(bool selected) {
-            colours(selected, tft->WHITE, tft->BLACK);
+            colours(selected, /*tft->WHITE*/ST77XX_WHITE, BLACK);
         }
         void colours(bool selected, int fg) {
-            colours(selected, fg, tft->BLACK);
+            colours(selected, fg, BLACK);
         }
 
         void colours(bool selected, int fg, int bg) {
@@ -41,15 +44,15 @@ class MenuItem {
         }
         
         int header(const char *text, Coord pos, bool selected = false, bool opened = false) {
-            tft->drawLine(pos.x, pos.y, tft->width(), pos.y, tft->WHITE);
+            tft->drawLine(pos.x, pos.y, tft->width(), pos.y, C_WHITE);
             tft->setCursor(pos.x, pos.y+1);
             colours(selected);
             tft->setTextSize(0);
             if (opened) {
                 tft->print(">>>");
-                tft->printf((const char*)"%-19s",text);   // \n not needed as reaching to edge
+                tft->printf((const char*)"%-19s",(char*)text);   // \n not needed as reaching to edge
             } else {
-                tft->printf((const char*)"%-22s",text);   // \n not needed as reaching to edge
+                tft->printf((const char*)"%-22s",(char*)text);   // \n not needed as reaching to edge
             }
             //return (tft->getTextSize()+1)*6;
             return tft->getCursorY();
@@ -113,7 +116,7 @@ class NumberControl : public MenuItem {
             pos.y = header(label, pos, selected, opened);
             tft->setCursor(pos.x,pos.y);
 
-            colours(opened, opened ? tft->GREEN : tft->WHITE, tft->BLACK);
+            colours(opened, opened ? GREEN : C_WHITE, BLACK);
             tft->setTextSize(2);
             if (opened) {
                 tft->printf("%*i\n", 4, internal_value);
@@ -241,13 +244,13 @@ class SelectorControl : public MenuItem {
             for (int i = 0 ; i < num_values ; i++) {
                 //bool is_current_value_selected = selected_value_index==i; //available_values[i]==current_value;
                 bool is_current_value_selected = available_values[i]==current_value; //getter();
-                int col = is_current_value_selected ? tft->GREEN : tft->WHITE;
-                colours(opened && selected_value_index==i, col, tft->BLACK);
+                int col = is_current_value_selected ? GREEN : C_WHITE;
+                colours(opened && selected_value_index==i, col, BLACK);
                 //colours(true, col, ST7735_BLUE);
                 //Serial.printf("for item %i/%i, printing %s\n", i, num_values, get_label_for_value(available_values[i]));
-                tft->printf("%s", get_label_for_value(available_values[i])); //available_values[i]);
+                tft->printf("%s", (char*)get_label_for_value(available_values[i])); //available_values[i]);
                 //tft->printf("%i", available_values[i]);
-                tft->setTextColor(tft->BLACK,tft->BLACK);
+                tft->setTextColor(BLACK,BLACK);
                 if (i<num_values-1) 
                     tft->printf(" ");
             }
@@ -341,8 +344,8 @@ class HarmonyStatus : public MenuItem {
                 tft->println((const char *)"[not set]");
             } else {
                 tft->printf("%4s : %4s",     // \n not needed because already fills row..
-                    get_note_name(*last_note).c_str(), 
-                    get_note_name(*current_note).c_str()
+                    (char*)(get_note_name(*last_note).c_str()), 
+                    (char*)(get_note_name(*current_note).c_str())
                 );
             }
             return tft->getCursorY();

@@ -14,17 +14,6 @@
 //#include "bpm.h"
 //#include "project.h"
 
-/*
-class Coord {
-    public:
-        int x, y;
-        Coord(int in_x, int in_y) {
-            x = in_x;
-            y = in_y;
-        }
-};
-*/
-
 #include "menu.h"
 #include "menuitems.h"
 

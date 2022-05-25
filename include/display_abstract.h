@@ -3,15 +3,17 @@
 
 #include <Arduino.h>
 
+
+#define C_WHITE   0xFFFF
+#define BLACK   0x0000
+#define RED     0xFA00
+#define GREEN   0xAFF0
+#define BLUE    0x00AF
+#define YELLOW  0xF00F
+
 class DisplayTranslator {
 
     public:
-
-    int GREEN = 0x7F;
-    int WHITE = 0xFF;
-    int BLACK = 0x00;
-    int RED   = 0xAF;
-    int BLUE  = 0xA7;
 
     DisplayTranslator() {};
     //~DisplayTranslator() {};
@@ -28,9 +30,9 @@ class DisplayTranslator {
     virtual void drawLine(int x, int y, int w, int h, uint16_t color) {};
     virtual void fillRect(int x, int y, int w, int h, uint16_t color) {};
     virtual void setTextSize(int size) {};
-    virtual void printf(const char *) {};
-    virtual void printf(const char *pattern, const char *param1) {};
-    virtual void printf(const char *pattern, const char *param1, const char *param2) {};
+    virtual void printf(const char *pattern) {};
+    virtual void printf(const char *pattern, char *param1) {};
+    virtual void printf(const char *pattern, char *param1, char *param2) {};
     virtual void printf(const char *pattern, int param1) {};
     virtual void printf(const char *pattern, int param1, int param2) {};
     virtual void printf(const char *pattern, int param1, int param2, int param3) {};
