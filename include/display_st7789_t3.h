@@ -88,11 +88,17 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
     virtual void printf(const char *pattern, int param1, int param2, int param3, float param4) {
         tft->printf(pattern, param1, param2, param3, param4);
     }
-    
+   
     virtual void println(const char *txt) {
         tft->println(txt);
     }
 
+    /*virtual void drawRoundRect(int x, int y, int w, int h, int radius, int color) override {
+        tft->drawRoundRect(x, y, w, h, radius, color);
+    }
+    virtual void fillRoundRect(int x, int y, int w, int h, int radius, int color) override {
+        tft->fillRoundRect(x, y, w, h, radius, color);
+    }*/
 
     virtual int width() {
         return tft->width();
@@ -104,7 +110,6 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
     virtual void clear() {
         tft->fillScreen(BLACK);
     }
-
 
     virtual void start() {
         Serial.println("Display start.."); Serial.flush();

@@ -137,6 +137,7 @@ class Menu {
 
         void add(MenuItem *m) {
             m->tft = this->tft;
+            m->on_add();
             items.add(m);
         }
 
@@ -158,20 +159,20 @@ class Menu {
             return tft->getCursorY();
         }
 
-        #ifdef PPQN
-        #define LOOP_MARKERS
-        #define LOOP_LENGTH (PPQN * BEATS_PER_BAR * BARS_PER_PHRASE)
-        virtual int draw_loop_markers() { //Coord pos) {
+        //#ifdef PPQN
+        //#define LOOP_MARKERS
+        //#define LOOP_LENGTH (PPQN * BEATS_PER_BAR * BARS_PER_PHRASE)
+        virtual int draw_loop_markers(unsigned long ticks, unsigned long loop_length, int beats_per_bar = 4, int bars_per_phrase = 4) { //Coord pos) {
             //tft.setCursor(pos.x,pos.y);
             //int LOOP_LENGTH = PPQN * BEATS_PER_BAR * BARS_PER_PHRASE;
             int y = 0;
             //y+=2;
-            float percent = float(ticks % LOOP_LENGTH) / (float)LOOP_LENGTH;
+            float percent = float(ticks % loop_length) / (float)loop_length;
             //tft.drawFastHLine(0, tft.width(), 3, ST77XX_WHITE);
             //tft.drawFastHLine(0, tft.width() * percent, 2, ST77XX_RED);
-            tft->fillRect(0, y, (percent*(float)tft->width()), 6, ST77XX_RED);
+            tft->fillRect(0, y, (percent*(float)tft->width()), 6, RED);
 
-            for (int i = 0 ; i < tft->width() ; i+=(tft->width()/(BEATS_PER_BAR*BARS_PER_PHRASE))) {
+            for (int i = 0 ; i < tft->width() ; i+=(tft->width()/(beats_per_bar*bars_per_phrase))) {
                 tft->drawLine(i, y, i, y+2, C_WHITE);
                 //if (i%BEATS_PER_BAR==0)
                     //tft.drawLine(i, y, i, y+4, ST7735_CYAN);
@@ -186,7 +187,7 @@ class Menu {
             y += 6;
             return y;
         }
-        #endif
+        //#endif
 
         // draw the menu display
         virtual int display();

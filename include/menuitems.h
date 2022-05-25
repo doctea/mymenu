@@ -10,19 +10,25 @@ class MenuItem {
 
         char label[20];
 
+        MenuItem set_tft(DisplayTranslator *tft) {
+            this->tft = tft;
+            return *this;
+        }
+
         MenuItem(const char *in_label) {
             strcpy(label, in_label);
         }
+        virtual void on_add() {}    // called when object is added to menu
         virtual int display(Coord pos, bool selected, bool opened) {
             //Serial.printf("MenuItem display()")
             //tft_print("hello?");
-            Serial.printf("MenuItem: base display for %s\n", label);
+            //Serial.printf("MenuItem: base display for %s at (%i,%i)\n", label, tft->getCursorX(), tft->getCursorY());
             // display this item however that may be
-            tft->fillRect(random(20), random(20), random(20), random(20), C_WHITE);
+            //tft->fillRect(random(20), random(20), random(20), random(20), C_WHITE);
             tft->setCursor(pos.x,pos.y);
             //tft->setTextColor(ST77XX_WHITE, ST77XX_BLACK);
             colours(selected);
-            tft->print(label);
+            tft->println(label);
             //return (tft->getTextSizeY() * 8) + 2;
             return tft->getCursorY();
         }
@@ -96,7 +102,6 @@ class NumberControl : public MenuItem {
         int maximum_value = 4;
         int step = 1;
 
-
         NumberControl(const char* label, int in_start_value, int min_value, int max_value) : MenuItem(label) {
             internal_value = in_start_value;
             minimum_value = min_value;
@@ -123,6 +128,7 @@ class NumberControl : public MenuItem {
             } else {
                 tft->printf("%*i\n", 4, get_current_value()); //*target_variable); //target->transpose);
             }
+            //todo: why this not moving to next line?
 
             return tft->getCursorY();
         }

@@ -39,6 +39,13 @@ class DisplayTranslator {
     virtual void printf(const char *pattern, int param1, int param2, int param3, float param4) {};
     virtual void println(const char *txt) {};
 
+    virtual void drawRoundRect(int x, int y, int w, int h, int radius, int color) {
+        Serial.println("TODO: unimplemented drawRoundRect()");
+    };
+    virtual void fillRoundRect(int x, int y, int w, int h, int radius, int color) {
+        Serial.println("TODO: unimplemented fillRoundRect()");
+    };
+
     virtual int width() {};
     virtual int height() {};
 

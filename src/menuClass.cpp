@@ -49,7 +49,7 @@ int Menu::display() {
         tft->setCursor(0,0);
 
         #ifdef LOOP_MARKERS
-        y = draw_loop_markers();
+            y = draw_loop_markers();
         #endif
         tft->setCursor(0, y);
         y = draw_message();
@@ -60,6 +60,7 @@ int Menu::display() {
             MenuItem *item = items.get(i);
             //int time = millis();
             y = item->display(Coord(0,y), i==currently_selected, i==currently_opened) + 1;
+            //Serial.printf("after rending MenuItem %i, return y is %i, cursor coords are (%i,%i)\n", y, tft->getCursorX(), tft->getCursorY());
 
             if (!bottoms_computed) {
                 panel_bottom[i] = y;// - start_y;
