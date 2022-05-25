@@ -16,7 +16,7 @@ class MenuItem {
         virtual int display(Coord pos, bool selected, bool opened) {
             //Serial.printf("MenuItem display()")
             //tft_print("hello?");
-            //Serial.printf("MenuItem: base display for %s\n", label);
+            Serial.printf("MenuItem: base display for %s\n", label);
             // display this item however that may be
             tft->fillRect(random(20), random(20), random(20), random(20), C_WHITE);
             tft->setCursor(pos.x,pos.y);

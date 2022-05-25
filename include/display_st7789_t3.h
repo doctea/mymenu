@@ -6,7 +6,6 @@
 #include "display_abstract.h"
 
 #include "menu.h"
-#include "colours.h"
 
 #include <Adafruit_GFX.h>
 #include <SPI.h>
@@ -110,12 +109,12 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
     virtual void start() {
         Serial.println("Display start.."); Serial.flush();
         //tft->updateScreenAsync(false);
-        //stft->useFrameBuffer(true);
+        tft->useFrameBuffer(true);
         Serial.println("did useframebuffer()"); Serial.flush();
     }
 
     virtual void updateDisplay() {
-        Serial.println("updateDisplay..");
+        //Serial.println("updateDisplay..");
         tft->updateScreenAsync(false);
     }
 };
