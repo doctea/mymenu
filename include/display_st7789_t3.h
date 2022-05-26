@@ -106,6 +106,9 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
     virtual void printf(char *pattern, int param1, const uint8_t* param2) override {
         tft->printf(pattern, param1, param2);
     }
+    virtual void printf(char *pattern, char *param1, int param2, int param3) {
+        tft->printf(pattern, param1, param2, param3);
+    };
 
 
     virtual int width() {
@@ -115,8 +118,9 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
         return tft->height();
     }
 
-    virtual void clear() {
+    virtual void clear(bool force = false) {
         tft->fillScreen(BLACK);
+        //tft->fillRect(0, 0, tft->width(), tft->height(), BLACK);
     }
 
     virtual void start() {

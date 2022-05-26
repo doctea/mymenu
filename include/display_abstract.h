@@ -4,12 +4,12 @@
 #include <Arduino.h>
 
 
-#define C_WHITE   0xFFFF
-#define BLACK   0x0000
-#define RED     0xFA00
-#define GREEN   0xAFF0
-#define BLUE    0x00AF
-#define YELLOW  0xF00F
+#define C_WHITE     0xFF
+#define BLACK       0x00
+#define RED         0xFA
+#define GREEN       0xAF
+#define BLUE        0x00
+#define YELLOW      0xF0
 
 class DisplayTranslator {
 
@@ -20,7 +20,7 @@ class DisplayTranslator {
 
     virtual void setup() {};
     virtual void start() {};
-    virtual void clear() {};
+    virtual void clear(bool force = false) {};
 
     virtual void setCursor(int x, int y) {};
     virtual void print(char *text) {};
@@ -33,6 +33,7 @@ class DisplayTranslator {
     virtual void printf(char *pattern) {};
     virtual void printf(char *pattern, char *param1) {};
     virtual void printf(char *pattern, char *param1, char *param2) {};
+    virtual void printf(char *pattern, char *param1, int param2, int param3) {};
     virtual void printf(char *pattern, int param1, char* param2) {};
     virtual void printf(char *pattern, int param1) {};
     virtual void printf(char *pattern, int param1, int param2) {};

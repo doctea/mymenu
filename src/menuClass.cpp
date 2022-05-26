@@ -9,6 +9,7 @@
 
 // draw the menu display
 int Menu::display() {
+    //Serial.printf("display !");
     int y = 0;
     
     tft->setTextColor(ST77XX_WHITE, ST77XX_BLACK);
@@ -39,12 +40,20 @@ int Menu::display() {
                 }
             }
             //tft.fillWindow(ST77XX_BLACK);
-            tft->fillRect(0, 0, tft->width(), tft->height(), BLACK);
+            tft->clear();
+            //tft->fillRect(0, 0, tft->width(), tft->height(), BLACK);
             start_panel = constrain(start_panel, 0, items.size()-1);
         } else {
             start_panel = 0;
-            tft->fillRect(0, 0, tft->width(), tft->height(), BLACK);
+            tft->clear();
+            //tft->fillRect(0, 0, tft->width(), tft->height(), BLACK);
         }
+        static int last_start_panel = -1;
+        if (last_start_panel!=start_panel) {
+            tft->clear(true);
+        }
+        last_start_panel = start_panel;
+
 
         tft->setCursor(0,0);
 
@@ -59,8 +68,9 @@ int Menu::display() {
         for (int i = start_panel ; i < items.size() ; i++) {
             MenuItem *item = items.get(i);
             //int time = millis();
+            //Serial.printf("Menu rendering item %i [selected #%i, opened #%i]\n", i, currently_selected, currently_opened);
             y = item->display(Coord(0,y), i==currently_selected, i==currently_opened) + 1;
-            //Serial.printf("after rending MenuItem %i, return y is %i, cursor coords are (%i,%i)\n", y, tft->getCursorX(), tft->getCursorY());
+            //Serial.printf("after rendering MenuItem %i, return y is %i, cursor coords are (%i,%i)\n", y, tft->getCursorX(), tft->getCursorY());
 
             if (!bottoms_computed) {
                 panel_bottom[i] = y;// - start_y;

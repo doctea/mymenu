@@ -46,8 +46,6 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
     SSOLED *tft;
     uint8_t ucBackBuffer[1024];
 
-    int WHITE = 0xFF, BLACK = 0x00, GREEN = 0x7F;
-
     DisplayTranslator_SS_OLED() {
         this->tft = &ssoled;
         this->tft = tft;
@@ -67,6 +65,7 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
             while (1) {};
         }
         oledSetBackBuffer(tft, ucBackBuffer);
+        oledSetTextWrap(&ssoled, true);
     }
 
     int x,y;
@@ -91,11 +90,12 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
     virtual void setTextColor(uint16_t fg, uint16_t bg) override {
         //tft.setTextColor(fg, bg);
         // TODO: monochrome display, do nothing?  maybe invert?
-        //Serial.printf("setTextColor(%02x, %02x) vs %02x and %02x\n", fg, bg, this->BLACK, this->WHi)
-        if (fg==this->BLACK && bg==this->WHITE) {
-            //Serial.printf("black-on-white: setTextColor(%02x, %02x) vs %02x and %02x\n", fg, bg, this->BLACK, this->WHITE);
+        //Serial.printf("setTextColor(%02x, %02x) vs black:%02x and white:%02x\n", fg, bg, BLACK, C_WHITE);
+        if (fg==BLACK && bg==C_WHITE) {
+            //Serial.println("!!!!!!!!!!!!!!!!!!!!!!!!INVERTING!!!!!!!!!!!!!!!!!!!!!!!!");
+            //Serial.printf("black-on-white: setTextColor(%02x, %02x) vs %02x and %02x\n", fg, bg, BLACK, C_WHITE);
             bInvert = true;
-        } else if (fg==this->WHITE && bg==this->BLACK) {
+        } else if (fg==C_WHITE && bg==BLACK) {
             //Serial.printf("white-on-black: setTextColor(%02x, %02x) vs %02x and %02x\n", fg, bg, this->BLACK, this->WHITE);
             bInvert = false;
         } else
@@ -108,18 +108,24 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
     virtual void fillRect(int x1, int y1, int w, int h, uint16_t color) override {
         //tft.fillRect(x, y, w, h, color);
         int ucColor = 0xFF;
-        oledRectangle(tft, x1, y1, x1 + w, y1 + h, ucColor, true);
+        oledRectangle(tft, x1, y1, w-x1, h-y1, ucColor, true);
     }
     virtual void setTextSize(int size) override {
         textSize = size;
     }
     virtual void printf(char *pattern) override {
-        char tmp[255];
-        sprintf(tmp, pattern);
+        //char tmp[255];
+        //sprintf(tmp, pattern);
         //tft.printf(pattern, param1);
+        char *tmp = pattern;
+        //Serial.printf("ss_oled->printf(\"%s\")\n", pattern);
         oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
+        if (tmp[strlen(tmp)-1] == '\n' || tft->iCursorX>ssoled.oled_x) {
+            //Serial.println("moving line due to a \\n");
+            setCursor(0,tft->iCursorY+textSize);
+        }
     }
-    virtual void printf(char *pattern, char *param1 = "") override {
+    virtual void printf(char *pattern, char *param1) override {
         char tmp[255];
         sprintf(tmp, pattern, param1);
         //tft.printf(pattern, param1);
@@ -167,10 +173,17 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
         sprintf(tmp, pattern, param1);
         printf(tmp);
     }
+    virtual void printf(char *pattern, char *param1, int param2, int param3) {
+        char tmp[255];
+        sprintf(tmp, pattern, param1, param2, param3);
+        printf(tmp);
+    }
+
 
     virtual void println(char *txt) override {
-        oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, (char*)txt, textSize, bInvert, 1);
-        oledSetCursor(&ssoled,0,tft->iCursorY+1);
+        printf(txt);
+        //oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, (char*)txt, textSize, bInvert, 1);
+        oledSetCursor(tft, 0, tft->iCursorY+1);
     }
 
     virtual int width() override {
@@ -180,10 +193,16 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
         return 7; //tft->height(); // 64?
     }
 
-    virtual void clear() override {
-        oledFill(tft, 0, 1);
-        tft->fillScreen(tft->BLACK);
+    virtual void clear(bool force) override {
+        Serial.println("clear..");
+        /*oledFill(tft, 0, 0);
+        oledRectangle(tft, 0, 0, tft->oled_x, tft->oled_y, 0, 1);*/
+        memset(&ucBackBuffer, (uint8_t)0, 1024);
+        if (force)
+            oledFill(tft, 0, true);
+        //tft->fillScreen(tft->BLACK);
     }
+
 
     virtual void updateDisplay() override {
         //tft->updateScreenAsync(false);

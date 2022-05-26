@@ -24,13 +24,17 @@ class MenuItem {
         virtual int display(Coord pos, bool selected, bool opened) {
             //Serial.printf("MenuItem display()")
             //tft_print("hello?");
-            //Serial.printf("MenuItem: base display for %s at (%i,%i)\n", label, tft->getCursorX(), tft->getCursorY());
+            //char state[10];
+            //if (selected) sprintf(state,"Sel");
+            //if (opened) sprintf(&state[3]," Open");
+            //sprintf(state,"%s%s",selected?'Sel':'   ', opened?'Ope':'   ');
             // display this item however that may be
             //tft->fillRect(random(20), random(20), random(20), random(20), C_WHITE);
+            //Serial.printf("MenuItem: base display for %s at (%i,%i) [s:%i o:%i]\n", label, tft->getCursorX(), tft->getCursorY(), selected, opened);
             tft->setCursor(pos.x,pos.y);
             //tft->setTextColor(ST77XX_WHITE, ST77XX_BLACK);
             colours(selected);
-            tft->println(label);
+            tft->printf("%s [s:%i o:%i]", label, (int)selected, (int)opened);
             //return (tft->getTextSizeY() * 8) + 2;
             return tft->getCursorY();
         }
@@ -41,7 +45,6 @@ class MenuItem {
         void colours(bool selected, int fg) {
             colours(selected, fg, BLACK);
         }
-
         void colours(bool selected, int fg, int bg) {
             if (!selected) {
                 tft->setTextColor(fg, bg);
@@ -125,11 +128,16 @@ class NumberControl : public MenuItem {
 
             colours(opened, opened ? GREEN : C_WHITE, BLACK);
             tft->setTextSize(2);
+            char tmp[10] = "";
+            
             if (opened) {
-                tft->printf("%*i\n", 4, internal_value);
+                //tft->printf("value: %*i\n", 4, internal_value);
+                sprintf(tmp, "%i\n\0", internal_value);
             } else {
-                tft->printf("%*i\n", 4, get_current_value()); //*target_variable); //target->transpose);
+                //tft->printf("value: %*i\n", 4, get_current_value()); //*target_variable); //target->transpose);
+                sprintf(tmp, "%i\n\0", get_current_value());
             }
+            tft->printf(tmp);
             //Serial.printf("NumberControl base display in %s?\n", label);
 
             return tft->getCursorY();
@@ -210,6 +218,11 @@ class DirectNumberControl : public NumberControl {
         increase_value();
         change_value(internal_value);
         //project.select_loop_number(internal_value);
+        return true;
+    }
+    virtual bool button_select() {
+        //this->target->set_transpose(internal_value);           
+        change_value(internal_value);
         return true;
     }
 };
