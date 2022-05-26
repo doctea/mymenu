@@ -30,14 +30,16 @@ class DisplayTranslator {
     virtual void drawLine(int x, int y, int w, int h, uint16_t color) {};
     virtual void fillRect(int x, int y, int w, int h, uint16_t color) {};
     virtual void setTextSize(int size) {};
-    virtual void printf(const char *pattern) {};
-    virtual void printf(const char *pattern, char *param1) {};
-    virtual void printf(const char *pattern, char *param1, char *param2) {};
-    virtual void printf(const char *pattern, int param1) {};
-    virtual void printf(const char *pattern, int param1, int param2) {};
-    virtual void printf(const char *pattern, int param1, int param2, int param3) {};
-    virtual void printf(const char *pattern, int param1, int param2, int param3, float param4) {};
-    virtual void println(const char *txt) {};
+    virtual void printf(char *pattern) {};
+    virtual void printf(char *pattern, char *param1) {};
+    virtual void printf(char *pattern, char *param1, char *param2) {};
+    virtual void printf(char *pattern, int param1, char* param2) {};
+    virtual void printf(char *pattern, int param1) {};
+    virtual void printf(char *pattern, int param1, int param2) {};
+    virtual void printf(char *pattern, int param1, int param2, int param3) {};
+    virtual void printf(char *pattern, int param1, int param2, int param3, float param4) {};
+    virtual void printf(char *pattern, int param1, const uint8_t *param2) {};
+    virtual void println(char *txt) {};
 
     virtual void drawRoundRect(int x, int y, int w, int h, int radius, int color) {
         Serial.println("TODO: unimplemented drawRoundRect()");

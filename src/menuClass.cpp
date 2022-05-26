@@ -85,3 +85,9 @@ int Menu::display() {
 
     return y;
 }
+
+void menu_set_last_message(char *msg, int colour) {
+    menu->set_last_message(msg);
+    menu->set_message_colour(colour);
+}
+

@@ -3,6 +3,8 @@
 
 #include "menu.h"
 
+void menu_set_last_message(char *msg, int colour);
+
 // basic line
 class MenuItem {
     public:
@@ -56,9 +58,9 @@ class MenuItem {
             tft->setTextSize(0);
             if (opened) {
                 tft->print(">>>");
-                tft->printf((const char*)"%-19s",(char*)text);   // \n not needed as reaching to edge
+                tft->printf((char*)"%-19s",(char*)text);   // \n not needed as reaching to edge
             } else {
-                tft->printf((const char*)"%-22s",(char*)text);   // \n not needed as reaching to edge
+                tft->printf((char*)"%-22s",(char*)text);   // \n not needed as reaching to edge
             }
             //return (tft->getTextSize()+1)*6;
             return tft->getCursorY();
@@ -128,7 +130,7 @@ class NumberControl : public MenuItem {
             } else {
                 tft->printf("%*i\n", 4, get_current_value()); //*target_variable); //target->transpose);
             }
-            //todo: why this not moving to next line?
+            //Serial.printf("NumberControl base display in %s?\n", label);
 
             return tft->getCursorY();
         }
@@ -319,8 +321,7 @@ class SelectorControl : public MenuItem {
             sprintf(msg, "Set %s to %s (%i)", label, get_label_for_value(available_values[selected_value_index]), available_values[selected_value_index]);
             //Serial.printf("about to set_last_message!");
             msg[20] = '\0'; // limit the string so we don't overflow set_last_message
-            // TODO: reenable menu.set_last_message(msg);
-            // TODO: reenable menu.set_message_colour(tft->GREEN);
+            menu_set_last_message(msg,GREEN);
             return false;
         }
 
@@ -347,7 +348,7 @@ class HarmonyStatus : public MenuItem {
             colours(opened);
 
             if (!last_note || !current_note) {
-                tft->println((const char *)"[not set]");
+                tft->println((char *)"[not set]");
             } else {
                 tft->printf("%4s : %4s",     // \n not needed because already fills row..
                     (char*)(get_note_name(*last_note).c_str()), 

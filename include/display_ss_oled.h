@@ -54,7 +54,7 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
         this->setup();
     }
 
-    virtual void setup() {
+    virtual void setup() override {
         int rc;
         char *msgs[] = {(char *)"SSD1306 @ 0x3C", (char *)"SSD1306 @ 0x3D",(char *)"SH1106 @ 0x3C",(char *)"SH1106 @ 0x3D"};
 
@@ -110,66 +110,82 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
         int ucColor = 0xFF;
         oledRectangle(tft, x1, y1, x1 + w, y1 + h, ucColor, true);
     }
-    virtual void setTextSize(int size) {
+    virtual void setTextSize(int size) override {
         textSize = size;
     }
-    virtual void printf(const char *pattern) {
+    virtual void printf(char *pattern) override {
         char tmp[255];
         sprintf(tmp, pattern);
         //tft.printf(pattern, param1);
         oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
     }
-    virtual void printf(const char *pattern, const char *param1 = "") {
+    virtual void printf(char *pattern, char *param1 = "") override {
         char tmp[255];
         sprintf(tmp, pattern, param1);
         //tft.printf(pattern, param1);
-        oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
+        printf(tmp);
+        //oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
     }
-    virtual void printf(const char *pattern, const char *param1, const char *param2) {
+    virtual void printf(char *pattern, char *param1, char *param2) override {
         char tmp[255];
         sprintf(tmp, pattern, param1, param2);
         //tft.printf(pattern, param1);
-        oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
+        printf(tmp);
+        //oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
     }
-    virtual void printf(const char *pattern, int param1) {
+    virtual void printf(char *pattern, int param1) override {
         char tmp[255];
         sprintf(tmp, pattern, param1);
-        oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
+        printf(tmp);
+        //oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
     }
-    virtual void printf(const char *pattern, int param1, int param2) {
+    virtual void printf(char *pattern, int param1, int param2) override {
         char tmp[255];
         sprintf(tmp, pattern, param1, param2);
-        oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
+        printf(tmp);
+        //oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
     }
-    virtual void printf(const char *pattern, int param1, int param2, int param3) {
+    virtual void printf(char *pattern, int param1, int param2, int param3) override {
         char tmp[255];
         sprintf(tmp, pattern, param1, param2, param3);
-        oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
+        printf(tmp);
+        //oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
     }
-    virtual void printf(const char *pattern, int param1, int param2, int param3, float param4) {
+    virtual void printf(char *pattern, int param1, int param2, int param3, float param4) override {
         char tmp[255];
         sprintf(tmp, pattern, param1, param2, param3, param4);
-        oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
+        printf(tmp);
+        //oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
+    }
+    virtual void printf(char *pattern, int param1, char* param2) override {
+        char tmp[255];
+        sprintf(tmp, pattern, param1);
+        printf(tmp);
+    }
+    virtual void printf(char *pattern, int param1, const uint8_t *param2) override {
+        char tmp[255];
+        sprintf(tmp, pattern, param1);
+        printf(tmp);
     }
 
-    virtual void println(const char *txt) {
+    virtual void println(char *txt) override {
         oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, (char*)txt, textSize, bInvert, 1);
         oledSetCursor(&ssoled,0,tft->iCursorY+1);
     }
 
-    virtual int width() {
+    virtual int width() override {
         return 128; //tft->width();
     }
-    virtual int height() {
+    virtual int height() override {
         return 7; //tft->height(); // 64?
     }
 
-    virtual void clear() {
+    virtual void clear() override {
         oledFill(tft, 0, 1);
         tft->fillScreen(tft->BLACK);
     }
 
-    virtual void updateDisplay() {
+    virtual void updateDisplay() override {
         //tft->updateScreenAsync(false);
         //menu->display();
     }
@@ -183,7 +199,7 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
 }
 */
 
-/*void tft_print (const char *text) {
+/*void tft_print (char *text) {
     tft->print(text);
 }*/
 
