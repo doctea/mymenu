@@ -3,8 +3,6 @@
 
 #ifdef TFT_SSOLED
 
-
-
 #include "display_abstract.h"
 
 #include "ss_oled.h"

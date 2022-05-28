@@ -11,6 +11,8 @@
 #include <SPI.h>
 #include "ST7789_t3.h"
 
+#include "colours.h"
+
 #include "tft.h"
 
 #define TFT_CS        10
@@ -19,12 +21,12 @@
 
 //Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 
-#define C_WHITE ST77XX_WHITE
+/*#define C_WHITE ST77XX_WHITE
 #define BLACK   ST77XX_BLACK
 #define RED     ST77XX_RED
 #define GREEN   ST77XX_GREEN
 #define BLUE    ST77XX_BLUE
-#define YELLOW  ST77XX_YELLOW
+#define YELLOW  ST77XX_YELLOW*/
 
 class DisplayTranslator_STeensy : public DisplayTranslator {
     public:

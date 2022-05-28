@@ -16,10 +16,9 @@ int Menu::display() {
 
     // now draw the menu
     if (currently_opened>=0 && items.get(currently_opened)->allow_takeover()) {
-        #ifdef PPQN
-            y = draw_loop_markers();
-        #endif
-        y = draw_message();
+        if (pinned_panel!=nullptr)
+            y = pinned_panel->display(Coord(0,0), false, false);
+            //y = draw_message();
         // let the currently opened item take care of drawing all of the display
         items.get(currently_opened)->display(Coord(0,y), true, true);
     } else {
@@ -54,13 +53,13 @@ int Menu::display() {
         }
         last_start_panel = start_panel;
 
-
         tft->setCursor(0,0);
 
-        #ifdef LOOP_MARKERS
-            y = draw_loop_markers();
-        #endif
+        if (pinned_panel!=nullptr)
+            y = pinned_panel->display(Coord(0,0), false, false);
+
         tft->setCursor(0, y);
+        
         y = draw_message();
 
         // draw each menu item's panel

@@ -3,7 +3,6 @@
 
 #include <Arduino.h>
 
-
 #define C_WHITE     0xFF
 #define BLACK       0x00
 #define RED         0xFA
@@ -26,7 +25,7 @@ class DisplayTranslator {
     virtual void print(char *text) {};
     virtual int getCursorX() {};
     virtual int getCursorY() {};
-    virtual void setTextColor(uint16_t fg,  uint16_t bg) {};
+    virtual void setTextColor(uint16_t fg, uint16_t bg) {};
     virtual void drawLine(int x, int y, int w, int h, uint16_t color) {};
     virtual void fillRect(int x, int y, int w, int h, uint16_t color) {};
     virtual void setTextSize(int size) {};

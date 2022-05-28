@@ -14,6 +14,8 @@
 //#include "bpm.h"
 //#include "project.h"
 
+#include "colours.h"
+
 #include "menu.h"
 #include "menuitems.h"
 

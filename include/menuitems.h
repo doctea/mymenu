@@ -2,6 +2,7 @@
 #define MENUITEMS__INCLUDED
 
 #include "menu.h"
+#include "colours.h"
 
 void menu_set_last_message(char *msg, int colour);
 
@@ -40,7 +41,7 @@ class MenuItem {
         }
 
         void colours(bool selected) {
-            colours(selected, /*tft->WHITE*/ST77XX_WHITE, BLACK);
+            colours(selected, /*tft->WHITE*/C_WHITE, BLACK);
         }
         void colours(bool selected, int fg) {
             colours(selected, fg, BLACK);
@@ -372,5 +373,70 @@ class HarmonyStatus : public MenuItem {
         }
 };
 
+
+class PinnedPanelMenuItem : public MenuItem {
+    public:
+        unsigned long ticks = 0;
+
+        PinnedPanelMenuItem(char *label) : MenuItem(label) {};
+
+        int update_ticks(unsigned long ticks) {
+            this->ticks = ticks;
+        }
+};
+
+class LoopMarkerPanel : public PinnedPanelMenuItem {
+    unsigned long loop_length;
+    int beats_per_bar = 4;
+    int bars_per_phrase = 4;
+    int ppqn;
+
+    public:
+        LoopMarkerPanel(int loop_length, int ppqn, int beats_per_bar = 4, int bars_per_phrase = 4) : PinnedPanelMenuItem("Loop Position Header") {
+            this->loop_length = loop_length;
+            this->beats_per_bar = beats_per_bar;
+            this->bars_per_phrase = bars_per_phrase;
+            this->ppqn = ppqn;
+        };
+
+        int set_loop_length(unsigned long loop_length) {
+            this->loop_length = loop_length;
+        }
+        int set_beats_per_bar(unsigned long beats_per_bar) {
+            this->beats_per_bar;
+        }        
+
+        virtual int display(Coord pos, bool selected = false, bool opened = false) override {
+            Serial.printf("PinnedPanel display colour RED is %4x, WHITE is %4x\n", RED, C_WHITE);
+
+            tft->setTextColor(C_WHITE, BLACK);
+            //tft.setCursor(pos.x,pos.y);
+            //int LOOP_LENGTH = PPQN * BEATS_PER_BAR * BARS_PER_PHRASE;
+            int y = 0;
+            //y+=2;
+            float percent = float(ticks % loop_length) / (float)loop_length;
+            //tft.drawFastHLine(0, tft.width(), 3, ST77XX_WHITE);
+            //tft.drawFastHLine(0, tft.width() * percent, 2, ST77XX_RED);
+            tft->fillRect(0, y, (percent*(float)tft->width()), 6, RED);
+
+            int step_size = tft->width() / (beats_per_bar*bars_per_phrase);
+            for (int i = 0 ; i < tft->width() ; i += step_size) {
+                tft->drawLine(i, y, i, y+2, C_WHITE);
+                //if (i%BEATS_PER_BAR==0)
+                    //tft.drawLine(i, y, i, y+4, ST7735_CYAN);
+            }
+
+            step_size = tft->width() / bars_per_phrase;
+            for (int i = 0 ; i < tft->width() ; i += step_size) {
+                //tft.drawLine(i, y, i, y+4, ST7735_WHITE);
+                tft->fillRect(i, y, 2, 5, C_WHITE);
+            }
+
+            //Serial.printf("percent %f, width %i\n", percent, tft->width());
+            y += 6;
+            return y;
+        }
+        //#endif
+};
 
 #endif
