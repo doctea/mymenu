@@ -9,10 +9,12 @@
 
 // draw the menu display
 int Menu::display() {
+    bool debug = false;
     //Serial.printf("display !");
     int y = 0;
     
-    tft->setTextColor(ST77XX_WHITE, ST77XX_BLACK);
+    if (debug) { Serial.println(F("display()=> about to setTextColor()")); Serial.flush(); }
+    tft->setTextColor(C_WHITE, BLACK);
 
     // now draw the menu
     if (currently_opened>=0 && items.get(currently_opened)->allow_takeover()) {
@@ -55,11 +57,14 @@ int Menu::display() {
 
         tft->setCursor(0,0);
 
-        if (pinned_panel!=nullptr)
+        if (pinned_panel!=nullptr) {
+            if (debug) { Serial.println(F("display()=> about to pinned_panel->display()")); Serial.flush(); }
             y = pinned_panel->display(Coord(0,0), false, false);
+        }
 
         tft->setCursor(0, y);
         
+        if (debug) { Serial.println(F("display()=> about to draw_message()")); Serial.flush(); }
         y = draw_message();
 
         // draw each menu item's panel
@@ -68,6 +73,7 @@ int Menu::display() {
             MenuItem *item = items.get(i);
             //int time = millis();
             //Serial.printf("Menu rendering item %i [selected #%i, opened #%i]\n", i, currently_selected, currently_opened);
+            if (debug) { Serial.printf(F("display()=> about to display() item %i aka %s\n"), i, item->label); Serial.flush(); }
             y = item->display(Coord(0,y), i==currently_selected, i==currently_opened) + 1;
             //Serial.printf("after rendering MenuItem %i, return y is %i, cursor coords are (%i,%i)\n", y, tft->getCursorX(), tft->getCursorY());
 
@@ -81,15 +87,17 @@ int Menu::display() {
 
         // control debug output (knob positions / button presses)
         tft->setCursor(0, y);
-        tft->setTextColor(ST77XX_WHITE, ST77XX_BLACK);
+        tft->setTextColor(C_WHITE, BLACK);
         //tft->println();
         tft->setTextSize(2);
         tft->printf("K:%2i B:%2i\n", last_knob_position, button_count);
         tft->printf("S:%2i O:%2i\n", currently_selected, currently_opened);
-        tft->printf("Mem:%i\n", freeRam());
+        tft->printf("Mem:%i\n"), freeRam();
+        if (debug) { Serial.println(F("Done in main draw part")); Serial.flush(); }
     }
 
     //tft->updateScreenAsync(false);
+    if (debug) { Serial.println(F("display()=> about to tft->updateDisplay()")); Serial.flush(); }
     tft->updateDisplay();
 
     return y;

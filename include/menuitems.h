@@ -107,6 +107,7 @@ class NumberControl : public MenuItem {
         int minimum_value = 0;
         int maximum_value = 4;
         int step = 1;
+        bool readOnly = false;
 
         NumberControl(const char* label, int in_start_value, int min_value, int max_value) : MenuItem(label) {
             internal_value = in_start_value;
@@ -122,6 +123,10 @@ class NumberControl : public MenuItem {
             target_variable = in_target_variable;
             this->on_change_handler = on_change_handler;
         };
+
+        virtual void setReadOnly(bool readOnly = true) {
+            this->readOnly = readOnly;
+        }
 
         virtual int display(Coord pos, bool selected, bool opened) override {
             pos.y = header(label, pos, selected, opened);
@@ -157,16 +162,19 @@ class NumberControl : public MenuItem {
         }
 
         virtual bool knob_left() {
-            increase_value();
+            if (!readOnly)
+                increase_value();
             return true;
         }
         virtual bool knob_right() {
-            decrease_value();
+            if (!readOnly)
+                decrease_value();
             //project.select_loop_number(internal_value);
             return true;
         }
 
         virtual void change_value(int new_value) {
+            if (readOnly) return;
             int last_value = get_current_value();
             set_current_value(new_value);
             if (on_change_handler!=nullptr) {
@@ -176,6 +184,7 @@ class NumberControl : public MenuItem {
         }
 
         virtual bool button_select() {
+            if (readOnly) return;
             //this->target->set_transpose(internal_value);           
             change_value(internal_value);
             return false;
@@ -208,6 +217,7 @@ class DirectNumberControl : public NumberControl {
     }
 
     virtual bool knob_left() {
+        if (readOnly) return;
         Serial.printf("DirectNumberControl knob_left, internal_value=%i\n", internal_value);
         decrease_value();
         change_value(internal_value);
@@ -215,6 +225,7 @@ class DirectNumberControl : public NumberControl {
         return true;
     }
     virtual bool knob_right() {
+        if (readOnly) return;
         Serial.printf("DirectNumberControl knob_right, internal_value=%i\n", internal_value);
         increase_value();
         change_value(internal_value);
@@ -222,6 +233,7 @@ class DirectNumberControl : public NumberControl {
         return true;
     }
     virtual bool button_select() {
+        if (readOnly) return;
         //this->target->set_transpose(internal_value);           
         change_value(internal_value);
         return true;
@@ -407,7 +419,7 @@ class LoopMarkerPanel : public PinnedPanelMenuItem {
         }        
 
         virtual int display(Coord pos, bool selected = false, bool opened = false) override {
-            Serial.printf("PinnedPanel display colour RED is %4x, WHITE is %4x\n", RED, C_WHITE);
+            //Serial.printf("PinnedPanel display colour RED is %4x, WHITE is %4x\n", RED, C_WHITE);
 
             tft->setTextColor(C_WHITE, BLACK);
             //tft.setCursor(pos.x,pos.y);

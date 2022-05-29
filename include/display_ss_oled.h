@@ -192,7 +192,7 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
     }
 
     virtual void clear(bool force) override {
-        Serial.println("clear..");
+        //Serial.println("clear..");
         /*oledFill(tft, 0, 0);
         oledRectangle(tft, 0, 0, tft->oled_x, tft->oled_y, 0, 1);*/
         memset(&ucBackBuffer, (uint8_t)0, 1024);
