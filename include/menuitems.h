@@ -392,7 +392,7 @@ class PinnedPanelMenuItem : public MenuItem {
 
         PinnedPanelMenuItem(char *label) : MenuItem(label) {};
 
-        int update_ticks(unsigned long ticks) {
+        void update_ticks(unsigned long ticks) {
             this->ticks = ticks;
         }
 };

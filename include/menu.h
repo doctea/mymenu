@@ -33,13 +33,17 @@ class Menu {
     int currently_opened    = -1;
     LinkedList<MenuItem*> items = LinkedList<MenuItem*>();
 
-    PinnedPanelMenuItem *pinned_panel;
+    PinnedPanelMenuItem *pinned_panel = nullptr;
 
-    int panel_height[20];
+    int panel_height[20] = { 0, 0, 0, 0, 0, 
+                             0, 0, 0, 0, 0, 
+                             0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 0 };
 
-    int last_knob_position;
-    int button_count;
+    int last_knob_position = -1;
+    int button_count = 0;
 
+    public:
     void knob_turned(int knob_position) {
         Serial.printf("knob_turned %i\n", knob_position);
         //tft->setCursor(0,0);
@@ -119,7 +123,7 @@ class Menu {
         return true;
     }
 
-    public:
+
         char last_message[20] = "...started up...";
         uint32_t message_colour = C_WHITE;
         DisplayTranslator *tft;

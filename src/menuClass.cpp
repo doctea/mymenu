@@ -60,6 +60,7 @@ int Menu::display() {
         if (pinned_panel!=nullptr) {
             if (debug) { Serial.println(F("display()=> about to pinned_panel->display()")); Serial.flush(); }
             y = pinned_panel->display(Coord(0,0), false, false);
+            if (debug) { Serial.println(F("display()=> did pinned_panel->display()!")); Serial.flush(); }
         }
 
         tft->setCursor(0, y);
