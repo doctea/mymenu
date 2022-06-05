@@ -44,6 +44,8 @@ class Menu {
     int button_count = 0;
 
     public:
+    bool debug = false;
+    
     void knob_turned(int knob_position) {
         Serial.printf("knob_turned %i\n", knob_position);
         //tft->setCursor(0,0);
@@ -69,6 +71,11 @@ class Menu {
                 currently_selected = items.size()-1;
             Serial.printf("selected %i aka %s\n", currently_selected, items.get(currently_selected)->label);
         }
+        if (debug) {
+            char msg[20] = "";
+            sprintf(msg, "knob_left to %i", currently_selected);
+            set_last_message(msg);
+        }
         return true;
     }
     bool knob_right() {
@@ -81,6 +88,11 @@ class Menu {
             if (currently_selected >= items.size())
                 currently_selected = 0;
             Serial.printf("selected %i aka %s\n", currently_selected, items.get(currently_selected)->label);
+        }
+        if (debug) {
+            char msg[20] = "";
+            sprintf(msg, "knob_left to %i", currently_selected);
+            set_last_message(msg);
         }
         return true;
     }

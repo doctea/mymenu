@@ -32,6 +32,7 @@ class MenuItem {
             // display this item however that may be
             //tft->fillRect(random(20), random(20), random(20), random(20), C_WHITE);
             //Serial.printf("MenuItem: base display for %s at (%i,%i) [s:%i o:%i]\n", label, tft->getCursorX(), tft->getCursorY(), selected, opened);
+            tft->setTextSize(0);
             tft->setCursor(pos.x,pos.y);
             //tft->setTextColor(ST77XX_WHITE, ST77XX_BLACK);
             colours(selected);
