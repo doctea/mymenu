@@ -44,6 +44,11 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
     SSOLED *tft;
     uint8_t ucBackBuffer[1024];
 
+    virtual const char *get_message_format() { return "[%-19s]"; }
+    virtual const char *get_header_format() { return "%-21s"; }
+    virtual const char *get_header_open_format() { return ">>>%-18s"; }
+    virtual const char *get_header_selected_format() { return "%-21s"; }
+
     DisplayTranslator_SS_OLED() {
         this->tft = &ssoled;
         this->tft = tft;
@@ -89,11 +94,11 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
         //tft.setTextColor(fg, bg);
         // TODO: monochrome display, do nothing?  maybe invert?
         //Serial.printf("setTextColor(%02x, %02x) vs black:%02x and white:%02x\n", fg, bg, BLACK, C_WHITE);
-        if (fg==BLACK && bg==C_WHITE) {
+        if (fg==BLACK) { //} && bg==C_WHITE) {
             //Serial.println("!!!!!!!!!!!!!!!!!!!!!!!!INVERTING!!!!!!!!!!!!!!!!!!!!!!!!");
             //Serial.printf("black-on-white: setTextColor(%02x, %02x) vs %02x and %02x\n", fg, bg, BLACK, C_WHITE);
             bInvert = true;
-        } else if (fg==C_WHITE && bg==BLACK) {
+        } else if (/*fg==C_WHITE &&*/ bg==BLACK) {
             //Serial.printf("white-on-black: setTextColor(%02x, %02x) vs %02x and %02x\n", fg, bg, this->BLACK, this->WHITE);
             bInvert = false;
         } else
@@ -115,10 +120,12 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
         //char tmp[255];
         //sprintf(tmp, pattern);
         //tft.printf(pattern, param1);
-        char *tmp = pattern;
+        //char *tmp = pattern;
         //Serial.printf("ss_oled->printf(\"%s\")\n", pattern);
+        char tmp[100] = "                                 ";
+        sprintf(tmp,"%-21s\0", pattern);   // limit to width and ensure space at end of string is blanked out?
         oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
-        if (tmp[strlen(tmp)-1] == '\n' || tft->iCursorX>ssoled.oled_x) {
+        if (tmp[strlen(tmp)-1] == '\n') { //} || tft->iCursorX>ssoled.oled_x) {
             //Serial.println("moving line due to a \\n");
             setCursor(0,tft->iCursorY+(1+textSize));
         }
@@ -181,7 +188,8 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
     virtual void println(char *txt) override {
         printf(txt);
         //oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, (char*)txt, textSize, bInvert, 1);
-        oledSetCursor(tft, 0, tft->iCursorY+(1+textSize));
+        if (txt[strlen(txt)-1]!='\n')
+            oledSetCursor(tft, 0, tft->iCursorY+(1+textSize));
     }
 
     virtual int width() override {
@@ -192,7 +200,7 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
     }
 
     virtual int getRowHeight() override {
-        return this->textSize;
+        return this->textSize+1;
     }
 
     virtual void clear(bool force) override {

@@ -45,6 +45,11 @@ int Menu::display() {
             last_displayed = currently_selected;
         }
 
+        tft->setTextColor(C_WHITE, BLACK);
+        while(tft->getCursorY() < tft->height())
+            tft->println("");
+        tft->println("");
+
     } else {
         static int panel_bottom[20];
         static bool bottoms_computed = false;

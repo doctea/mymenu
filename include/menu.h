@@ -126,6 +126,7 @@ class Menu {
         } else {
             Serial.printf("back with currently_opened %i, handled by selected\n"); //setting to -1\n", currently_opened);
         }
+        tft->clear(true);
         return true;
     }
     bool button_right() {
@@ -185,14 +186,13 @@ class Menu {
             // draw the last status message
             tft->setTextColor(message_colour,ST77XX_BLACK);
             tft->setTextSize(0);
-            tft->printf("[%-20s]",last_message);
+            tft->printf((char*)tft->get_message_format(),last_message);
             return tft->getCursorY();
         }
 
         //#ifdef PPQN
         //#define LOOP_MARKERS
         //#define LOOP_LENGTH (PPQN * BEATS_PER_BAR * BARS_PER_PHRASE)
-
 
         // draw the menu display
         virtual int display();

@@ -4,6 +4,7 @@
 #include "menu.h"
 #include "colours.h"
 
+
 void menu_set_last_message(char *msg, int colour);
 
 // basic line
@@ -62,10 +63,14 @@ class MenuItem {
             colours(selected);
             tft->setTextSize(0);
             if (opened) {
-                tft->print(">>>");
-                tft->printf((char*)"%-19s",(char*)text);   // \n not needed as reaching to edge
+                //tft->print(">>>");
+                //tft->printf((char*)"%-19s",(char*)text);   // \n not needed as reaching to edge
+                tft->printf((char*)tft->get_header_open_format(), (char*)text);
+            } else if (selected) {
+                //tft->printf((char*)"%-22s",(char*)text);   // \n not needed as reaching to edge
+                tft->printf((char*)tft->get_header_selected_format(), (char*)text);
             } else {
-                tft->printf((char*)"%-22s",(char*)text);   // \n not needed as reaching to edge
+                tft->printf((char*)tft->get_header_format());
             }
             //return (tft->getTextSize()+1)*6;
             return tft->getCursorY();
@@ -300,7 +305,7 @@ class SelectorControl : public MenuItem {
             int current_value = this->getter();
 
             for (int i = 0 ; i < num_values ; i++) {
-                //bool is_current_value_selected = selected_value_index==i; //available_values[i]==current_value;
+                //bool is_current_value_selected = selected_value_index==i; //available_values[i]==currentValue;
                 bool is_current_value_selected = available_values[i]==current_value; //getter();
                 int col = is_current_value_selected ? GREEN : C_WHITE;
                 colours(opened && selected_value_index==i, col, BLACK);
@@ -324,14 +329,14 @@ class SelectorControl : public MenuItem {
 
             int start_item = selected_value_index - 2;
 
-            int current_value = this->getter();
+            int currentValue = this->getter();
 
             for (int i = start_item ; i < selected_value_index ; i++) {
                 int actual_item = i;
                 if (i<0) actual_item = num_values - i;
                 if (i>=num_values) actual_item = selected_value_index + (num_values - i);
 
-                bool is_current_value_selected = available_values[actual_item]==current_value; //getter();
+                bool is_current_value_selected = available_values[actual_item]==currentValue; //getter();
                 int col = is_current_value_selected ? ST7735_GREEN : ST7735_WHITE;
                 colours(opened && selected_value_index==actual_item, col, ST7735_BLACK);
                 tft->printf("%s", get_label_for_value(available_values[actual_item]));

@@ -14,6 +14,16 @@ class DisplayTranslator {
 
     public:
 
+    virtual const char *get_message_format() { return "[%-20s]"; }
+    virtual const char *get_header_format() { return "%-22s"; }
+    virtual const char *get_header_open_format() { return ">>>%-19s"; }
+    virtual const char *get_header_selected_format() { return "%-22s"; }
+
+    /*const char *MESSAGE_FORMAT          = "[%-20s]";
+    const char *HEADER_FORMAT           = "%-22s";
+    const char *HEADER_OPEN_FORMAT      = ">>>%-19s";
+    const char *HEADER_SELECTED_FORMAT  = "%-22s";*/
+
     DisplayTranslator() {};
     //~DisplayTranslator() {};
 
@@ -70,7 +80,15 @@ class DisplayTranslator {
         if (height==-1) height = this->height();
         int rowHeight = this->getRowHeight();
         
-        return rows*rowHeight <= height;
+        int position = getCursorY() + (rows*rowHeight);
+        bool result = position <= height;
+        /*if (result) 
+            Serial.printf("will_x_rows_fit_to_height: current Y is %i, rows %i, rowHeight %i, (so Y+rows*rowHeight=%i) -> will fit in height %i?\n", 
+                getCursorY(), rows, rowHeight, position, height);
+        else
+            Serial.printf("will_x_rows_fit_to_height: current Y is %i, rows %i, rowHeight %i, (so Y+rows*rowHeight=%i) -> WON'T fit in height %i?\n", 
+                getCursorY(), rows, rowHeight, position, height);*/
+        return result;
     } 
 
 };
