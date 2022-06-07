@@ -51,6 +51,8 @@ class DisplayTranslator {
     virtual int width() {};
     virtual int height() {};
 
+    virtual int getRowHeight() {};
+
     virtual void updateDisplay() {};
 
     // by ktownsend from https://forums.adafruit.com/viewtopic.php?t=21536
@@ -63,6 +65,13 @@ class DisplayTranslator {
         uint8_t b = rgb & 0b11111111;
         return ((r / 8) << 11) | ((g / 4) << 5) | (b / 8);
     }
+
+    virtual bool will_x_rows_fit_to_height(int rows, int height = -1) {
+        if (height==-1) height = this->height();
+        int rowHeight = this->getRowHeight();
+        
+        return rows*rowHeight <= height;
+    } 
 
 };
 

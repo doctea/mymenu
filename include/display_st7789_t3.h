@@ -120,6 +120,10 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
         return tft->height();
     }
 
+    virtual int getRowHeight() override {
+        return (tft->getTextSize()+1) * 8;
+    }
+
     virtual void clear(bool force = false) {
         tft->fillScreen(BLACK);
         //tft->fillRect(0, 0, tft->width(), tft->height(), BLACK);

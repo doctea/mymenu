@@ -102,6 +102,9 @@ class MenuItem {
 class NumberControl : public MenuItem {
     void (*on_change_handler)(int last_value, int new_value);
 
+    int (*getter)() = nullptr;
+    void (*setter)(int value) = nullptr;
+
     public:
         int *target_variable = nullptr;
         int internal_value = 0;
@@ -110,6 +113,8 @@ class NumberControl : public MenuItem {
         int step = 1;
         bool readOnly = false;
 
+        NumberControl(const char* label) : MenuItem(label) {
+        }
         NumberControl(const char* label, int in_start_value, int min_value, int max_value) : MenuItem(label) {
             internal_value = in_start_value;
             minimum_value = min_value;
@@ -122,6 +127,16 @@ class NumberControl : public MenuItem {
             minimum_value = min_value;
             maximum_value = max_value; 
             target_variable = in_target_variable;
+            this->on_change_handler = on_change_handler;
+        };
+        NumberControl(const char* label, int (*getter)(), void (*setter)(int value), int min_value, int max_value, void (*on_change_handler)(int last_value, int new_value)) : 
+            MenuItem(label) {
+            this->getter = getter;
+            this->setter = setter;
+
+            internal_value = getter();
+            minimum_value = min_value;
+            maximum_value = max_value;
             this->on_change_handler = on_change_handler;
         };
 
@@ -196,14 +211,18 @@ class NumberControl : public MenuItem {
             if (target_variable!=nullptr)
                 //return 0;
                 return *target_variable;
-            else
-                return 0;
+            if (getter!=nullptr)
+                return getter();
+
+            return 0;
         }
 
         // override in subclass if need to do something special eg getter/setter
         virtual void set_current_value(int value) { 
             if (target_variable!=nullptr)
                 *target_variable = value;
+            if (setter!=nullptr)
+                setter(value);
         }
 
         virtual void setStep(int step) {
@@ -213,8 +232,12 @@ class NumberControl : public MenuItem {
 
 class DirectNumberControl : public NumberControl {
     public:
+    DirectNumberControl(const char* label) : NumberControl(label) {};
     DirectNumberControl(const char* label, int *in_target_variable, int start_value, int min_value, int max_value, void (*on_change_handler)(int last_value, int new_value)) 
             : NumberControl(label, in_target_variable, start_value, min_value, max_value, on_change_handler) {
+    }
+    DirectNumberControl(const char* label, int (*getter)(), void (*setter)(int value), int min_value, int max_value, void (*on_change_handler)(int last_value, int new_value))
+            : NumberControl(label, getter, setter, min_value, max_value, on_change_handler) {
     }
 
     virtual bool knob_left() {
@@ -412,10 +435,10 @@ class LoopMarkerPanel : public PinnedPanelMenuItem {
             this->ppqn = ppqn;
         };
 
-        int set_loop_length(unsigned long loop_length) {
+        void set_loop_length(unsigned long loop_length) {
             this->loop_length = loop_length;
         }
-        int set_beats_per_bar(unsigned long beats_per_bar) {
+        void set_beats_per_bar(unsigned long beats_per_bar) {
             this->beats_per_bar;
         }        
 

@@ -120,7 +120,7 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
         oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
         if (tmp[strlen(tmp)-1] == '\n' || tft->iCursorX>ssoled.oled_x) {
             //Serial.println("moving line due to a \\n");
-            setCursor(0,tft->iCursorY+textSize);
+            setCursor(0,tft->iCursorY+(1+textSize));
         }
     }
     virtual void printf(char *pattern, char *param1) override {
@@ -181,7 +181,7 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
     virtual void println(char *txt) override {
         printf(txt);
         //oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, (char*)txt, textSize, bInvert, 1);
-        oledSetCursor(tft, 0, tft->iCursorY+1);
+        oledSetCursor(tft, 0, tft->iCursorY+(1+textSize));
     }
 
     virtual int width() override {
@@ -189,6 +189,10 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
     }
     virtual int height() override {
         return 7; //tft->height(); // 64?
+    }
+
+    virtual int getRowHeight() override {
+        return this->textSize;
     }
 
     virtual void clear(bool force) override {

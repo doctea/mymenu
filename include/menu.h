@@ -45,6 +45,13 @@ class Menu {
 
     public:
     bool debug = false;
+
+    enum {
+        NORMAL = 0,
+        DISPLAY_ONE = 1
+    };
+
+    int mode = DISPLAY_ONE;
     
     void knob_turned(int knob_position) {
         Serial.printf("knob_turned %i\n", knob_position);

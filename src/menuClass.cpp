@@ -23,13 +23,35 @@ int Menu::display() {
             //y = draw_message();
         // let the currently opened item take care of drawing all of the display
         items.get(currently_opened)->display(Coord(0,y), true, true);
+    } else if (mode==DISPLAY_ONE) {
+        static int last_displayed = 0;
+        if (last_displayed!=currently_selected)
+            tft->clear();
+        tft->setCursor(0, 0);
+
+        if (pinned_panel!=nullptr) {
+            if (debug) { Serial.println(F("display()=> about to pinned_panel->display()")); Serial.flush(); }
+            y = pinned_panel->display(Coord(0,0), false, false);
+            if (debug) { Serial.println(F("display()=> did pinned_panel->display()!")); Serial.flush(); }
+        }
+
+        tft->setCursor(0, y);
+        
+        if (debug) { Serial.println(F("display()=> about to draw_message()")); Serial.flush(); }
+        y = draw_message();
+
+        if (currently_selected>=0 && currently_selected < items.size()) {
+            items.get(currently_selected)->display(Coord(0,y), true, currently_opened==currently_selected);
+            last_displayed = currently_selected;
+        }
+
     } else {
         static int panel_bottom[20];
         static bool bottoms_computed = false;
 
         // find number of panels to offset in order to ensure that selected panel is on screen?
         int start_panel = 0;
-        if (currently_selected>0 && panel_bottom[currently_selected] > tft->height()) {
+        if (currently_selected>0 && panel_bottom[currently_selected] >= tft->height()) {
             start_panel = currently_selected - 1;
             // count backwards to find number of panels we have to go to fit currently_selected on screen...
             int count_y = panel_bottom[currently_selected];
