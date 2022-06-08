@@ -51,7 +51,7 @@ class Menu {
         DISPLAY_ONE = 1
     };
 
-    int mode = DISPLAY_ONE;
+    int mode = NORMAL;
     
     void knob_turned(int knob_position) {
         Serial.printf("knob_turned %i\n", knob_position);
