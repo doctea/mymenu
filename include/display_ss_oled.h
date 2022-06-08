@@ -123,9 +123,15 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
         //char *tmp = pattern;
         //Serial.printf("ss_oled->printf(\"%s\")\n", pattern);
         char tmp[100] = "                                 ";
+
+        // todo: fix newline character display issue...
+        bool newline = pattern[strlen(pattern)-1]=='\n';
+        if (newline) pattern[strlen(pattern)-1] = '\0';
+        
         sprintf(tmp,"%-21s\0", pattern);   // limit to width and ensure space at end of string is blanked out?
         oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
-        if (tmp[strlen(tmp)-1] == '\n') { //} || tft->iCursorX>ssoled.oled_x) {
+        if (newline && tft->iCursorX>0) { //}) { //tmp[strlen(tmp)-1] == '\n') { //} || tft->iCursorX>ssoled.oled_x) {
+        //if (tmp[strlen(tmp)-1] == '\n') { //} || tft->iCursorX>ssoled.oled_x) {
             //Serial.println("moving line due to a \\n");
             setCursor(0,tft->iCursorY+(1+textSize));
         }
