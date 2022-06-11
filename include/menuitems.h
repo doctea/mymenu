@@ -246,7 +246,7 @@ class DirectNumberControl : public NumberControl {
     }
 
     virtual bool knob_left() {
-        if (readOnly) return;
+        if (readOnly) return false;
         Serial.printf("DirectNumberControl knob_left, internal_value=%i\n", internal_value);
         decrease_value();
         change_value(internal_value);
@@ -254,7 +254,7 @@ class DirectNumberControl : public NumberControl {
         return true;
     }
     virtual bool knob_right() {
-        if (readOnly) return;
+        if (readOnly) return false;
         Serial.printf("DirectNumberControl knob_right, internal_value=%i\n", internal_value);
         increase_value();
         change_value(internal_value);
