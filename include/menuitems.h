@@ -77,7 +77,12 @@ class MenuItem {
             return tft->getCursorY();
         }
 
-        // default to returning true to exit out to main menu after setting
+        // called when item is selected ie opened from the main menu - return true to open, return false to 'refuse to open'
+        virtual bool action_opened() {
+            return true;
+        }
+
+        // default to returning true to exit out to main menu after setting (IF OPENED, otherwise button_select is not sent!)
         virtual bool button_select() {
             return true;
         }
@@ -150,20 +155,30 @@ class NumberControl : public MenuItem {
             this->readOnly = readOnly;
         }
 
+        virtual const char *getFormattedValue(int value) {
+            char fmt[20] = "      ";
+            sprintf(fmt, "%i", value);
+            return fmt;
+        }
+
+        virtual const char *getFormattedValue() {
+            return this->getFormattedValue(get_current_value());
+        }
+
         virtual int display(Coord pos, bool selected, bool opened) override {
             pos.y = header(label, pos, selected, opened);
             tft->setCursor(pos.x,pos.y);
 
             colours(opened, opened ? GREEN : C_WHITE, BLACK);
-            tft->setTextSize(2);
+            tft->setTextSize(1);        // was 2 ?
             char tmp[10] = "";
             
             if (opened) {
                 //tft->printf("value: %*i\n", 4, internal_value);
-                sprintf(tmp, "%i\n\0", internal_value);
+                sprintf(tmp, "%i\n", this->getFormattedValue(internal_value));
             } else {
                 //tft->printf("value: %*i\n", 4, get_current_value()); //*target_variable); //target->transpose);
-                sprintf(tmp, "%i\n\0", get_current_value());
+                sprintf(tmp, "%s\n", this->getFormattedValue()); //get_current_value());
             }
             tft->printf(tmp);
             //Serial.printf("NumberControl base display in %s?\n", label);

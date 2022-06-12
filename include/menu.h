@@ -107,7 +107,8 @@ class Menu {
         Serial.printf("button_select() on item %i\n", currently_selected);
         if (currently_opened==-1) {
             Serial.printf("button_select with currently_opened -1 - selecting %i\n", currently_selected);
-            currently_opened = currently_selected;
+            if (items.get(currently_selected)->action_opened())
+                currently_opened = currently_selected;
         } else {
             Serial.printf("button_select subselect on %i\n", currently_opened);
             if (items.get(currently_opened)->button_select()) 
@@ -122,7 +123,7 @@ class Menu {
             currently_selected = currently_opened;
             currently_opened = -1;
         } else if (currently_opened==-1) {
-            Serial.printf("back pressed but already at top level with currently_opened %i"); //setting to -1\n", currently_opened);
+            Serial.printf("back pressed but already at top level with currently_opened %i\n"); //setting to -1\n", currently_opened);
         } else {
             Serial.printf("back with currently_opened %i, handled by selected\n"); //setting to -1\n", currently_opened);
         }
