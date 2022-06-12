@@ -70,8 +70,9 @@ class MenuItem {
                 //tft->printf((char*)"%-22s",(char*)text);   // \n not needed as reaching to edge
                 tft->printf((char*)tft->get_header_selected_format(), (char*)text);
             } else {
-                tft->printf((char*)tft->get_header_format());
+                tft->printf((char*)tft->get_header_format(), (char*)text);
             }
+            colours(false);
             //return (tft->getTextSize()+1)*6;
             return tft->getCursorY();
         }
@@ -105,12 +106,12 @@ class MenuItem {
 
 // generic control for selecting a number
 class NumberControl : public MenuItem {
-    void (*on_change_handler)(int last_value, int new_value);
-
-    int (*getter)() = nullptr;
-    void (*setter)(int value) = nullptr;
-
     public:
+        void (*on_change_handler)(int last_value, int new_value) = nullptr;
+
+        int (*getter)() = nullptr;
+        void (*setter)(int value) = nullptr;
+
         int *target_variable = nullptr;
         int internal_value = 0;
         int minimum_value = 0;
@@ -171,25 +172,25 @@ class NumberControl : public MenuItem {
         }
 
         virtual void increase_value() {
-            internal_value-=step;
+            internal_value -= step;
             if (internal_value < minimum_value)
                 internal_value = minimum_value; // = NUM_LOOPS_PER_PROJECT-1;
             //project.select_loop_number(ui_selected_loop_number);
         }
         virtual void decrease_value() {
-            internal_value+=step;
+            internal_value += step;
             if (internal_value >= maximum_value)
                 internal_value = maximum_value;
         }
 
         virtual bool knob_left() {
             if (!readOnly)
-                increase_value();
+                decrease_value();
             return true;
         }
         virtual bool knob_right() {
             if (!readOnly)
-                decrease_value();
+                increase_value();
             //project.select_loop_number(internal_value);
             return true;
         }
@@ -235,6 +236,7 @@ class NumberControl : public MenuItem {
         }
 };
 
+
 class DirectNumberControl : public NumberControl {
     public:
     DirectNumberControl(const char* label) : NumberControl(label) {};
@@ -245,7 +247,7 @@ class DirectNumberControl : public NumberControl {
             : NumberControl(label, getter, setter, min_value, max_value, on_change_handler) {
     }
 
-    virtual bool knob_left() {
+    virtual bool knob_left() override {
         if (readOnly) return false;
         Serial.printf("DirectNumberControl knob_left, internal_value=%i\n", internal_value);
         decrease_value();
@@ -253,7 +255,7 @@ class DirectNumberControl : public NumberControl {
         //project.select_loop_number(ui_selected_loop_number);
         return true;
     }
-    virtual bool knob_right() {
+    virtual bool knob_right() override {
         if (readOnly) return false;
         Serial.printf("DirectNumberControl knob_right, internal_value=%i\n", internal_value);
         increase_value();
@@ -261,7 +263,7 @@ class DirectNumberControl : public NumberControl {
         //project.select_loop_number(internal_value);
         return true;
     }
-    virtual bool button_select() {
+    virtual bool button_select() override {
         if (readOnly) return;
         //this->target->set_transpose(internal_value);           
         change_value(internal_value);
@@ -352,21 +354,21 @@ class SelectorControl : public MenuItem {
             return tft->getCursorY();
         }*/
 
-        virtual bool knob_left() {
+        virtual bool knob_left() override {
             selected_value_index--;
             if (selected_value_index < 0)
                 selected_value_index = num_values-1;
             return true;
         }
 
-        virtual bool knob_right() {
+        virtual bool knob_right() override {
             selected_value_index++;
             if (selected_value_index >= num_values)
                 selected_value_index = 0;
             return true;
         }
 
-        virtual bool button_select() {
+        virtual bool button_select() override {
             //Serial.printf("button_select with selected_value_index %i\n", selected_value_index);
             //Serial.printf("that is available_values[%i] of %i\n", selected_value_index, available_values[selected_value_index]);
             this->setter(available_values[selected_value_index]);
