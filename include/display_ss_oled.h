@@ -128,7 +128,7 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
         bool newline = pattern[strlen(pattern)-1]=='\n';
         if (newline) pattern[strlen(pattern)-1] = '\0';
         
-        sprintf(tmp,"%-21s\0", pattern);   // limit to width and ensure space at end of string is blanked out?
+        sprintf(tmp,"%-21s", pattern);   // limit to width and ensure space at end of string is blanked out?
         oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
         if (newline && tft->iCursorX>0) { //}) { //tmp[strlen(tmp)-1] == '\n') { //} || tft->iCursorX>ssoled.oled_x) {
         //if (tmp[strlen(tmp)-1] == '\n') { //} || tft->iCursorX>ssoled.oled_x) {

@@ -120,7 +120,7 @@ class NumberControl : public MenuItem {
         int *target_variable = nullptr;
         int internal_value = 0;
         int minimum_value = 0;
-        int maximum_value = 4;
+        int maximum_value = 100;
         int step = 1;
         bool readOnly = false;
 
@@ -156,7 +156,7 @@ class NumberControl : public MenuItem {
         }
 
         virtual const char *getFormattedValue(int value) {
-            char fmt[20] = "      ";
+            static char fmt[20] = "      ";
             sprintf(fmt, "%i", value);
             return fmt;
         }
@@ -170,29 +170,37 @@ class NumberControl : public MenuItem {
             tft->setCursor(pos.x,pos.y);
 
             colours(opened, opened ? GREEN : C_WHITE, BLACK);
-            tft->setTextSize(1);        // was 2 ?
-            char tmp[10] = "";
+            //tft->setTextSize(2);        // was 2 ?
+            char tmp[20] = "";
             
             if (opened) {
                 //tft->printf("value: %*i\n", 4, internal_value);
-                sprintf(tmp, "%i\n", this->getFormattedValue(internal_value));
+                sprintf(tmp, "%s\n", this->getFormattedValue(internal_value));
+                Serial.printf("in opened NumberControl for %s, with internal_value %i, got formattedvalue '%s'\n", this->label, internal_value, this->getFormattedValue(internal_value));
             } else {
                 //tft->printf("value: %*i\n", 4, get_current_value()); //*target_variable); //target->transpose);
                 sprintf(tmp, "%s\n", this->getFormattedValue()); //get_current_value());
             }
+
+            // adjust size dependent on size of formatted value
+            if (strlen(tmp)<10) 
+                tft->setTextSize(2);
+            else
+                tft->setTextSize(1);
+
             tft->printf(tmp);
             //Serial.printf("NumberControl base display in %s?\n", label);
 
             return tft->getCursorY();
         }
 
-        virtual void increase_value() {
+        virtual void decrease_value() {
             internal_value -= step;
             if (internal_value < minimum_value)
                 internal_value = minimum_value; // = NUM_LOOPS_PER_PROJECT-1;
             //project.select_loop_number(ui_selected_loop_number);
         }
-        virtual void decrease_value() {
+        virtual void increase_value() {
             internal_value += step;
             if (internal_value >= maximum_value)
                 internal_value = maximum_value;
@@ -461,7 +469,7 @@ class LoopMarkerPanel : public PinnedPanelMenuItem {
             this->loop_length = loop_length;
         }
         void set_beats_per_bar(unsigned long beats_per_bar) {
-            this->beats_per_bar;
+            this->beats_per_bar = beats_per_bar;
         }        
 
         virtual int display(Coord pos, bool selected = false, bool opened = false) override {

@@ -33,8 +33,8 @@ class DisplayTranslator {
 
     virtual void setCursor(int x, int y) {};
     virtual void print(char *text) {};
-    virtual int getCursorX() {};
-    virtual int getCursorY() {};
+    virtual int getCursorX() { return 0; };
+    virtual int getCursorY() { return 0; };
     virtual void setTextColor(uint16_t fg, uint16_t bg) {};
     virtual void drawLine(int x, int y, int w, int h, uint16_t color) {};
     virtual void fillRect(int x, int y, int w, int h, uint16_t color) {};
@@ -58,10 +58,10 @@ class DisplayTranslator {
         Serial.println("TODO: unimplemented fillRoundRect()");
     };
 
-    virtual int width() {};
-    virtual int height() {};
+    virtual int width() { return 128; };
+    virtual int height() { return 64; };
 
-    virtual int getRowHeight() {};
+    virtual int getRowHeight() { return 1; };
 
     virtual void updateDisplay() {};
 
