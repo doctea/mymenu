@@ -505,4 +505,31 @@ class LoopMarkerPanel : public PinnedPanelMenuItem {
         //#endif
 };
 
+
+class ActionItem : public MenuItem {
+    public:
+
+    void(*on_open)() = nullptr;
+
+    ActionItem(char *label, void (*on_open)()) : MenuItem(label) {
+        this->on_open = on_open;
+    }
+
+    virtual bool action_opened() override {
+        Serial.println("ActionItem#action_opened");
+        this->on_open();
+        /*if (parameter->getCurrentValue()<0.5) {
+            Serial.println("sending value_on");
+            parameter->setParamValue(value_on);
+        } else {
+            Serial.println("sending value_off");
+            parameter->setParamValue(value_off);
+        }
+        //this->parameter->setParamValue(((DataParameter*)parameter)->getCurrentValue() < 0.5);*/
+        return false;   // don't 'open'
+    }
+
+};
+
+
 #endif
