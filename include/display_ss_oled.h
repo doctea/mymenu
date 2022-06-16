@@ -45,9 +45,9 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
     uint8_t ucBackBuffer[1024];
 
     virtual const char *get_message_format() { return "[%-19s]"; }
-    virtual const char *get_header_format() { return "%-21s"; }
+    virtual const char *get_header_format() { return "%-19s"; }
     virtual const char *get_header_open_format() { return ">>>%-18s"; }
-    virtual const char *get_header_selected_format() { return "%-21s"; }
+    virtual const char *get_header_selected_format() { return "%-19s"; }
 
     DisplayTranslator_SS_OLED() {
         this->tft = &ssoled;

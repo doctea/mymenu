@@ -119,7 +119,6 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
         tft->printf(pattern, param1, param2, param3);
     };
 
-
     virtual int width() {
         return tft->width();
     }

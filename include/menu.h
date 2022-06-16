@@ -124,6 +124,7 @@ class Menu {
             currently_opened = -1;
         } else if (currently_opened==-1) {
             Serial.printf("back pressed but already at top level with currently_opened %i\n"); //setting to -1\n", currently_opened);
+            currently_selected = 0;
         } else {
             Serial.printf("back with currently_opened %i, handled by selected\n"); //setting to -1\n", currently_opened);
         }
