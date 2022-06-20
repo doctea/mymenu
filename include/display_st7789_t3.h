@@ -97,6 +97,9 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
     virtual void printf(char *pattern, int param1, int param2) override {
         tft->printf(pattern, param1, param2);
     }
+    virtual void printf(char *pattern, int param1, int param2, int param3) override {
+        tft->printf(pattern, param1, param2, param3);
+    }
     virtual void printf(char *pattern, int param1, int param2, int param3, float param4) override {
         tft->printf(pattern, param1, param2, param3, param4);
     }  
