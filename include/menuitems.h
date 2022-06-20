@@ -208,7 +208,7 @@ class NumberControl : public MenuItem {
         virtual void decrease_value() {
             this->set_internal_value(get_internal_value() - step);
             if (get_internal_value() < minimum_value)
-                set_internal_value(minimum_value); // = NUM_LOOPS_PER_PROJECT-1;
+                set_internal_value(minimum_value); // = NUM_LOOP_SLOTS_PER_PROJECT-1;
             //project.select_loop_number(ui_selected_loop_number);
         }
         virtual void increase_value() {
@@ -299,7 +299,7 @@ class ObjectNumberControl : public NumberControl {
     /*virtual void decrease_value() override {
         this->set_internal_value(get_internal_value() - step);
         if (get_internal_value() < minimum_value)
-            set_internal_value(minimum_value); // = NUM_LOOPS_PER_PROJECT-1;
+            set_internal_value(minimum_value); // = NUM_LOOP_SLOTS_PER_PROJECT-1;
         //project.select_loop_number(ui_selected_loop_number);
     }
     virtual void increase_value() override {
@@ -655,5 +655,68 @@ class ActionItem : public MenuItem {
 
 };
 
+template<class TargetClass>
+class ObjectToggleControl : public MenuItem {
+    public:
+        TargetClass *target_object;
+
+        void(TargetClass::*setter)(bool) = nullptr;
+        bool(TargetClass::*getter)() = nullptr;
+        void (*on_change_handler)(int last_value, int new_value) = nullptr;
+
+        ObjectToggleControl(char *label, TargetClass *target_object, void(TargetClass::*setter)(bool), bool(TargetClass::*getter)(), void (*on_change_handler)(int last_value, int new_value))
+            : MenuItem(label) {
+            this->target_object = target_object;
+            this->setter = setter;
+            this->getter = getter;
+            this->on_change_handler = on_change_handler;
+        }
+
+        virtual int display(Coord pos, bool selected, bool opened) override {
+            pos.y = header(label, pos, selected, opened);
+            tft->setCursor(pos.x,pos.y);
+
+            colours(opened, opened ? GREEN : C_WHITE, BLACK);
+            //tft->setTextSize(2);        // was 2 ?
+            char tmp[20] = "";
+            tft->setTextSize(2);
+
+            if ((this->target_object->*getter)()) {
+                tft->println("On");
+            } else {
+                tft->println("Off");
+            }
+            
+            /*if (opened) {
+                //tft->printf("value: %*i\n", 4, internal_value);
+                sprintf(tmp, "%s\n", this->getFormattedValue(this->get_internal_value()));
+                //Serial.printf("in opened NumberControl for %s, with internal_value %i, got formattedvalue '%s'\n", this->label, internal_value, this->getFormattedValue(internal_value));
+            } else {
+                //tft->printf("value: %*i\n", 4, get_current_value()); //*target_variable); //target->transpose);
+                sprintf(tmp, "%s\n", this->getFormattedValue()); //get_current_value());
+            }
+
+            // adjust size dependent on size of formatted value
+            if (strlen(tmp)<10) 
+                tft->setTextSize(2);
+            else
+                tft->setTextSize(1);*/
+
+            //tft->printf(tmp);
+            //Serial.printf("NumberControl base display in %s?\n", label);
+
+            return tft->getCursorY();
+        }
+
+        virtual bool action_opened() override {
+            if (this->debug) Serial.printf("ObjectToggleControl#action_opened on %s\n", this->label);
+            bool value = !(this->target_object->*getter)();
+            //this->internal_value = !this->internal_value;
+
+            (this->target_object->*setter)(value); //(bool)this->internal_value);
+            return false;   // don't 'open'
+        }
+
+};
 
 #endif
