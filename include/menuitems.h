@@ -167,6 +167,10 @@ class NumberControl : public MenuItem {
             return this->getFormattedValue(get_current_value());
         }
 
+        virtual int get_internal_value() {
+            return this->internal_value;
+        }
+
         virtual int display(Coord pos, bool selected, bool opened) override {
             pos.y = header(label, pos, selected, opened);
             tft->setCursor(pos.x,pos.y);
@@ -177,7 +181,7 @@ class NumberControl : public MenuItem {
             
             if (opened) {
                 //tft->printf("value: %*i\n", 4, internal_value);
-                sprintf(tmp, "%s\n", this->getFormattedValue(internal_value));
+                sprintf(tmp, "%s\n", this->getFormattedValue(this->get_internal_value()));
                 //Serial.printf("in opened NumberControl for %s, with internal_value %i, got formattedvalue '%s'\n", this->label, internal_value, this->getFormattedValue(internal_value));
             } else {
                 //tft->printf("value: %*i\n", 4, get_current_value()); //*target_variable); //target->transpose);
@@ -196,16 +200,22 @@ class NumberControl : public MenuItem {
             return tft->getCursorY();
         }
 
+        virtual void set_internal_value(int value) {
+            Serial.printf("NumberControl.set_internal_value(%i)..\n", value);
+            this->internal_value = value;
+        }
+
         virtual void decrease_value() {
-            internal_value -= step;
-            if (internal_value < minimum_value)
-                internal_value = minimum_value; // = NUM_LOOPS_PER_PROJECT-1;
+            this->set_internal_value(get_internal_value() - step);
+            if (get_internal_value() < minimum_value)
+                set_internal_value(minimum_value); // = NUM_LOOPS_PER_PROJECT-1;
             //project.select_loop_number(ui_selected_loop_number);
         }
         virtual void increase_value() {
-            internal_value += step;
-            if (internal_value >= maximum_value)
-                internal_value = maximum_value;
+            //internal_value += step;
+            this->set_internal_value(get_internal_value() + step);
+            if (get_internal_value() >= maximum_value)
+                set_internal_value(maximum_value);
         }
 
         virtual bool knob_left() {
@@ -225,15 +235,15 @@ class NumberControl : public MenuItem {
             int last_value = get_current_value();
             set_current_value(new_value);
             if (on_change_handler!=nullptr) {
-                Serial.println("calling on_change_handler");
-                on_change_handler(last_value, internal_value);
+                Serial.println("NumberControl calling on_change_handler");
+                on_change_handler(last_value, this->get_internal_value());
             }
         }
 
         virtual bool button_select() {
             if (readOnly) return;
             //this->target->set_transpose(internal_value);           
-            change_value(internal_value);
+            change_value(this->get_internal_value());
             return false;
         }
 
@@ -259,6 +269,88 @@ class NumberControl : public MenuItem {
         virtual void setStep(int step) {
             this->step = step;
         }
+};
+
+template<class TargetClass, class DataType>
+class ObjectNumberControl : public NumberControl {
+    public:
+    DataType internal_value;
+
+    void(TargetClass::*setter)(DataType) = nullptr;
+    DataType(TargetClass::*getter)() = nullptr;
+    void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr;
+    TargetClass *target_object = nullptr;
+
+    ObjectNumberControl(const char* label, 
+                TargetClass *target_object, 
+                void(TargetClass::*setter_func)(DataType), 
+                DataType(TargetClass::*getter_func)(), 
+                void (*on_change_handler)(DataType last_value, DataType new_value)
+            ) : NumberControl(label) {
+        this->target_object = target_object;
+        this->getter = getter_func;
+        this->setter = setter_func;
+        this->on_change_handler = on_change_handler;
+
+        if (this->target_object!=nullptr && this->getter!=nullptr) 
+            this->set_internal_value( (this->target_object->*getter)() );
+    }
+
+    /*virtual void decrease_value() override {
+        this->set_internal_value(get_internal_value() - step);
+        if (get_internal_value() < minimum_value)
+            set_internal_value(minimum_value); // = NUM_LOOPS_PER_PROJECT-1;
+        //project.select_loop_number(ui_selected_loop_number);
+    }
+    virtual void increase_value() override {
+        //internal_value += step;
+        this->set_internal_value(get_internal_value() + step);
+        if (get_internal_value() >= maximum_value)
+            set_internal_value(maximum_value);
+    }*/
+
+    virtual DataType get_internal_value() override {
+        return this->internal_value;
+    }
+
+    virtual void set_internal_value(DataType value) {
+        Serial.printf("ObjectNumberControl.set_internal_value(%i)..\n", value);
+        this->internal_value = value;
+    }
+
+    virtual void change_value(int new_value) override {
+        if (readOnly) return;
+        Serial.printf("ObjectNumberControl.change_value(%i)..\n", new_value);
+        DataType last_value = get_current_value();
+        this->set_current_value(new_value);
+        if (on_change_handler!=nullptr) {
+            Serial.println("ObjectNumberControl calling on_change_handler");
+            on_change_handler(last_value, internal_value);
+        }
+    }
+
+    /*virtual bool button_select() override {
+        if (readOnly) return;
+        //this->target->set_transpose(internal_value);           
+        change_value(this->get_internal_value());
+        return false;
+    }*/
+
+    // override in subclass if need to do something special eg getter/setter
+    virtual int get_current_value() override {
+        if (this->target_object!=nullptr && this->getter!=nullptr)
+            return (this->target_object->*getter)();
+
+        return 0;
+    }
+
+    // override in subclass if need to do something special eg getter/setter
+    virtual void set_current_value(DataType value) override { 
+        //this->internal_value = value;
+        Serial.printf("ObjectNumberControl.set_current_value(%i)\n", value);
+        if (this->setter!=nullptr)
+            (this->target_object->*setter)(value);
+    }
 };
 
 
@@ -289,7 +381,7 @@ class DirectNumberControl : public NumberControl {
         return true;
     }
     virtual bool button_select() override {
-        if (readOnly) return;
+        if (readOnly) return true;
         //this->target->set_transpose(internal_value);           
         change_value(internal_value);
         return true;

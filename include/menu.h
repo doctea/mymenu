@@ -70,7 +70,7 @@ class Menu {
     bool knob_left() {
         Serial.println("knob_left()");
         if (currently_opened!=-1) { // && items.get(currently_opened)->knob_left()) {
-            Serial.printf("knob_left on currently_opened %i\n", currently_opened);
+            Serial.printf("knob_left on currently_opened menuitem %i\n", currently_opened);
             items.get(currently_opened)->knob_left();
         } else {
             currently_selected--;
@@ -88,7 +88,7 @@ class Menu {
     bool knob_right() {
         Serial.println("knob_right()");
         if (currently_opened!=-1) { //&& items.get(currently_opened)->knob_right()) {
-            Serial.printf("knob_right on currently_opened %i\n", currently_opened);
+            Serial.printf("knob_right on currently_opened menuitem %i\n", currently_opened);
             items.get(currently_opened)->knob_right();
         } else {
             currently_selected++;
@@ -106,7 +106,7 @@ class Menu {
     bool button_select() {
         Serial.printf("button_select() on item %i\n", currently_selected);
         if (currently_opened==-1) {
-            Serial.printf("button_select with currently_opened -1 - selecting %i\n", currently_selected);
+            Serial.printf("button_select with currently_opened menuitem -1 - selecting %i\n", currently_selected);
             if (items.get(currently_selected)->action_opened())
                 currently_opened = currently_selected;
         } else {
@@ -119,14 +119,14 @@ class Menu {
     bool button_back() {
         Serial.println("button_back()");
         if (currently_opened!=-1 && !items.get(currently_opened)->button_back()) {
-            Serial.printf("back with currently_opened %i and no subhandling, setting to -1\n", currently_opened);
+            Serial.printf("back with currently_opened menuitem %i and no subhandling, setting to -1\n", currently_opened);
             currently_selected = currently_opened;
             currently_opened = -1;
         } else if (currently_opened==-1) {
-            Serial.printf("back pressed but already at top level with currently_opened %i\n"); //setting to -1\n", currently_opened);
+            Serial.printf("back pressed but already at top level with currently_opened menuitem %i\n"); //setting to -1\n", currently_opened);
             currently_selected = 0;
         } else {
-            Serial.printf("back with currently_opened %i, handled by selected\n"); //setting to -1\n", currently_opened);
+            Serial.printf("back with currently_opened menuitem %i, handled by selected\n"); //setting to -1\n", currently_opened);
         }
         tft->clear(true);
         return true;
@@ -135,9 +135,9 @@ class Menu {
         Serial.println("button_right()");
         if (currently_opened!=-1) {
             if (items.get(currently_opened)->button_right()) {
-                Serial.printf("right with currently_opened %i subhandled!\n", currently_opened);
+                Serial.printf("right with currently_opened menuitem %i subhandled!\n", currently_opened);
             } else {
-                Serial.printf("right with currently_opened %i not subhandled!\n", currently_opened);
+                Serial.printf("right with currently_opened menuitem %i not subhandled!\n", currently_opened);
             }
         } else {
             Serial.printf("right with nothing currently_opened\n"); //setting to -1\n", currently_opened);
@@ -206,9 +206,9 @@ class Menu {
 
         void update_inputs() {
             //static int button_count = 0;
-            static int last_knob_read = 0, new_knob_read;
             //int new_knob_read;
             #ifdef ENCODER_KNOB_L
+                static int last_knob_read = 0, new_knob_read;
                 new_knob_read = knob.read() / ENCODER_STEP_DIVISOR;///4;
                 if (new_knob_read!=last_knob_read) {
                     Serial.printf("new_knob_read %i changed from %i\n", new_knob_read, last_knob_read);
