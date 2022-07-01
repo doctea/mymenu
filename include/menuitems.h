@@ -125,6 +125,7 @@ class NumberControl : public MenuItem {
         int maximum_value = 100;
         int step = 1;
         bool readOnly = false;
+        bool go_back_on_select = false;
 
         NumberControl(const char* label) : MenuItem(label) {
         }
@@ -244,7 +245,8 @@ class NumberControl : public MenuItem {
             if (readOnly) return;
             //this->target->set_transpose(internal_value);           
             change_value(this->get_internal_value());
-            return false;
+
+            return (go_back_on_select);
         }
 
         // override in subclass if need to do something special eg getter/setter
@@ -348,8 +350,16 @@ class ObjectNumberControl : public NumberControl {
     virtual void set_current_value(DataType value) override { 
         //this->internal_value = value;
         Serial.printf("ObjectNumberControl.set_current_value(%i)\n", value);
-        if (this->setter!=nullptr)
+        if (this->setter!=nullptr) {
             (this->target_object->*setter)(value);
+
+            char msg[255];
+            //Serial.printf("about to build msg string...\n");
+            sprintf(msg, "Set %8s to %i", label, value);
+            //Serial.printf("about to set_last_message!");
+            msg[20] = '\0'; // limit the string so we don't overflow set_last_message
+            menu_set_last_message(msg,GREEN);
+        }
     }
 };
 
