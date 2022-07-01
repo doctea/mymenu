@@ -613,14 +613,18 @@ class LoopMarkerPanel : public PinnedPanelMenuItem {
 class ActionItem : public MenuItem {
     public:
 
+    char button_label[20] = "";
+
     void(*on_open)() = nullptr;
 
     ActionItem(char *label, void (*on_open)()) : MenuItem(label) {
         this->on_open = on_open;
+        sprintf(button_label,">> %s <<", label);
     }
 
     virtual int display(Coord pos, bool selected, bool opened) override {
-        pos.y = header(label, pos, selected, opened);
+
+        pos.y = header(button_label, pos, selected, opened);
         tft->setCursor(pos.x,pos.y);
         tft->setTextSize(1);
 
@@ -652,6 +656,14 @@ class ActionItem : public MenuItem {
     virtual bool action_opened() override {
         Serial.println("ActionItem#action_opened");
         this->on_open();
+
+        char msg[255];
+        //Serial.printf("about to build msg string...\n");
+        sprintf(msg, "Fired %8s", label);
+        //Serial.printf("about to set_last_message!");
+        msg[20] = '\0'; // limit the string so we don't overflow set_last_message
+        menu_set_last_message(msg,GREEN);
+
         /*if (parameter->getCurrentValue()<0.5) {
             Serial.println("sending value_on");
             parameter->setParamValue(value_on);
