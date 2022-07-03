@@ -154,6 +154,10 @@ class NumberControl : public MenuItem {
             this->on_change_handler = on_change_handler;
         };
 
+        /*virtual void on_add() override {
+            internal_value = getter();
+        }*/
+
         virtual void setReadOnly(bool readOnly = true) {
             this->readOnly = readOnly;
         }
@@ -208,15 +212,15 @@ class NumberControl : public MenuItem {
 
         virtual void decrease_value() {
             this->set_internal_value(get_internal_value() - step);
-            if (get_internal_value() < minimum_value)
-                set_internal_value(minimum_value); // = NUM_LOOP_SLOTS_PER_PROJECT-1;
+            if (get_internal_value() < this->minimum_value)
+                set_internal_value(this->minimum_value); // = NUM_LOOP_SLOTS_PER_PROJECT-1;
             //project.select_loop_number(ui_selected_loop_number);
         }
         virtual void increase_value() {
             //internal_value += step;
             this->set_internal_value(get_internal_value() + step);
-            if (get_internal_value() >= maximum_value)
-                set_internal_value(maximum_value);
+            if (get_internal_value() >= this->maximum_value)
+                set_internal_value(this->maximum_value);
         }
 
         virtual bool knob_left() {
@@ -242,7 +246,7 @@ class NumberControl : public MenuItem {
         }
 
         virtual bool button_select() {
-            if (readOnly) return;
+            if (readOnly) return true;
             //this->target->set_transpose(internal_value);           
             change_value(this->get_internal_value());
 
@@ -294,6 +298,22 @@ class ObjectNumberControl : public NumberControl {
         this->setter = setter_func;
         this->on_change_handler = on_change_handler;
 
+        if (this->target_object!=nullptr && this->getter!=nullptr) 
+            this->set_internal_value( (this->target_object->*getter)() );
+    }
+    ObjectNumberControl(const char* label, 
+                TargetClass *target_object, 
+                void(TargetClass::*setter_func)(DataType), 
+                DataType(TargetClass::*getter_func)(), 
+                void (*on_change_handler)(DataType last_value, DataType new_value),
+                DataType minimum_value,
+                DataType maximum_value) : ObjectNumberControl(label, target_object, setter_func, getter_func, on_change_handler) {
+        this->minimum_value = minimum_value;
+        this->maximum_value = maximum_value;
+    }
+
+    virtual void on_add() override {
+        NumberControl::on_add();
         if (this->target_object!=nullptr && this->getter!=nullptr) 
             this->set_internal_value( (this->target_object->*getter)() );
     }
