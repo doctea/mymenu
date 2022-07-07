@@ -1,6 +1,28 @@
 //#ifndef COLOURS__INCLUDED
 //#define COLOURS__INCLUDED
 
+#if defined(TFT_SSOLED) or defined(TFT_ST7789_T3)
+    #ifdef C_WHITE
+        #undef C_WHITE
+    #endif
+    #ifdef BLACK
+        #undef BLACK
+    #endif
+    #ifdef RED
+        #undef RED
+    #endif
+    #ifdef GREEN
+        #undef GREEN
+    #endif
+    #ifdef BLUE
+        #undef BLUE
+    #endif
+    #ifdef YELLOW
+        #undef YELLOW
+    #endif
+#endif
+
+
 #ifdef TFT_SSOLED
     #define C_WHITE     0xFF
     #define BLACK       0x00

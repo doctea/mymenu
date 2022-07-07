@@ -116,7 +116,7 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
     virtual void setTextSize(int size) override {
         textSize = size;
     }
-    virtual void printf(char *pattern) override {
+    virtual void printf(const char *pattern) override {
         //char tmp[255];
         //sprintf(tmp, pattern);
         //tft.printf(pattern, param1);
@@ -136,62 +136,62 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
             setCursor(0,tft->iCursorY+(1+textSize));
         }
     }
-    virtual void printf(char *pattern, char *param1) override {
+    virtual void printf(const char *pattern, char *param1) override {
         char tmp[255];
         sprintf(tmp, pattern, param1);
         //tft.printf(pattern, param1);
         printf(tmp);
         //oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
     }
-    virtual void printf(char *pattern, char *param1, char *param2) override {
+    virtual void printf(const char *pattern, char *param1, char *param2) override {
         char tmp[255];
         sprintf(tmp, pattern, param1, param2);
         //tft.printf(pattern, param1);
         printf(tmp);
         //oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
     }
-    virtual void printf(char *pattern, int param1) override {
+    virtual void printf(const char *pattern, int param1) override {
         char tmp[255];
         sprintf(tmp, pattern, param1);
         printf(tmp);
         //oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
     }
-    virtual void printf(char *pattern, int param1, int param2) override {
+    virtual void printf(const char *pattern, int param1, int param2) override {
         char tmp[255];
         sprintf(tmp, pattern, param1, param2);
         printf(tmp);
         //oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
     }
-    virtual void printf(char *pattern, int param1, int param2, int param3) override {
+    virtual void printf(const char *pattern, int param1, int param2, int param3) override {
         char tmp[255];
         sprintf(tmp, pattern, param1, param2, param3);
         printf(tmp);
         //oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
     }
-    virtual void printf(char *pattern, int param1, int param2, int param3, float param4) override {
+    virtual void printf(const char *pattern, int param1, int param2, int param3, float param4) override {
         char tmp[255];
         sprintf(tmp, pattern, param1, param2, param3, param4);
         printf(tmp);
         //oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
     }
-    virtual void printf(char *pattern, int param1, char* param2) override {
+    virtual void printf(const char *pattern, int param1, char* param2) override {
         char tmp[255];
         sprintf(tmp, pattern, param1);
         printf(tmp);
     }
-    virtual void printf(char *pattern, int param1, const uint8_t *param2) override {
+    virtual void printf(const char *pattern, int param1, const uint8_t *param2) override {
         char tmp[255];
         sprintf(tmp, pattern, param1);
         printf(tmp);
     }
-    virtual void printf(char *pattern, char *param1, int param2, int param3) {
+    virtual void printf(const char *pattern, char *param1, int param2, int param3) {
         char tmp[255];
         sprintf(tmp, pattern, param1, param2, param3);
         printf(tmp);
     }
 
 
-    virtual void println(char *txt) override {
+    virtual void println(const char *txt) override {
         printf(txt);
         //oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, (char*)txt, textSize, bInvert, 1);
         if (txt[strlen(txt)-1]!='\n')

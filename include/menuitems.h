@@ -568,7 +568,7 @@ class PinnedPanelMenuItem : public MenuItem {
     public:
         unsigned long ticks = 0;
 
-        PinnedPanelMenuItem(char *label) : MenuItem(label) {};
+        PinnedPanelMenuItem(const char *label) : MenuItem(label) {};
 
         void update_ticks(unsigned long ticks) {
             this->ticks = ticks;
@@ -637,7 +637,7 @@ class ActionItem : public MenuItem {
 
     void(*on_open)() = nullptr;
 
-    ActionItem(char *label, void (*on_open)()) : MenuItem(label) {
+    ActionItem(const char *label, void (*on_open)()) : MenuItem(label) {
         this->on_open = on_open;
         sprintf(button_label,">> %s <<", label);
     }
@@ -657,7 +657,7 @@ class ActionItem : public MenuItem {
             sprintf(tmp, "%s\n", this->getFormattedValue(internal_value));
             Serial.printf("in opened NumberControl for %s, with internal_value %i, got formattedvalue '%s'\n", this->label, internal_value, this->getFormattedValue(internal_value));
         } else {
-            //tft->printf("value: %*i\n", 4, get_current_value()); //*target_variable); //target->transpose);
+            //tft->printf("value: %*i\n", 4, get_current_value()); // *target_variable); //target->transpose);
             sprintf(tmp, "%s\n", this->getFormattedValue()); //get_current_value());
         }*/
 
@@ -706,7 +706,7 @@ class ObjectToggleControl : public MenuItem {
         bool(TargetClass::*getter)() = nullptr;
         void (*on_change_handler)(int last_value, int new_value) = nullptr;
 
-        ObjectToggleControl(char *label, TargetClass *target_object, void(TargetClass::*setter)(bool), bool(TargetClass::*getter)(), void (*on_change_handler)(int last_value, int new_value))
+        ObjectToggleControl(const char *label, TargetClass *target_object, void(TargetClass::*setter)(bool), bool(TargetClass::*getter)(), void (*on_change_handler)(int last_value, int new_value))
             : MenuItem(label) {
             this->target_object = target_object;
             this->setter = setter;
@@ -720,7 +720,7 @@ class ObjectToggleControl : public MenuItem {
 
             colours(opened, opened ? GREEN : C_WHITE, BLACK);
             //tft->setTextSize(2);        // was 2 ?
-            char tmp[20] = "";
+            //char tmp[20] = "";
             tft->setTextSize(2);
 
             if ((this->target_object->*getter)()) {
@@ -734,7 +734,7 @@ class ObjectToggleControl : public MenuItem {
                 sprintf(tmp, "%s\n", this->getFormattedValue(this->get_internal_value()));
                 //Serial.printf("in opened NumberControl for %s, with internal_value %i, got formattedvalue '%s'\n", this->label, internal_value, this->getFormattedValue(internal_value));
             } else {
-                //tft->printf("value: %*i\n", 4, get_current_value()); //*target_variable); //target->transpose);
+                //tft->printf("value: %*i\n", 4, get_current_value()); // *target_variable); //target->transpose);
                 sprintf(tmp, "%s\n", this->getFormattedValue()); //get_current_value());
             }
 

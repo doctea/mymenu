@@ -82,28 +82,28 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
     virtual void setTextSize(int size) override {
         tft->setTextSize(size);
     }
-    virtual void printf(char *pattern) override {
+    virtual void printf(const char *pattern) override {
         tft->printf(pattern);
     }
-    virtual void printf(char *pattern, char *param1) override {
+    virtual void printf(const char *pattern, char *param1) override {
         tft->printf(pattern, param1);
     }
-    virtual void printf(char *pattern, char *param1, char *param2) override {
+    virtual void printf(const char *pattern, char *param1, char *param2) override {
         tft->printf(pattern, param1, param2);
     }
-    virtual void printf(char *pattern, int param1) override {
+    virtual void printf(const char *pattern, int param1) override {
         tft->printf(pattern, param1);
     }
-    virtual void printf(char *pattern, int param1, int param2) override {
+    virtual void printf(const char *pattern, int param1, int param2) override {
         tft->printf(pattern, param1, param2);
     }
-    virtual void printf(char *pattern, int param1, int param2, int param3) override {
+    virtual void printf(const char *pattern, int param1, int param2, int param3) override {
         tft->printf(pattern, param1, param2, param3);
     }
-    virtual void printf(char *pattern, int param1, int param2, int param3, float param4) override {
+    virtual void printf(const char *pattern, int param1, int param2, int param3, float param4) override {
         tft->printf(pattern, param1, param2, param3, param4);
     }  
-    virtual void println(char *txt) override {
+    virtual void println(const char *txt) override {
         tft->println(txt);
     }
     virtual void drawRoundRect(int x, int y, int w, int h, int radius, int color) override {
@@ -112,13 +112,13 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
     virtual void fillRoundRect(int x, int y, int w, int h, int radius, int color) override {
         tft->fillRoundRect(x, y, w, h, radius, color);
     }
-    virtual void printf(char *pattern, int param1, char* param2) override {
+    virtual void printf(const char *pattern, int param1, char* param2) override {
         tft->printf(pattern, param1, param2);
     }
-    virtual void printf(char *pattern, int param1, const uint8_t* param2) override {
+    virtual void printf(const char *pattern, int param1, const uint8_t* param2) override {
         tft->printf(pattern, param1, param2);
     }
-    virtual void printf(char *pattern, char *param1, int param2, int param3) {
+    virtual void printf(const char *pattern, char *param1, int param2, int param3) {
         tft->printf(pattern, param1, param2, param3);
     };
 
