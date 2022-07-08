@@ -116,19 +116,21 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
     virtual void setTextSize(int size) override {
         textSize = size;
     }
-    virtual void printf(const char *pattern) override {
+    virtual void printf(const char *text) override {
         //char tmp[255];
         //sprintf(tmp, pattern);
         //tft.printf(pattern, param1);
         //char *tmp = pattern;
         //Serial.printf("ss_oled->printf(\"%s\")\n", pattern);
+        char newtext[30] = "                       ";
         char tmp[100] = "                                 ";
+        sprintf(newtext, "%s", text);
 
         // todo: fix newline character display issue...
-        bool newline = pattern[strlen(pattern)-1]=='\n';
-        if (newline) pattern[strlen(pattern)-1] = '\0';
+        bool newline = newtext[strlen(newtext)-1]=='\n';
+        if (newline) newtext[strlen(newtext)-1] = '\0';
         
-        sprintf(tmp,"%-21s", pattern);   // limit to width and ensure space at end of string is blanked out?
+        sprintf(tmp,"%-21s", newtext);   // limit to width and ensure space at end of string is blanked out?
         oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
         if (newline && tft->iCursorX>0) { //}) { //tmp[strlen(tmp)-1] == '\n') { //} || tft->iCursorX>ssoled.oled_x) {
         //if (tmp[strlen(tmp)-1] == '\n') { //} || tft->iCursorX>ssoled.oled_x) {
