@@ -377,7 +377,7 @@ class ObjectNumberControl : public NumberControl {
             //Serial.printf("about to build msg string...\n");
             sprintf(msg, "Set %8s to %i", label, value);
             //Serial.printf("about to set_last_message!");
-            msg[20] = '\0'; // limit the string so we don't overflow set_last_message
+            msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
             menu_set_last_message(msg,GREEN);
         }
     }
@@ -524,7 +524,7 @@ class SelectorControl : public MenuItem {
             //Serial.printf("about to build msg string...\n");
             sprintf(msg, "Set %s to %s (%i)", label, get_label_for_value(available_values[selected_value_index]), available_values[selected_value_index]);
             //Serial.printf("about to set_last_message!");
-            msg[20] = '\0'; // limit the string so we don't overflow set_last_message
+            msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
             menu_set_last_message(msg,GREEN);
             return false;
         }
@@ -554,7 +554,7 @@ class HarmonyStatus : public MenuItem {
             if (!last_note || !current_note) {
                 tft->println((char *)"[not set]");
             } else {
-                tft->printf("%4s : %4s",     // \n not needed because already fills row..
+                tft->printf("%4s : %4s\n",     // \n not needed on smaller screen because already fills row.. is needed on big tft?
                     (char*)(get_note_name(*last_note).c_str()), 
                     (char*)(get_note_name(*current_note).c_str())
                 );
@@ -681,7 +681,7 @@ class ActionItem : public MenuItem {
         //Serial.printf("about to build msg string...\n");
         sprintf(msg, "Fired %8s", label);
         //Serial.printf("about to set_last_message!");
-        msg[20] = '\0'; // limit the string so we don't overflow set_last_message
+        msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
         menu_set_last_message(msg,GREEN);
 
         /*if (parameter->getCurrentValue()<0.5) {

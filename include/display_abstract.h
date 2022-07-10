@@ -18,6 +18,9 @@ class DisplayTranslator {
     virtual const char *get_header_format() { return "%-22s"; }
     virtual const char *get_header_open_format() { return ">>>%-19s"; }
     virtual const char *get_header_selected_format() { return "%-22s"; }
+    virtual int get_c_max() {
+        return 20;
+    }
 
     /*const char *MESSAGE_FORMAT          = "[%-20s]";
     const char *HEADER_FORMAT           = "%-22s";

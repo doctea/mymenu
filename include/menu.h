@@ -146,7 +146,7 @@ class Menu {
     }
 
 
-        char last_message[20] = "...started up...";
+        char last_message[40] = "...started up...";
         uint32_t message_colour = C_WHITE;
         DisplayTranslator *tft;
 
