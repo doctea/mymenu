@@ -110,6 +110,8 @@ int Menu::display() {
                 //start_y = y;
             }
             //Serial.printf("menuitem %i took %i to refresh\n", i, millis()-time);
+            //if (y >= tft->height()) // stop rendering if we've reached the bottom of the screen?
+            //    break;
         }
         bottoms_computed = true;
 

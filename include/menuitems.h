@@ -604,22 +604,36 @@ class LoopMarkerPanel : public PinnedPanelMenuItem {
             //int LOOP_LENGTH = PPQN * BEATS_PER_BAR * BARS_PER_PHRASE;
             int y = 0;
             //y+=2;
-            float percent = float(ticks % loop_length) / (float)loop_length;
-            //tft.drawFastHLine(0, tft.width(), 3, ST77XX_WHITE);
-            //tft.drawFastHLine(0, tft.width() * percent, 2, ST77XX_RED);
-            tft->fillRect(0, y, (percent*(float)tft->width()), 6, RED);
+            static unsigned long last_serviced_tick;
+            static int last_position_width;
 
-            int step_size = tft->width() / (beats_per_bar*bars_per_phrase);
-            for (int i = 0 ; i < tft->width() ; i += step_size) {
+            // save some float maths by only recalculating if tick is different from last time
+            if (last_serviced_tick != ticks) {
+                float percent = float(ticks % loop_length) / (float)loop_length;
+                last_position_width = (percent*(float)tft->width());
+            }
+            tft->fillRect(0, y, last_position_width, 6, RED);
+
+            //float percent = float(ticks % loop_length) / (float)loop_length;
+            //tft->fillRect(0, y, (percent*(float)tft->width()), 6, RED);
+
+            /*static float px_per_pos = tft->width() / loop_length;
+            int loop_position = ticks % loop_length;
+            tft->fillRect(0, y, px_per_pos * loop_position, 6, RED);*/
+
+            static int tft_width = tft->width();
+
+            static int step_size_beats = tft_width / (beats_per_bar*bars_per_phrase);  // safe to make static so long as beats_per_bar/bars_per_phrase is not configurable!
+            for (int i = 0 ; i < tft_width ; i += step_size_beats) {
                 tft->drawLine(i, y, i, y+2, C_WHITE);
                 //if (i%BEATS_PER_BAR==0)
                     //tft.drawLine(i, y, i, y+4, ST7735_CYAN);
             }
 
-            step_size = tft->width() / bars_per_phrase;
-            for (int i = 0 ; i < tft->width() ; i += step_size) {
+            static int step_size_bars = tft_width / bars_per_phrase;
+            for (int i = 0 ; i < tft_width ; i += step_size_bars) {
                 //tft.drawLine(i, y, i, y+4, ST7735_WHITE);
-                tft->fillRect(i, y, 2, 5, C_WHITE);
+                tft->fillRect(i, y+1, 2, 5, C_WHITE);
             }
 
             //Serial.printf("percent %f, width %i\n", percent, tft->width());

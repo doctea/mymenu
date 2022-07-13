@@ -13,6 +13,10 @@ class Coord {
 #include "mymenu.h"
 #include "menu_io.h"
 
+#ifndef MENU_MAX_PANELS
+    #define MENU_MAX_PANELS 20
+#endif
+
 //extern Menu menu;
 //void setup_display();
 
@@ -35,7 +39,7 @@ class Menu {
 
     PinnedPanelMenuItem *pinned_panel = nullptr;
 
-    int panel_height[20] = { 0, 0, 0, 0, 0, 
+    int panel_height[MENU_MAX_PANELS] = { 0, 0, 0, 0, 0, 
                              0, 0, 0, 0, 0, 
                              0, 0, 0, 0, 0,
                              0, 0, 0, 0, 0 };
@@ -44,107 +48,107 @@ class Menu {
     int button_count = 0;
 
     public:
-    bool debug = false;
+        bool debug = false;
 
-    enum {
-        NORMAL = 0,
-        DISPLAY_ONE = 1
-    };
+        enum {
+            NORMAL = 0,
+            DISPLAY_ONE = 1
+        };
 
-    int mode = NORMAL;
-    
-    void knob_turned(int knob_position) {
-        Serial.printf("knob_turned %i\n", knob_position);
-        //tft->setCursor(0,0);
-        //tft->printf("knob %i", knob_position);
-        if (knob_position < last_knob_position) {
-            //set_bpm(bpm_current-1);
-            knob_left();
-        } else if (knob_position > last_knob_position) {
-            //set_bpm(bpm_current+1);
-            knob_right();
-        }
-        last_knob_position = knob_position;
-        // do some action when knob is turned
-    }
-    bool knob_left() {
-        Serial.println("knob_left()");
-        if (currently_opened!=-1) { // && items.get(currently_opened)->knob_left()) {
-            Serial.printf("knob_left on currently_opened menuitem %i\n", currently_opened);
-            items.get(currently_opened)->knob_left();
-        } else {
-            currently_selected--;
-            if (currently_selected<0) 
-                currently_selected = items.size()-1;
-            Serial.printf("selected %i aka %s\n", currently_selected, items.get(currently_selected)->label);
-        }
-        if (debug) {
-            char msg[20] = "";
-            sprintf(msg, "knob_left to %i", currently_selected);
-            set_last_message(msg);
-        }
-        return true;
-    }
-    bool knob_right() {
-        Serial.println("knob_right()");
-        if (currently_opened!=-1) { //&& items.get(currently_opened)->knob_right()) {
-            Serial.printf("knob_right on currently_opened menuitem %i\n", currently_opened);
-            items.get(currently_opened)->knob_right();
-        } else {
-            currently_selected++;
-            if (currently_selected >= items.size())
-                currently_selected = 0;
-            Serial.printf("selected %i aka %s\n", currently_selected, items.get(currently_selected)->label);
-        }
-        if (debug) {
-            char msg[20] = "";
-            sprintf(msg, "knob_left to %i", currently_selected);
-            set_last_message(msg);
-        }
-        return true;
-    }
-    bool button_select() {
-        Serial.printf("button_select() on item %i\n", currently_selected);
-        if (currently_opened==-1) {
-            Serial.printf("button_select with currently_opened menuitem -1 - selecting %i\n", currently_selected);
-            if (items.get(currently_selected)->action_opened())
-                currently_opened = currently_selected;
-        } else {
-            Serial.printf("button_select subselect on %i\n", currently_opened);
-            if (items.get(currently_opened)->button_select()) 
-                button_back();
-        } 
-        return true;
-    }
-    bool button_back() {
-        Serial.println("button_back()");
-        if (currently_opened!=-1 && !items.get(currently_opened)->button_back()) {
-            Serial.printf("back with currently_opened menuitem %i and no subhandling, setting to -1\n", currently_opened);
-            currently_selected = currently_opened;
-            currently_opened = -1;
-        } else if (currently_opened==-1) {
-            Serial.printf("back pressed but already at top level with currently_opened menuitem %i\n"); //setting to -1\n", currently_opened);
-            currently_selected = 0;
-        } else {
-            Serial.printf("back with currently_opened menuitem %i, handled by selected\n"); //setting to -1\n", currently_opened);
-        }
-        tft->clear(true);
-        return true;
-    }
-    bool button_right() {
-        Serial.println("button_right()");
-        if (currently_opened!=-1) {
-            if (items.get(currently_opened)->button_right()) {
-                Serial.printf("right with currently_opened menuitem %i subhandled!\n", currently_opened);
-            } else {
-                Serial.printf("right with currently_opened menuitem %i not subhandled!\n", currently_opened);
+        int mode = NORMAL;
+        
+        // input-handling stuff
+        void knob_turned(int knob_position) {
+            Serial.printf("knob_turned %i\n", knob_position);
+            //tft->setCursor(0,0);
+            //tft->printf("knob %i", knob_position);
+            if (knob_position < last_knob_position) {
+                //set_bpm(bpm_current-1);
+                knob_left();
+            } else if (knob_position > last_knob_position) {
+                //set_bpm(bpm_current+1);
+                knob_right();
             }
-        } else {
-            Serial.printf("right with nothing currently_opened\n"); //setting to -1\n", currently_opened);
+            last_knob_position = knob_position;
+            // do some action when knob is turned
         }
-        return true;
-    }
-
+        bool knob_left() {
+            Serial.println("knob_left()");
+            if (currently_opened!=-1) { // && items.get(currently_opened)->knob_left()) {
+                Serial.printf("knob_left on currently_opened menuitem %i\n", currently_opened);
+                items.get(currently_opened)->knob_left();
+            } else {
+                currently_selected--;
+                if (currently_selected<0) 
+                    currently_selected = items.size()-1;
+                Serial.printf("selected %i aka %s\n", currently_selected, items.get(currently_selected)->label);
+            }
+            if (debug) {
+                char msg[20] = "";
+                sprintf(msg, "knob_left to %i", currently_selected);
+                set_last_message(msg);
+            }
+            return true;
+        }
+        bool knob_right() {
+            Serial.println("knob_right()");
+            if (currently_opened!=-1) { //&& items.get(currently_opened)->knob_right()) {
+                Serial.printf("knob_right on currently_opened menuitem %i\n", currently_opened);
+                items.get(currently_opened)->knob_right();
+            } else {
+                currently_selected++;
+                if (currently_selected >= items.size())
+                    currently_selected = 0;
+                Serial.printf("selected %i aka %s\n", currently_selected, items.get(currently_selected)->label);
+            }
+            if (debug) {
+                char msg[20] = "";
+                sprintf(msg, "knob_left to %i", currently_selected);
+                set_last_message(msg);
+            }
+            return true;
+        }
+        bool button_select() {
+            Serial.printf("button_select() on item %i\n", currently_selected);
+            if (currently_opened==-1) {
+                Serial.printf("button_select with currently_opened menuitem -1 - selecting %i\n", currently_selected);
+                if (items.get(currently_selected)->action_opened())
+                    currently_opened = currently_selected;
+            } else {
+                Serial.printf("button_select subselect on %i\n", currently_opened);
+                if (items.get(currently_opened)->button_select()) 
+                    button_back();
+            } 
+            return true;
+        }
+        bool button_back() {
+            Serial.println("button_back()");
+            if (currently_opened!=-1 && !items.get(currently_opened)->button_back()) {
+                Serial.printf("back with currently_opened menuitem %i and no subhandling, setting to -1\n", currently_opened);
+                currently_selected = currently_opened;
+                currently_opened = -1;
+            } else if (currently_opened==-1) {
+                Serial.printf("back pressed but already at top level with currently_opened menuitem %i\n"); //setting to -1\n", currently_opened);
+                currently_selected = 0;
+            } else {
+                Serial.printf("back with currently_opened menuitem %i, handled by selected\n"); //setting to -1\n", currently_opened);
+            }
+            tft->clear(true);
+            return true;
+        }
+        bool button_right() {
+            Serial.println("button_right()");
+            if (currently_opened!=-1) {
+                if (items.get(currently_opened)->button_right()) {
+                    Serial.printf("right with currently_opened menuitem %i subhandled!\n", currently_opened);
+                } else {
+                    Serial.printf("right with currently_opened menuitem %i not subhandled!\n", currently_opened);
+                }
+            } else {
+                Serial.printf("right with nothing currently_opened\n"); //setting to -1\n", currently_opened);
+            }
+            return true;
+        }
 
         char last_message[40] = "...started up...";
         uint32_t message_colour = C_WHITE;
