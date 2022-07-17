@@ -350,12 +350,12 @@ class ObjectNumberControl : public NumberControl {
             set_internal_value(maximum_value);
     }*/
 
-    virtual int display(Coord pos, bool selected, bool opened) override {
+    /*virtual int display(Coord pos, bool selected, bool opened) override {
         Serial.printf("display in ObjectNumberControl %s\n", this->label); Serial.flush();
         //Serial.printf("nopped display for ObjectNumberControl %s\n", this->label); Serial.flush();
         return NumberControl::display(pos, selected, opened);
         return pos.y;
-    }
+    }*/
 
     virtual DataType get_internal_value() override {
         return this->internal_value;
