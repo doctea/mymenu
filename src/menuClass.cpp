@@ -9,7 +9,7 @@
 
 // draw the menu display
 int Menu::display() {
-    bool debug = false;
+    bool debug = true;
     //Serial.printf("display !");
     int y = 0;
     
@@ -51,7 +51,7 @@ int Menu::display() {
         tft->println("");
 
     } else {
-        static int panel_bottom[20];
+        static int panel_bottom[MENU_MAX_PANELS];
         static bool bottoms_computed = false;
 
         // find number of panels to offset in order to ensure that selected panel is on screen?
@@ -99,11 +99,16 @@ int Menu::display() {
         //int start_y = 0;
         for (int i = start_panel ; i < items.size() ; i++) {
             MenuItem *item = items.get(i);
+            /*if(item->label[0]=='T')
+                delay(5000);*/
+
             //int time = millis();
             //Serial.printf("Menu rendering item %i [selected #%i, opened #%i]\n", i, currently_selected, currently_opened);
+            Coord pos = Coord(0,y);
             if (debug) { Serial.printf(F("display()=> about to display() item %i aka %s\n"), i, item->label); Serial.flush(); }
-            y = item->display(Coord(0,y), i==currently_selected, i==currently_opened) + 1;
+            y = item->display(pos, i==currently_selected, i==currently_opened) + 1;
             //Serial.printf("after rendering MenuItem %i, return y is %i, cursor coords are (%i,%i)\n", y, tft->getCursorX(), tft->getCursorY());
+            if (debug) { Serial.printf(F("display()=> just did display() item %i aka %s\n"), i, item->label); Serial.flush(); }
 
             if (!bottoms_computed) {
                 panel_bottom[i] = y;// - start_y;

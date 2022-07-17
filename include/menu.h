@@ -14,7 +14,7 @@ class Coord {
 #include "menu_io.h"
 
 #ifndef MENU_MAX_PANELS
-    #define MENU_MAX_PANELS 20
+    #define MENU_MAX_PANELS 30
 #endif
 
 //extern Menu menu;
@@ -39,16 +39,16 @@ class Menu {
 
     PinnedPanelMenuItem *pinned_panel = nullptr;
 
-    int panel_height[MENU_MAX_PANELS] = { 0, 0, 0, 0, 0, 
+    int panel_height[MENU_MAX_PANELS];/* = { 0, 0, 0, 0, 0, 
                              0, 0, 0, 0, 0, 
                              0, 0, 0, 0, 0,
-                             0, 0, 0, 0, 0 };
+                             0, 0, 0, 0, 0 };*/
 
     int last_knob_position = -1;
     int button_count = 0;
 
     public:
-        bool debug = false;
+        bool debug = true;
 
         enum {
             NORMAL = 0,
@@ -168,9 +168,13 @@ class Menu {
         }
 
         void add(MenuItem *m) {
-            m->tft = this->tft;
-            m->on_add();
-            items.add(m);
+            if (m!=nullptr) {
+                m->tft = this->tft;
+                m->on_add();
+                items.add(m);
+            } else {
+                Serial.println("Passed nullptr to menu#add!");
+            }
         }
         void add_pinned(PinnedPanelMenuItem *m) {
             m->tft = this->tft;
