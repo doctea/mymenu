@@ -9,7 +9,7 @@
 
 // draw the menu display
 int Menu::display() {
-    bool debug = true;
+    bool debug = false;
     //Serial.printf("display !");
     int y = 0;
     
