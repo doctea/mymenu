@@ -18,12 +18,14 @@ int Menu::display() {
 
     // now draw the menu
     if (currently_opened>=0 && items.get(currently_opened)->allow_takeover()) {
+        // takeover -- focus on this menu item only
         if (pinned_panel!=nullptr)
             y = pinned_panel->display(Coord(0,0), false, false);
             //y = draw_message();
         // let the currently opened item take care of drawing all of the display
         items.get(currently_opened)->display(Coord(0,y), true, true);
     } else if (mode==DISPLAY_ONE) {
+        // for screens that can only display one option at a time
         static int last_displayed = 0;
         if (last_displayed!=currently_selected)
             tft->clear();

@@ -633,7 +633,7 @@ class LoopMarkerPanel : public PinnedPanelMenuItem {
             tft->setTextColor(C_WHITE, BLACK);
             //tft.setCursor(pos.x,pos.y);
             //int LOOP_LENGTH = PPQN * BEATS_PER_BAR * BARS_PER_PHRASE;
-            int y = 0;
+            int y = pos.y; //0;
             //y+=2;
             static unsigned long last_serviced_tick;
             static int last_position_width;
@@ -641,9 +641,18 @@ class LoopMarkerPanel : public PinnedPanelMenuItem {
             // save some float maths by only recalculating if tick is different from last time
             if (last_serviced_tick != ticks) {
                 float percent = float(ticks % loop_length) / (float)loop_length;
-                last_position_width = (percent*(float)tft->width());
+                int new_position_width = (percent*(float)tft->width());
+                //Serial.printf("ticks %i: ticks%loop_length = %i: ", ticks, ticks%loop_length);
+                //if (ticks%loop_length==0)   // if we're at the start of loop then blank out the display 
+                if (new_position_width < last_position_width){
+                    Serial.println("so drawing black?");
+                    tft->fillRect(0,y,tft->width(), y+6, BLACK);
+                } else {
+                    Serial.println();
+                }
+                last_position_width = new_position_width;
             }
-            tft->fillRect(0, y, last_position_width, 6, RED);
+            tft->fillRect(0, y, last_position_width, y+6, RED);
 
             //float percent = float(ticks % loop_length) / (float)loop_length;
             //tft->fillRect(0, y, (percent*(float)tft->width()), 6, RED);

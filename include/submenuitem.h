@@ -2,11 +2,24 @@
 
 class SubMenuItem : public MenuItem {
     public:
+        bool always_show = false;       // whether to hide items until menu is opened or not
         int currently_selected = -1;
         int currently_opened = -1;
         LinkedList<MenuItem*> items = LinkedList<MenuItem*>();
 
-        SubMenuItem(char *label) : MenuItem(label) {}
+        //SubMenuItem(char *label) : MenuItem(label) {}
+        SubMenuItem(char *label, bool always_show = false) : MenuItem(label) {
+            this->always_show = always_show;
+        }
+
+        bool allow_takeover() override {
+            return this->always_show==false;
+        }
+        bool action_opened() override {
+            if (this->allow_takeover())
+                tft->clear();
+            return MenuItem::action_opened();
+        }
 
         void on_add() override {
             for (int i = 0 ; i < this->items.size() ; i++) {
@@ -20,10 +33,20 @@ class SubMenuItem : public MenuItem {
         }
 
         int display(Coord pos, bool selected, bool opened) {
+            static int last_opened = -2;
+            if (opened!=last_opened)
+                tft->clear();
+            last_opened = opened;
+
             int y = header(this->label, pos, selected, opened);
 
-            for (int i = 0 ; i < this->items.size() ; i++) {
-                y = this->items.get(i)->display(Coord(0,y), i==this->currently_selected, i==this->currently_opened);
+            if (opened || this->always_show) {
+                for (int i = 0 ; i < this->items.size() ; i++) {
+                    y = this->items.get(i)->display(Coord(0,y), i==this->currently_selected, i==this->currently_opened);
+                }
+            } else {
+                tft->printf("[%i sub-items...]\n", this->items.size());
+                y = tft->getCursorY();
             }
 
             return y;
