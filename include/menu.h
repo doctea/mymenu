@@ -133,7 +133,7 @@ class Menu {
             } else {
                 Serial.printf("back with currently_opened menuitem %i, handled by selected\n"); //setting to -1\n", currently_opened);
             }
-            tft->clear(true);
+            tft->clear(true);   // TOOD: don't rely on this
             return true;
         }
         bool button_right() {
