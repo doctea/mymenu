@@ -183,7 +183,7 @@ class ObjectActionItem : public MenuItem {
             sprintf(this->button_label_true, "<< %s >>", label);
 
         //while(1) {
-        Serial.printf("before button_label_false in ObjectActionItem constructor, button_label_true is '%s' from '%s'\n", this->button_label_true, button_label_true);
+        //Serial.printf("before button_label_false in ObjectActionItem constructor, button_label_true is '%s' from '%s'\n", this->button_label_true, button_label_true);
         //}
 
         if (button_label_false!=nullptr)
@@ -191,7 +191,7 @@ class ObjectActionItem : public MenuItem {
         else
             sprintf(this->button_label_false, ">> %s <<", label);
 
-        Serial.printf("after button_label_false in ObjectActionItem constructor, button_label_true is '%s' from '%s'\n", this->button_label_true, button_label_true);
+        //Serial.printf("after button_label_false in ObjectActionItem constructor, button_label_true is '%s' from '%s'\n", this->button_label_true, button_label_true);
 
         //}
 
@@ -200,7 +200,7 @@ class ObjectActionItem : public MenuItem {
     //    : ObjectActionItem(label, target_object, setter, getter, button_label_true, label) {}; 
 
     virtual int display(Coord pos, bool selected, bool opened) override {
-        Serial.printf("button_label_true is %s\n", this->button_label_true);
+        //Serial.printf("button_label_true is %s\n", this->button_label_true);
         //char *button_label = this->target_object->*get_label( this->target_object->*getter() );
         char *button_label = (this->target_object->*getter)() ? this->button_label_true : this->button_label_false;
         pos.y = header(button_label, pos, selected, opened);
