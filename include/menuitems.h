@@ -4,6 +4,7 @@
 #include "menu.h"
 #include "colours.h"
 
+#define MAX_LABEL_LENGTH 40
 
 void menu_set_last_message(char *msg, int colour);
 
@@ -12,7 +13,7 @@ class MenuItem {
     public:
         DisplayTranslator *tft;
 
-        char label[20];
+        char label[MAX_LABEL_LENGTH];
 
         bool debug = false;
 
@@ -26,7 +27,7 @@ class MenuItem {
         }
         virtual void on_add() {
             if (this->debug) Serial.printf("MenuItem#on_add in %s\n", this->label);
-        }    // called when object is added to menu
+        }    // called when this menuitem is added to menu
         
         virtual int display(Coord pos, bool selected, bool opened) {
             //Serial.printf("MenuItem display()")
@@ -292,126 +293,6 @@ class NumberControl : public MenuItem {
         virtual void setStep(int step) {
             this->step = step;
         }
-};
-
-template<class TargetClass, class DataType>
-class ObjectNumberControl : public NumberControl {
-    public:
-    bool debug = false;
-    DataType internal_value;
-
-    void(TargetClass::*setter)(DataType) = nullptr;
-    DataType(TargetClass::*getter)() = nullptr;
-    void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr;
-    TargetClass *target_object = nullptr;
-
-    ObjectNumberControl(const char* label, 
-                        TargetClass *target_object, 
-                        void(TargetClass::*setter_func)(DataType), 
-                        DataType(TargetClass::*getter_func)(), 
-                        void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr
-                ) : NumberControl(label) {
-        this->target_object = target_object;
-        this->getter = getter_func;
-        this->setter = setter_func;
-        this->on_change_handler = on_change_handler;
-
-        if (this->target_object!=nullptr && this->getter!=nullptr) 
-            this->set_internal_value( (this->target_object->*getter)() );
-    }
-    ObjectNumberControl(const char* label, 
-                        TargetClass *target_object, 
-                        void(TargetClass::*setter_func)(DataType), 
-                        DataType(TargetClass::*getter_func)(), 
-                        void (*on_change_handler)(DataType last_value, DataType new_value),
-                        DataType minimum_value,
-                        DataType maximum_value
-                ) : ObjectNumberControl(label, target_object, setter_func, getter_func, on_change_handler) {
-        this->minimum_value = minimum_value;
-        this->maximum_value = maximum_value;
-    }
-
-    virtual void on_add() override {
-        NumberControl::on_add();
-        if (this->target_object!=nullptr && this->getter!=nullptr) 
-            this->set_internal_value( (this->target_object->*getter)() );
-    }
-
-    /*virtual void decrease_value() override {
-        this->set_internal_value(get_internal_value() - step);
-        if (get_internal_value() < minimum_value)
-            set_internal_value(minimum_value); // = NUM_LOOP_SLOTS_PER_PROJECT-1;
-        //project.select_loop_number(ui_selected_loop_number);
-    }
-    virtual void increase_value() override {
-        //internal_value += step;
-        this->set_internal_value(get_internal_value() + step);
-        if (get_internal_value() >= maximum_value)
-            set_internal_value(maximum_value);
-    }*/
-
-    /*virtual int display(Coord pos, bool selected, bool opened) override {
-        Serial.printf("display in ObjectNumberControl %s\n", this->label); Serial.flush();
-        //Serial.printf("nopped display for ObjectNumberControl %s\n", this->label); Serial.flush();
-        return NumberControl::display(pos, selected, opened);
-        return pos.y;
-    }*/
-
-    virtual DataType get_internal_value() override {
-        return this->internal_value;
-    }
-
-    virtual void set_internal_value(DataType value) {
-        if (this->debug) { Serial.printf("ObjectNumberControl.set_internal_value(%i)..\n", value); }
-        this->internal_value = value;
-    }
-
-    virtual void change_value(int new_value) override {
-        if (readOnly) return;
-        if (this->debug) { Serial.printf("ObjectNumberControl#change_value(%i)..\n", new_value); Serial.flush(); }
-        DataType last_value = get_current_value();
-        this->set_current_value(new_value);
-        if (on_change_handler!=nullptr) {
-            if (this->debug)  { Serial.println("ObjectNumberControl calling on_change_handler"); Serial.flush(); }
-            on_change_handler(last_value, internal_value);
-        }
-    }
-
-    /*virtual bool button_select() override {
-        if (readOnly) return;
-        //this->target->set_transpose(internal_value);           
-        change_value(this->get_internal_value());
-        return false;
-    }*/
-
-    // override in subclass if need to do something special eg getter/setter
-    virtual DataType get_current_value() override {
-        if (this->target_object!=nullptr && this->getter!=nullptr) {
-            if (this->debug) { Serial.printf("ObjectNumberControl#get_current_value in %s about to call getter\n", this->label); Serial.flush(); }
-            DataType v = (this->target_object->*getter)();
-            if (this->debug) { Serial.println("Called getter!"); Serial.flush(); }
-            return v;
-        }
-        
-        return 0;
-    }
-
-    // override in subclass if need to do something special eg getter/setter
-    virtual void set_current_value(DataType value) override { 
-        //this->internal_value = value;
-        if (this->debug) { Serial.printf("ObjectNumberControl#set_current_value(%i)\n", value); Serial.flush(); }
-        if (this->target_object!=nullptr && this->setter!=nullptr) {
-            (this->target_object->*setter)(value);
-
-            char msg[255];
-            //Serial.printf("about to build msg string...\n");
-            sprintf(msg, "Set %8s to %i", label, value);
-            //Serial.printf("about to set_last_message!");
-            msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
-            menu_set_last_message(msg,GREEN);
-        }
-        if (this->debug) { Serial.println("Done."); Serial.flush(); }
-    }
 };
 
 
@@ -751,68 +632,6 @@ class ActionItem : public MenuItem {
 
 };
 
-template<class TargetClass>
-class ObjectToggleControl : public MenuItem {
-    public:
-        TargetClass *target_object;
-
-        void(TargetClass::*setter)(bool) = nullptr;
-        bool(TargetClass::*getter)() = nullptr;
-        void (*on_change_handler)(int last_value, int new_value) = nullptr;
-
-        ObjectToggleControl(const char *label, TargetClass *target_object, void(TargetClass::*setter)(bool), bool(TargetClass::*getter)(), void (*on_change_handler)(int last_value, int new_value))
-            : MenuItem(label) {
-            this->target_object = target_object;
-            this->setter = setter;
-            this->getter = getter;
-            this->on_change_handler = on_change_handler;
-        }
-
-        virtual int display(Coord pos, bool selected, bool opened) override {
-            pos.y = header(label, pos, selected, opened);
-            tft->setCursor(pos.x,pos.y);
-
-            colours(opened, opened ? GREEN : C_WHITE, BLACK);
-            //tft->setTextSize(2);        // was 2 ?
-            //char tmp[20] = "";
-            tft->setTextSize(2);
-
-            if ((this->target_object->*getter)()) {
-                tft->println("On");
-            } else {
-                tft->println("Off");
-            }
-            
-            /*if (opened) {
-                //tft->printf("value: %*i\n", 4, internal_value);
-                sprintf(tmp, "%s\n", this->getFormattedValue(this->get_internal_value()));
-                //Serial.printf("in opened NumberControl for %s, with internal_value %i, got formattedvalue '%s'\n", this->label, internal_value, this->getFormattedValue(internal_value));
-            } else {
-                //tft->printf("value: %*i\n", 4, get_current_value()); // *target_variable); //target->transpose);
-                sprintf(tmp, "%s\n", this->getFormattedValue()); //get_current_value());
-            }
-
-            // adjust size dependent on size of formatted value
-            if (strlen(tmp)<10) 
-                tft->setTextSize(2);
-            else
-                tft->setTextSize(1);*/
-
-            //tft->printf(tmp);
-            //Serial.printf("NumberControl base display in %s?\n", label);
-
-            return tft->getCursorY();
-        }
-
-        virtual bool action_opened() override {
-            if (this->debug) Serial.printf("ObjectToggleControl#action_opened on %s\n", this->label);
-            bool value = !(this->target_object->*getter)();
-            //this->internal_value = !this->internal_value;
-
-            (this->target_object->*setter)(value); //(bool)this->internal_value);
-            return false;   // don't 'open'
-        }
-
-};
+#include "menuitems_object.h"
 
 #endif
