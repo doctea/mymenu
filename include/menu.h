@@ -48,7 +48,7 @@ class Menu {
     int button_count = 0;
 
     public:
-        bool debug = true;
+        bool debug = false;
 
         enum {
             NORMAL = 0,
