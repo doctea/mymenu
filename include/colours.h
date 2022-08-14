@@ -42,6 +42,8 @@
     #define GREEN   ST77XX_GREEN
     #define BLUE    ST77XX_BLUE
     #define YELLOW  ST77XX_YELLOW
+    #define ORANGE  ST77XX_ORANGE
+    #define PURPLE  ST77XX_PURPLE
 #endif
 
 //#endif
