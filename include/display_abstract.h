@@ -39,7 +39,7 @@ class DisplayTranslator {
     virtual int getCursorX() { return 0; };
     virtual int getCursorY() { return 0; };
     virtual void setTextColor(uint16_t fg, uint16_t bg) {};
-    virtual void drawLine(int x, int y, int w, int h, uint16_t color) {};
+    virtual void drawLine(int x0, int y0, int x1, int y1, uint16_t color) {};
     virtual void fillRect(int x, int y, int w, int h, uint16_t color) {};
     virtual void setTextSize(int size) {};
     virtual void printf(const char *pattern) { Serial.println("WARNING: printf(char*pattern) not overridden!"); };
@@ -93,7 +93,6 @@ class DisplayTranslator {
                 getCursorY(), rows, rowHeight, position, height);*/
         return result;
     } 
-
 };
 
 

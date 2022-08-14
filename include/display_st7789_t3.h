@@ -73,8 +73,8 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
     virtual void setTextColor(uint16_t fg, uint16_t bg = ST77XX_BLACK) override {
         tft->setTextColor(fg, bg);
     }
-    virtual void drawLine(int x, int y, int w, int h, uint16_t color) override {
-        tft->drawLine(x, y, w, h, color);
+    virtual void drawLine(int x0, int y0, int x1, int y1, uint16_t color) override {
+        tft->drawLine(x0, y0, x1, y1, color);
     }
     virtual void fillRect(int x, int y, int w, int h, uint16_t color) override {
         tft->fillRect(x, y, w, h, color);
@@ -149,6 +149,11 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
         //Serial.println("updateDisplay..");
         tft->updateScreenAsync(false);
     }
+
+    /*virtual void drawRGBBitmap(int x, int y, GFXcanvas16 *c) {
+        //tft->drawBitmap(c, x, y)
+        tft->drawRGBBitmap(x, y, c->getBuffer(), c->width(), c->height());
+    }*/
 };
 
 
