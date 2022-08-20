@@ -19,7 +19,7 @@ class DisplayTranslator_STeensy_Big : public DisplayTranslator_STeensy {
     virtual const char *get_header_open_format() { return ">>>%-37s"; }
     virtual const char *get_header_selected_format() { return "%-40s"; }
     virtual int get_c_max() {
-        return 40;
+        return MENU_C_MAX;
     }
 
     DisplayTranslator_STeensy_Big () {

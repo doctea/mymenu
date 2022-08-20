@@ -84,7 +84,7 @@ class Menu {
                 Serial.printf("selected %i aka %s\n", currently_selected, items.get(currently_selected)->label);
             }
             if (debug) {
-                char msg[20] = "";
+                char msg[tft->get_c_max()] = "";
                 sprintf(msg, "knob_left to %i", currently_selected);
                 set_last_message(msg);
             }
@@ -102,7 +102,7 @@ class Menu {
                 Serial.printf("selected %i aka %s\n", currently_selected, items.get(currently_selected)->label);
             }
             if (debug) {
-                char msg[20] = "";
+                char msg[tft->get_c_max()] = "";
                 sprintf(msg, "knob_left to %i", currently_selected);
                 set_last_message(msg);
             }
@@ -196,7 +196,7 @@ class Menu {
             // draw the last status message
             tft->setTextColor(message_colour,ST77XX_BLACK);
             tft->setTextSize(0);
-            tft->printf((char*)tft->get_message_format(),last_message);
+            tft->printf((char*)tft->get_message_format(), last_message);
             return tft->getCursorY();
         }
 

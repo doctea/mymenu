@@ -12,6 +12,7 @@ void menu_set_last_message(char *msg, int colour);
 class MenuItem {
     public:
         DisplayTranslator *tft;
+        int menu_c_max = MENU_C_MAX;
 
         char label[MAX_LABEL_LENGTH];
 
@@ -27,6 +28,7 @@ class MenuItem {
         }
         virtual void on_add() {
             if (this->debug) Serial.printf("MenuItem#on_add in %s\n", this->label);
+            menu_c_max = tft->get_c_max();
         }    // called when this menuitem is added to menu
         
         virtual int display(Coord pos, bool selected, bool opened) {
@@ -168,7 +170,7 @@ class NumberControl : public MenuItem {
         }
 
         virtual const char *getFormattedValue(int value) {
-            static char fmt[20] = "      ";
+            static char fmt[MENU_C_MAX] = "      ";
             sprintf(fmt, "%i", value);
             return fmt;
         }
@@ -195,7 +197,7 @@ class NumberControl : public MenuItem {
             colours(opened, opened ? GREEN : C_WHITE, BLACK);
             if (this->debug) { Serial.println("did colours"); Serial.flush(); }
             //tft->setTextSize(2);        // was 2 ?
-            char tmp[20] = "                   ";
+            char tmp[tft->get_c_max()] = "                   ";
             if (this->debug) { Serial.println("did setting tmp"); Serial.flush(); }
             
             if (this->debug) { Serial.printf("NumberControl#display in %s about to do getFormattedValue() ting...\n", this->label); Serial.flush(); }
@@ -347,7 +349,7 @@ class SelectorControl : public MenuItem {
             Serial.printf("SelectorControl %s changed to %i!\n", label, available_values[selected_value_index]);
         }*/
         virtual const char*get_label_for_value(int value) {
-            static char value_label[20];
+            char value_label[MENU_C_MAX];
             sprintf(value_label, "%i", value);
             return value_label;
         }
