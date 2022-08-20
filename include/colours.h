@@ -1,6 +1,7 @@
 //#ifndef COLOURS__INCLUDED
 //#define COLOURS__INCLUDED
 
+#undef MENU_C_MAX
 #define MENU_C_MAX 20
 
 #if defined(TFT_SSOLED) or defined(TFT_ST7789_T3)
@@ -24,7 +25,6 @@
     #endif
 #endif
 
-
 #ifdef TFT_SSOLED
     #define C_WHITE     0xFF
     #define BLACK       0x00
@@ -33,6 +33,7 @@
     #define BLUE        0x00
     #define YELLOW      0xF0
     
+    #undef MENU_C_MAX
     #define MENU_C_MAX  20
 #endif
 
@@ -49,6 +50,7 @@
     #define ORANGE  ST77XX_ORANGE
     #define PURPLE  ST77XX_PURPLE
 
+    #undef MENU_C_MAX
     #ifdef TFT_ST7789_T3_BIG
         #define MENU_C_MAX  40
     #else

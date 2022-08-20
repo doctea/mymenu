@@ -16,6 +16,8 @@ class MenuItem {
 
         char label[MAX_LABEL_LENGTH];
 
+        bool show_header = true;
+
         bool debug = false;
 
         MenuItem set_tft(DisplayTranslator *tft) {
@@ -66,6 +68,8 @@ class MenuItem {
         }
         
         int header(const char *text, Coord pos, bool selected = false, bool opened = false) {
+            if (!this->show_header) return pos.y;
+
             tft->drawLine(pos.x, pos.y, tft->width(), pos.y, C_WHITE);
             tft->setCursor(pos.x, pos.y+1);
             colours(selected);
