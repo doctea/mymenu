@@ -353,7 +353,7 @@ class SelectorControl : public MenuItem {
             Serial.printf("SelectorControl %s changed to %i!\n", label, available_values[selected_value_index]);
         }*/
         virtual const char*get_label_for_value(int value) {
-            char value_label[MENU_C_MAX];
+            static char value_label[MENU_C_MAX];
             sprintf(value_label, "%i", value);
             return value_label;
         }
@@ -462,6 +462,10 @@ class HarmonyStatus : public MenuItem {
             this->last_note = last_note;
             this->current_note = current_note;
         }
+        /*virtual void configure(int *last_note, int *current_note) {   // for if we need to late-bind the harmony note sources
+            this->last_note = last_note;
+            this->current_note = current_note;   
+        }*/
         virtual int display(Coord pos, bool selected, bool opened) override {
             tft->setCursor(pos.x, pos.y);
             header(label, pos, selected, opened);
