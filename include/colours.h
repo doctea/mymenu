@@ -48,7 +48,7 @@
     #define BLUE    ST77XX_BLUE
     #define YELLOW  ST77XX_YELLOW
     #define ORANGE  ST77XX_ORANGE
-    #define PURPLE  ST77XX_PURPLE
+    #define PURPLE  ST77XX_MAGENTA
 
     #undef MENU_C_MAX
     #ifdef TFT_ST7789_T3_BIG
