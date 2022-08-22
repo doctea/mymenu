@@ -6,7 +6,7 @@
 
 #define MAX_LABEL_LENGTH 40
 
-void menu_set_last_message(char *msg, int colour);
+void menu_set_last_message(const char *msg, int colour);
 
 // basic line
 class MenuItem {

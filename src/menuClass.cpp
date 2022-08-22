@@ -60,15 +60,32 @@ int Menu::display() {
         int start_panel = 0;
         if (currently_selected>0 && panel_bottom[currently_selected] >= tft->height()) {
             start_panel = currently_selected - 1;
+            //#ifdef OLD_SCROLL_METHOD
             // count backwards to find number of panels we have to go to fit currently_selected on screen...
             int count_y = panel_bottom[currently_selected];
             for (int i = currently_selected ; i > 0 ; i--) {
                 count_y -= panel_bottom[i];
-                if (count_y + panel_bottom[currently_selected] < tft->height()) {
+                if (count_y + panel_bottom[currently_selected] < tft->height() / 2) {
                     start_panel = i;
                     break;
                 }
             }
+            //#endif
+            #ifdef NEW_SCROLL_METHOD_NONWORKING
+            // count forward until we find the first item we can start on that will include the item on screen
+            int target_y = panel_bottom[currently_selected];
+            int adj_y = 0;
+            for (int i = 0 ; i < items.size() ; i++) {
+                adj_y += panel_bottom[i];
+                Serial.printf("item %i accumulated height %i trying to fit into %i\n", i, adj_y, tft->height());
+                if (target_y - adj_y < tft->height()) {
+                    Serial.println("\tyes!");
+                    start_panel = i;
+                    break;
+                }                
+            }
+            #endif
+
             //tft.fillWindow(ST77XX_BLACK);
             tft->clear();
             //tft->fillRect(0, 0, tft->width(), tft->height(), BLACK);
@@ -78,6 +95,10 @@ int Menu::display() {
             tft->clear();
             //tft->fillRect(0, 0, tft->width(), tft->height(), BLACK);
         }
+        //if (panel_bottom[currently_selected] >= tft->height()/2)
+        //    start_panel = currently_selected - 1;
+        start_panel = constrain(start_panel, 0, items.size()-1);
+
         static int last_start_panel = -1;
         if (last_start_panel!=start_panel) {
             tft->clear(true);
@@ -140,7 +161,7 @@ int Menu::display() {
     return y;
 }
 
-void menu_set_last_message(char *msg, int colour) {
+void menu_set_last_message(const char *msg, int colour) {
     menu->set_last_message(msg);
     menu->set_message_colour(colour);
 }
