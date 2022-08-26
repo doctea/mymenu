@@ -191,6 +191,11 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
         sprintf(tmp, pattern, param1, param2, param3);
         printf(tmp);
     }
+    virtual void printf(const char *pattern, char param1, int param2, char *param3) {
+        char tmp[255];
+        sprintf(tmp, pattern, param1, param2, param3);
+        printf(tmp);
+    }
 
 
     virtual void println(const char *txt) override {
