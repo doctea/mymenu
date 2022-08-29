@@ -49,10 +49,10 @@ class ObjectMultiToggleControl : public MenuItem {
                 colours((i==currently_selected) && opened, (item.target->*item.getter)() ? GREEN : RED, BLACK);
 
                 // segment the label of the item up over multiple lines of `width_per_item` chars each
-                char tmp[width_per_item+1];
-                for (uint8_t segment_start = 0 ; segment_start < strlen(item.label) ; segment_start += width_per_item) {
+                char tmp[width_per_item];
+                for (uint8_t segment_start = 0 ; segment_start < strlen(item.label) ; segment_start += width_per_item-1) {
                     // copy width_per_item characters or max remaining
-                    int len_to_copy = min(strlen(item.label) - segment_start, width_per_item);
+                    int len_to_copy = min(strlen(item.label) - segment_start, width_per_item-1);
 
                     //Serial.printf("\tcpos = %i, width_per_item = %i, len_to_copy = %i, strlen(item.label) = %i\n", segment_start, width_per_item, len_to_copy, strlen(item.label));
                     memcpy(&tmp[0], &item.label[segment_start], len_to_copy);
