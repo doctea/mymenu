@@ -49,6 +49,13 @@ class Menu {
 
     public:
         bool debug = false;
+        bool debug_times = false;
+        void setDebugTimes(bool value) {
+            this->debug_times = value;
+        }
+        bool isDebugTimes() {
+            return this->debug_times;
+        }
 
         enum {
             NORMAL = 0,

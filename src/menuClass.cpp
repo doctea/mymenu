@@ -129,9 +129,18 @@ int Menu::display() {
             //Serial.printf("Menu rendering item %i [selected #%i, opened #%i]\n", i, currently_selected, currently_opened);
             Coord pos = Coord(0,y);
             if (debug) { Serial.printf(F("display()=> about to display() item %i aka %s\n"), i, item->label); Serial.flush(); }
+
+            unsigned long time_micros = 0;
+            if (this->debug_times) time_micros = micros();
             y = item->display(pos, i==currently_selected, i==currently_opened) + 1;
             //Serial.printf("after rendering MenuItem %i, return y is %i, cursor coords are (%i,%i)\n", y, tft->getCursorX(), tft->getCursorY());
             if (debug) { Serial.printf(F("display()=> just did display() item %i aka %s\n"), i, item->label); Serial.flush(); }
+
+            if (this->debug_times) {
+                tft->setTextSize(1);
+                tft->printf("Took: %u\n", micros() - time_micros);
+                y = y + tft->getRowHeight();
+            }
 
             if (!bottoms_computed) {
                 panel_bottom[i] = y;// - start_y;
