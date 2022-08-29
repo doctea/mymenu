@@ -205,7 +205,7 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
             oledSetCursor(tft, 0, tft->iCursorY+(1+textSize));
     }
     virtual void println() {
-        oledSetCursor(tft, 0, tft->iCursoryY+(1+textSize));
+        oledSetCursor(tft, 0, tft->iCursorY+(1+textSize));
     }
 
     virtual int width() override {
