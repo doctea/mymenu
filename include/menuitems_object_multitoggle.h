@@ -92,6 +92,9 @@ class ObjectMultiToggleControl : public MenuItem {
             if (currently_selected>=0) {
                 MultiToggleItem<TargetClass> item = items.get(currently_selected);
                 (item.target->*item.setter)( ! (item.target->*item.getter)() );
+                static char tmp[40];
+                sprintf(tmp, "Toggled %-20s", item.label);
+                menu->set_last_message(tmp);
             }
             return false; //go_back_on_select;
         }
