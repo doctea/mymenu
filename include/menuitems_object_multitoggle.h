@@ -2,23 +2,73 @@
 
 #include "menuitems.h"
 
-template<class TargetClass>
-struct MultiToggleItem {
-    char *label;
-    TargetClass *target;
-    void(TargetClass::*setter)(bool);
-    bool(TargetClass::*getter)();
+class MultiToggleItemBase {
+    public:
+        MultiToggleItemBase(char *label) {
+            this->label = label;
+        }
+        char *label;
+        virtual bool do_getter();
+        virtual void do_setter(bool value);
 };
 
 template<class TargetClass>
+class MultiToggleItemClass : public MultiToggleItemBase{
+    public:
+        TargetClass *target;
+        void(TargetClass::*setter)(bool);
+        bool(TargetClass::*getter)();
+
+        MultiToggleItemClass(char *label, TargetClass *target, void(TargetClass::*setter)(bool), bool(TargetClass::*getter)()) : MultiToggleItemBase(label) {
+            this->target = target;
+            this->setter = setter;
+            this->getter = getter;
+        }
+
+        virtual bool do_getter() override {
+            return ((*this->target).*(this->getter))();
+            //return (*this->target)*(this->getter)();
+            //(item.target->*item.setter)
+            //(item.target->*item.setter)
+            //return (this->target*)->getter();
+        }
+        virtual void do_setter(bool value) override {
+            ((*this->target).*(this->setter))( value );
+        }
+};
+
+class MultiToggleItemFunction : public MultiToggleItemBase {
+    public:
+        void(*setter)(bool) = nullptr;
+        bool(*getter)() = nullptr;
+
+        MultiToggleItemFunction(char *label, void(*setter)(bool), bool(*getter)()) : MultiToggleItemBase(label) {
+            this->setter = setter;
+            this->getter = getter;
+        }
+
+        virtual bool do_getter() override {
+            return this->getter();
+            //return (this->target*)->getter();
+        }
+        virtual void do_setter(bool value) override {
+            this->setter(value);
+        }
+};
+
 class ObjectMultiToggleControl : public MenuItem {
     public:
+        bool all_option = false;
+        bool all_status = false;
 
-        LinkedList<MultiToggleItem<TargetClass>> items = LinkedList<MultiToggleItem<TargetClass>>();
+        LinkedList<MultiToggleItemBase*> items = LinkedList<MultiToggleItemBase*>();
 
         ObjectMultiToggleControl(const char *label ) : MenuItem(label) {}
+        ObjectMultiToggleControl(const char *label, bool enable_all_option) : ObjectMultiToggleControl(label) {
+            this->all_option = enable_all_option;
+        }
 
-        virtual void addItem(MultiToggleItem<TargetClass> item) {
+        virtual void addItem(MultiToggleItemBase *item) {
             this->items.add(item);
             currently_selected = 0; // set first item as selected
         }
@@ -31,7 +81,7 @@ class ObjectMultiToggleControl : public MenuItem {
 
             #define FONT_WIDTH 6
 
-            int width_per_item = (tft->width() / FONT_WIDTH) / items.size();    // max size to be used for each item
+            int width_per_item = (tft->width() / FONT_WIDTH) / (items.size() + (all_option ? 1 : 0));    // max size to be used for each item
             //tft->printf("width_per_item: %i\n", width_per_item);
             pos.y = tft->getCursorY();
 
@@ -42,20 +92,22 @@ class ObjectMultiToggleControl : public MenuItem {
             int x = 0;
             int start_y = pos.y;
 
-            for (uint8_t i = 0 ; i < items.size() ; i++) {
-                MultiToggleItem<TargetClass> item = items.get(i);
+            const uint8_t items_size = items.size();// + (all_option ? 1 : 0);
+            for (uint8_t i = 0 ; i < items_size ; i++) {
+                MultiToggleItemBase *item = items.get(i);
+                //Serial.printf("processing item %s\n", item->label);
 
                 // green or red according to whether underlying item is on or off, inverted if widget opened and item selected
-                colours((i==currently_selected) && opened, (item.target->*item.getter)() ? GREEN : RED, BLACK);
+                colours((i==currently_selected) && opened, item->do_getter() ? GREEN : RED, BLACK);
 
                 // segment the label of the item up over multiple lines of `width_per_item` chars each
                 char tmp[width_per_item];
-                for (uint8_t segment_start = 0 ; segment_start < strlen(item.label) ; segment_start += width_per_item-1) {
+                for (uint8_t segment_start = 0 ; segment_start < strlen(item->label) ; segment_start += width_per_item-1) {
                     // copy width_per_item characters or max remaining
-                    int len_to_copy = min(strlen(item.label) - segment_start, width_per_item-1);
+                    int len_to_copy = min(strlen(item->label) - segment_start, width_per_item-1);
 
                     //Serial.printf("\tcpos = %i, width_per_item = %i, len_to_copy = %i, strlen(item.label) = %i\n", segment_start, width_per_item, len_to_copy, strlen(item.label));
-                    memcpy(&tmp[0], &item.label[segment_start], len_to_copy);
+                    memcpy(&tmp[0], &item->label[segment_start], len_to_copy);
                     tmp[len_to_copy] = '\0';
                     
                     //Serial.printf("\tdraw tmp = '%s' at %i,%i\n", tmp, x, pos.y);
@@ -70,30 +122,46 @@ class ObjectMultiToggleControl : public MenuItem {
                 pos.y = start_y; // reset cursor position ready to draw the next item
                 tft->setCursor(x, pos.y);
             }
+            if (all_option) {
+                colours((currently_selected==items_size) && opened, all_status ? GREEN : RED, BLACK);
+                tft->setCursor(x, pos.y);
+                tft->println("[ALL]");
+            }
             
             return max_height_reached; //tft->getCursorY();
         }
 
         virtual bool knob_left() {
             currently_selected--;
-            if (currently_selected<0) 
-                currently_selected = items.size() - 1;
+            if (currently_selected < 0) 
+                currently_selected = (this->all_option?1:0) + items.size() - 1;
             //Serial.printf("knob_right: selected %i\n", currently_selected);
             return true;
         }
         virtual bool knob_right() {
             currently_selected++;
-            if (currently_selected>=items.size())
+            if (currently_selected >= (this->all_option?1:0) + items.size())
                 currently_selected = 0;
             //Serial.printf("knob_right: selected %i\n", currently_selected);
             return true;
         }
         virtual bool button_select() {
-            if (currently_selected>=0) {
-                MultiToggleItem<TargetClass> item = items.get(currently_selected);
-                (item.target->*item.setter)( ! (item.target->*item.getter)() );
+            if (all_option && currently_selected == items.size()) {
+                all_status = !all_status;
+                for (int i = 0 ; i < items.size() ; i++) {
+                    items.get(i)->do_setter(all_status);
+                }
                 static char tmp[40];
-                sprintf(tmp, "Toggled %-20s", item.label);
+                sprintf(tmp, "Toggled all to %s", all_status?"on":"off");
+                menu->set_last_message(tmp);
+            } else if (currently_selected>=0) {
+                /*MultiToggleItem<TargetClass> item = items.get(currently_selected);
+                (item.target->*item.setter)( ! (item.target->*item.getter)() );*/
+                MultiToggleItemBase *item = items.get(currently_selected);
+                bool new_mode = !item->do_getter();
+                item->do_setter(new_mode);
+                static char tmp[40];
+                sprintf(tmp, "Toggled %-20s to %s", item->label, new_mode?"on":"off");
                 menu->set_last_message(tmp);
             }
             return false; //go_back_on_select;
