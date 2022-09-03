@@ -45,6 +45,7 @@ class DisplayTranslator {
     virtual void printf(const char *pattern) { Serial.println("WARNING: printf(char*pattern) not overridden!"); };
     virtual void printf(const char *pattern, char *param1) { Serial.println("WARNING: printf(char*pattern, char *param1) not overridden!"); };
     virtual void printf(const char *pattern, char *param1, char *param2) { Serial.println("WARNING: printf(char*pattern, char *param1, char *param2) not overridden!"); };
+    virtual void printf(const char *pattern, char *param1, char *param2, char *param3) { Serial.println("WARNING: printf(char*pattern, char *param1, char *param2, char *param3) not overridden!"); };
     virtual void printf(const char *pattern, char *param1, int param2, int param3) { Serial.println("WARNING: printf(char*pattern, char *param1, char *param2, char *param3) not overridden!"); };
     virtual void printf(const char *pattern, int param1, char* param2) { Serial.println("WARNING: printf(char *pattern, int param1, char* param2) not overridden!"); }
     virtual void printf(const char *pattern, int param1) { Serial.println("WARNING: printf(char *pattern, int param1) not overridden!"); }

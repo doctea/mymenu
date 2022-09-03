@@ -452,8 +452,9 @@ class SelectorControl : public MenuItem {
 
 String get_note_name(int pitch);
 class HarmonyStatus : public MenuItem {
-    int *last_note;
-    int *current_note;
+    int *last_note = nullptr;
+    int *current_note = nullptr;
+    int *other_value = nullptr;
 
     public:
         HarmonyStatus() : MenuItem("Harmony") {};
@@ -461,6 +462,9 @@ class HarmonyStatus : public MenuItem {
             //MenuItem(label);
             this->last_note = last_note;
             this->current_note = current_note;
+        }
+        HarmonyStatus(const char *label, int *last_note, int *current_note, int *other_value) : HarmonyStatus(label, last_note, current_note) {
+            this->other_value = other_value;
         }
         /*virtual void configure(int *last_note, int *current_note) {   // for if we need to late-bind the harmony note sources
             this->last_note = last_note;
@@ -475,6 +479,12 @@ class HarmonyStatus : public MenuItem {
 
             if (!last_note || !current_note) {
                 tft->println((char *)"[not set]");
+            } else if (this->other_value!=nullptr) {
+                tft->printf("%4s : %4s : %4s\n",     // \n not needed on smaller screen because already fills row.. is needed on big tft?
+                    (char*)(get_note_name(*last_note).c_str()), 
+                    (char*)(get_note_name(*current_note).c_str()),
+                    (char*)(get_note_name(*other_value).c_str())
+                );
             } else {
                 tft->printf("%4s : %4s\n",     // \n not needed on smaller screen because already fills row.. is needed on big tft?
                     (char*)(get_note_name(*last_note).c_str()), 

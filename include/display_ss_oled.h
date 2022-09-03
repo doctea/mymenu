@@ -152,6 +152,14 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
         printf(tmp);
         //oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
     }
+    virtual void printf(const char *pattern, char *param1, char *param2, char *param3) override {
+        char tmp[255];
+        sprintf(tmp, pattern, param1, param2, param3);
+        //tft.printf(pattern, param1);
+        printf(tmp);
+        //oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
+    }
+
     virtual void printf(const char *pattern, int param1) override {
         char tmp[255];
         sprintf(tmp, pattern, param1);

@@ -58,9 +58,9 @@ class MultiToggleItemFunction : public MultiToggleItemBase {
 
 class ObjectMultiToggleControl : public MenuItem {
     public:
-        bool all_option = false;
-        bool all_status = false;
-
+        bool all_option = false;    // whether to add an 'all' toggle option
+        bool all_status = false;    // current status of the 'all' toggle
+        
         LinkedList<MultiToggleItemBase*> items = LinkedList<MultiToggleItemBase*>();
 
         ObjectMultiToggleControl(const char *label ) : MenuItem(label) {}
@@ -161,7 +161,7 @@ class ObjectMultiToggleControl : public MenuItem {
                 bool new_mode = !item->do_getter();
                 item->do_setter(new_mode);
                 static char tmp[40];
-                sprintf(tmp, "Toggled %-20s to %s", item->label, new_mode?"on":"off");
+                sprintf(tmp, "Toggled %s to %s", item->label, new_mode?"on":"off");
                 menu->set_last_message(tmp);
             }
             return false; //go_back_on_select;
