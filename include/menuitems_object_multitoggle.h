@@ -91,7 +91,6 @@ class ObjectMultiToggleControl : public MenuItem {
 
             #define FONT_WIDTH 6
 
-            int width_per_item = (tft->width() / FONT_WIDTH) / (items.size() + (all_option ? 1 : 0));    // max size to be used for each item
             //tft->printf("width_per_item: %i\n", width_per_item);
             pos.y = tft->getCursorY();
 
@@ -113,10 +112,13 @@ class ObjectMultiToggleControl : public MenuItem {
                 if (currently_selected==0) all_selected = true;
                 colours(all_selected && opened, all_status ? GREEN : RED, BLACK);
                 tft->setCursor(x, pos.y);
-                tft->println("[ALL]");
-                x += (width_per_item * FONT_WIDTH);
+                tft->println("[ALL] ");
+                x += (7 * FONT_WIDTH);  // 7 being the size if "[ALL] " + 1
                 tft->setCursor(x, pos.y);
             }
+
+            //int width_per_item = (tft->width() / FONT_WIDTH) / (items.size() + (all_option ? 1 : 0));    // max size to be used for each item
+            int width_per_item = ((tft->width()-x) / FONT_WIDTH) / items.size(); // max size to be used for each item after the 'all' item is taken into account
 
             for (uint8_t i = 0 ; i < items_size ; i++) {
                 MultiToggleItemBase *item = items.get(i);
