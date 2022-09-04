@@ -60,6 +60,8 @@ class ObjectMultiToggleControl : public MenuItem {
     public:
         bool all_option = false;    // whether to add an 'all' toggle option
         bool all_status = false;    // current status of the 'all' toggle
+
+        int initial_on_count = 0;
         
         LinkedList<MultiToggleItemBase*> items = LinkedList<MultiToggleItemBase*>();
 
@@ -71,6 +73,14 @@ class ObjectMultiToggleControl : public MenuItem {
         virtual void addItem(MultiToggleItemBase *item) {
             this->items.add(item);
             currently_selected = 0; // set first item as selected
+
+            // set the default 'all' option to whichever is the most common of the sub-items
+            if (all_option) {
+                if (item->do_getter()) {
+                    initial_on_count++;
+                }
+                all_status = initial_on_count > this->items.size()/2;
+            }
         }
 
         int currently_selected = -1;
@@ -93,12 +103,27 @@ class ObjectMultiToggleControl : public MenuItem {
             int start_y = pos.y;
 
             const uint8_t items_size = items.size();// + (all_option ? 1 : 0);
+
+            bool all_selected = false;
+
+            int effectively_selected = 0;
+
+            if (all_option) {
+                effectively_selected = currently_selected - 1;
+                if (currently_selected==0) all_selected = true;
+                colours(all_selected && opened, all_status ? GREEN : RED, BLACK);
+                tft->setCursor(x, pos.y);
+                tft->println("[ALL]");
+                x += (width_per_item * FONT_WIDTH);
+                tft->setCursor(x, pos.y);
+            }
+
             for (uint8_t i = 0 ; i < items_size ; i++) {
                 MultiToggleItemBase *item = items.get(i);
                 //Serial.printf("processing item %s\n", item->label);
 
                 // green or red according to whether underlying item is on or off, inverted if widget opened and item selected
-                colours((i==currently_selected) && opened, item->do_getter() ? GREEN : RED, BLACK);
+                colours((i==effectively_selected) && opened, item->do_getter() ? GREEN : RED, BLACK);
 
                 // segment the label of the item up over multiple lines of `width_per_item` chars each
                 char tmp[width_per_item];
@@ -122,11 +147,7 @@ class ObjectMultiToggleControl : public MenuItem {
                 pos.y = start_y; // reset cursor position ready to draw the next item
                 tft->setCursor(x, pos.y);
             }
-            if (all_option) {
-                colours((currently_selected==items_size) && opened, all_status ? GREEN : RED, BLACK);
-                tft->setCursor(x, pos.y);
-                tft->println("[ALL]");
-            }
+
             
             return max_height_reached; //tft->getCursorY();
         }
@@ -146,7 +167,7 @@ class ObjectMultiToggleControl : public MenuItem {
             return true;
         }
         virtual bool button_select() {
-            if (all_option && currently_selected == items.size()) {
+            if (all_option && currently_selected == 0) { //items.size()) {
                 all_status = !all_status;
                 for (int i = 0 ; i < items.size() ; i++) {
                     items.get(i)->do_setter(all_status);
@@ -157,7 +178,8 @@ class ObjectMultiToggleControl : public MenuItem {
             } else if (currently_selected>=0) {
                 /*MultiToggleItem<TargetClass> item = items.get(currently_selected);
                 (item.target->*item.setter)( ! (item.target->*item.getter)() );*/
-                MultiToggleItemBase *item = items.get(currently_selected);
+                int effectively_selected = all_option ? currently_selected-1 : currently_selected;
+                MultiToggleItemBase *item = items.get(effectively_selected);
                 bool new_mode = !item->do_getter();
                 item->do_setter(new_mode);
                 static char tmp[40];
