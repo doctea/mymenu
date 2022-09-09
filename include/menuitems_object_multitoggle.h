@@ -60,7 +60,7 @@ class ObjectMultiToggleControl : public MenuItem {
     public:
         bool all_option = false;    // whether to add an 'all' toggle option
         bool all_status = false;    // current status of the 'all' toggle
-
+        
         int initial_on_count = 0;
         
         LinkedList<MultiToggleItemBase*> items = LinkedList<MultiToggleItemBase*>();
@@ -119,7 +119,7 @@ class ObjectMultiToggleControl : public MenuItem {
 
             //int width_per_item = (tft->width() / FONT_WIDTH) / (items.size() + (all_option ? 1 : 0));    // max size to be used for each item
             int width_per_item = ((tft->width()-x) / FONT_WIDTH) / items.size(); // max size to be used for each item after the 'all' item is taken into account
-
+            
             for (uint8_t i = 0 ; i < items_size ; i++) {
                 MultiToggleItemBase *item = items.get(i);
                 //Serial.printf("processing item %s\n", item->label);

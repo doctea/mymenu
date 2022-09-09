@@ -145,7 +145,6 @@ class ObjectToggleControl : public MenuItem {
             (this->target_object->*setter)(value); //(bool)this->internal_value);
             return false;   // don't 'open'
         }
-
 };
 
 
