@@ -29,7 +29,8 @@ class SubMenuItem : public MenuItem {
         }
 
         void add(MenuItem *item) {
-            this->items.add(item);
+            if (item!=nullptr)
+                this->items.add(item);
         }
 
         int display(Coord pos, bool selected, bool opened) {
@@ -40,9 +41,13 @@ class SubMenuItem : public MenuItem {
 
             int y = header(this->label, pos, selected, opened);
 
+            int start_item = currently_selected>=0 ? currently_selected : 0;
+
             if (opened || this->always_show) {
-                for (int i = 0 ; i < this->items.size() ; i++) {
+                for (int i = start_item ; i < this->items.size() ; i++) {
                     y = this->items.get(i)->display(Coord(0,y), i==this->currently_selected, i==this->currently_opened);
+                    if (y>=tft->height()) 
+                        break;
                 }
             } else {
                 tft->printf("[%i sub-items...]\n", this->items.size());

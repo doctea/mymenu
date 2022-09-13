@@ -184,8 +184,10 @@ class Menu {
             }
         }
         void add_pinned(PinnedPanelMenuItem *m) {
-            m->tft = this->tft;
-            m->on_add();
+            if (m!=nullptr) {
+                m->tft = this->tft;
+                m->on_add();
+            }
             pinned_panel = m;
         }
 
