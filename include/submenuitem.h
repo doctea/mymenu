@@ -1,3 +1,6 @@
+#ifndef SUBMENUITEM__INCLUDED
+#define SUBMENUITEM__INCLUDED
+
 #include "menuitems.h"
 
 class SubMenuItem : public MenuItem {
@@ -7,7 +10,7 @@ class SubMenuItem : public MenuItem {
         int currently_opened = -1;
         LinkedList<MenuItem*> items = LinkedList<MenuItem*>();
 
-        //SubMenuItem(char *label) : MenuItem(label) {}
+        // always_show argument determines whether to show items even when menu isn't opened
         SubMenuItem(char *label, bool always_show = false) : MenuItem(label) {
             this->always_show = always_show;
         }
@@ -48,6 +51,14 @@ class SubMenuItem : public MenuItem {
                     y = this->items.get(i)->display(Coord(0,y), i==this->currently_selected, i==this->currently_opened);
                     if (y>=tft->height()) 
                         break;
+                }
+                // blank to bottom of screen
+                if (y < tft->height()) {
+                    while (y < tft->height()) {
+                        for (int i = 0 ; i < tft->get_c_max() ; i++)
+                            tft->print(" ");
+                        y = tft->getCursorY();
+                    }
                 }
             } else {
                 tft->printf("[%i sub-items...]\n", this->items.size());
@@ -90,9 +101,10 @@ class SubMenuItem : public MenuItem {
                     }
                 }
             } else {
-                if (items.get(currently_opened)->button_select())
+                if (items.get(currently_opened)->button_select()) {
                     button_back();
-                else
+                    return false;
+                } else
                     return false;
             }
             return true;
@@ -123,3 +135,5 @@ class SubMenuItem : public MenuItem {
             return true;
         }
 };
+
+#endif

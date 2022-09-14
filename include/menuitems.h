@@ -290,6 +290,7 @@ class NumberControl : public MenuItem {
 
         // override in subclass if need to do something special eg getter/setter
         virtual void set_current_value(int value) { 
+            //this->internal_value = value;
             if (target_variable!=nullptr)
                 *target_variable = value;
             if (setter!=nullptr)
@@ -330,7 +331,8 @@ class DirectNumberControl : public NumberControl {
     }
     virtual bool button_select() override {
         if (readOnly) return true;
-        //this->target->set_transpose(internal_value);           
+        //this->target->set_transpose(internal_value);
+        internal_value = this->get_current_value();// * this->maximum_value; 
         change_value(internal_value);
         return true;
     }
