@@ -47,6 +47,7 @@ class SubMenuItem : public MenuItem {
             int start_item = currently_selected>=0 ? currently_selected : 0;
 
             if (opened || this->always_show) {
+                //tft->clear();
                 for (int i = start_item ; i < this->items.size() ; i++) {
                     y = this->items.get(i)->display(Coord(0,y), i==this->currently_selected, i==this->currently_opened);
                     if (y>=tft->height()) 

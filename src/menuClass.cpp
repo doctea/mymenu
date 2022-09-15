@@ -146,6 +146,9 @@ int Menu::display() {
                 panel_bottom[i] = y;// - start_y;
                 //start_y = y;
             }
+
+            if (bottoms_computed && y >= this->tft->height())
+                break;
             //Serial.printf("menuitem %i took %i to refresh\n", i, millis()-time);
             //if (y >= tft->height()) // stop rendering if we've reached the bottom of the screen?
             //    break;

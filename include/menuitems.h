@@ -207,11 +207,13 @@ class NumberControl : public MenuItem {
             if (this->debug) { Serial.printf("NumberControl#display in %s about to do getFormattedValue() ting...\n", this->label); Serial.flush(); }
             if (opened) {
                 //tft->printf("value: %*i\n", 4, internal_value);
-                sprintf(tmp, "%s\n", this->getFormattedValue(this->get_internal_value()));
+                const char *printable_value = this->getFormattedValue(this->get_internal_value());
+                sprintf(tmp, "%s", printable_value);
+                //Serial.printf("NumberControl#display is opened for '%s', formatted value is '%s' (strlen %i)\n", this->label, printable_value, strlen(printable_value));
                 //Serial.printf("in opened NumberControl for %s, with internal_value %i, got formattedvalue '%s'\n", this->label, internal_value, this->getFormattedValue(internal_value));
             } else {
                 //tft->printf("value: %*i\n", 4, get_current_value()); //*target_variable); //target->transpose);
-                sprintf(tmp, "%s\n", this->getFormattedValue()); //get_current_value());
+                sprintf(tmp, "%s", this->getFormattedValue()); //get_current_value());
             }
             if (this->debug) { Serial.printf("NumberControl#display in %s just did getFormattedValue() ting!\n", this->label); Serial.flush(); }
 
@@ -222,6 +224,8 @@ class NumberControl : public MenuItem {
                 tft->setTextSize(1);
 
             tft->printf(tmp);
+            tft->setTextColor(C_WHITE, BLACK); tft->print("   ");    // cheap blank
+            tft->println();
             if (this->debug) { Serial.printf("NumberControl base display finished in %s\n", label); }
 
             return tft->getCursorY();
