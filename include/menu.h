@@ -135,10 +135,10 @@ class Menu {
                 currently_selected = currently_opened;
                 currently_opened = -1;
             } else if (currently_opened==-1) {
-                Serial.printf("back pressed but already at top level with currently_opened menuitem %i\n"); //setting to -1\n", currently_opened);
+                Serial.printf("back pressed but already at top level with currently_opened menuitem %i\n", currently_opened); //setting to -1\n", currently_opened);
                 currently_selected = 0;
             } else {
-                Serial.printf("back with currently_opened menuitem %i, handled by selected\n"); //setting to -1\n", currently_opened);
+                Serial.printf("back with currently_opened menuitem %i, handled by selected\n", currently_opened); //setting to -1\n", currently_opened);
             }
             tft->clear(true);   // TOOD: don't rely on this
             return true;
