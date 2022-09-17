@@ -59,6 +59,7 @@ class ObjectNumberControl : public NumberControl {
         if (readOnly) return;
         if (this->debug) { Serial.printf("ObjectNumberControl#change_value(%i)..\n", new_value); Serial.flush(); }
         DataType last_value = get_current_value();
+        //Serial.println("ObjectNumberControl#change_value about to call set_current_value");
         this->set_current_value(new_value);
         if (on_change_handler!=nullptr) {
             if (this->debug)  { Serial.println("ObjectNumberControl calling on_change_handler"); Serial.flush(); }

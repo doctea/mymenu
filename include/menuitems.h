@@ -1,6 +1,8 @@
 #ifndef MENUITEMS__INCLUDED
 #define MENUITEMS__INCLUDED
 
+#include "Arduino.h"
+
 #include "menu.h"
 #include "colours.h"
 
@@ -32,6 +34,10 @@ class MenuItem {
             if (this->debug) Serial.printf("MenuItem#on_add in %s\n", this->label);
             menu_c_max = tft->get_c_max();
         }    // called when this menuitem is added to menu
+
+        // called every tick, in case anything needs doing
+        virtual void update_ticks(unsigned long ticks) {
+        };
         
         virtual int display(Coord pos, bool selected, bool opened) {
             //Serial.printf("MenuItem display()")
@@ -52,14 +58,14 @@ class MenuItem {
             return tft->getCursorY();
         }
 
-        void colours(bool selected) {
-            colours(selected, /*tft->WHITE*/C_WHITE, BLACK);
+        void colours(bool inverted) {
+            colours(inverted, /*tft->WHITE*/C_WHITE, BLACK);
         }
-        void colours(bool selected, int fg) {
-            colours(selected, fg, BLACK);
+        void colours(bool inverted, int fg) {
+            colours(inverted, fg, BLACK);
         }
-        void colours(bool selected, int fg, int bg) {
-            if (!selected) {
+        void colours(bool inverted, int fg, int bg) {
+            if (!inverted) {
                 tft->setTextColor(fg, bg);
             } else {
                 //Serial.printf("%s selected, setting colours %02x, %02x\n", label, bg, fg);
@@ -201,34 +207,41 @@ class NumberControl : public MenuItem {
             colours(opened, opened ? GREEN : C_WHITE, BLACK);
             if (this->debug) { Serial.println("did colours"); Serial.flush(); }
             //tft->setTextSize(2);        // was 2 ?
-            char tmp[tft->get_c_max()] = "                   ";
+            //char tmp[tft->get_c_max()] = "                   ";
+            const char *tmp;
             if (this->debug) { Serial.println("did setting tmp"); Serial.flush(); }
             
             if (this->debug) { Serial.printf("NumberControl#display in %s about to do getFormattedValue() ting...\n", this->label); Serial.flush(); }
             if (opened) {
                 //tft->printf("value: %*i\n", 4, internal_value);
-                const char *printable_value = this->getFormattedValue(this->get_internal_value());
-                sprintf(tmp, "%s", printable_value);
+                tmp = this->getFormattedInternalValue();
                 //Serial.printf("NumberControl#display is opened for '%s', formatted value is '%s' (strlen %i)\n", this->label, printable_value, strlen(printable_value));
                 //Serial.printf("in opened NumberControl for %s, with internal_value %i, got formattedvalue '%s'\n", this->label, internal_value, this->getFormattedValue(internal_value));
             } else {
                 //tft->printf("value: %*i\n", 4, get_current_value()); //*target_variable); //target->transpose);
-                sprintf(tmp, "%s", this->getFormattedValue()); //get_current_value());
+                //sprintf(tmp, "%s", this->getFormattedValue()); //get_current_value());
+                tmp = this->getFormattedValue();
             }
             if (this->debug) { Serial.printf("NumberControl#display in %s just did getFormattedValue() ting!\n", this->label); Serial.flush(); }
 
             // adjust size dependent on size of formatted value
-            if (strlen(tmp)<10) 
+            if (strlen(tmp)<tft->get_c_max()/2) 
                 tft->setTextSize(2);
             else
                 tft->setTextSize(1);
 
             tft->printf(tmp);
-            tft->setTextColor(C_WHITE, BLACK); tft->print("   ");    // cheap blank
+            tft->setTextColor(C_WHITE, BLACK); tft->print((char*)"   ");    // cheap blank
             tft->println();
             if (this->debug) { Serial.printf("NumberControl base display finished in %s\n", label); }
 
             return tft->getCursorY();
+        }
+
+        virtual const char *getFormattedInternalValue() {
+            static char tmp[MAX_LABEL_LENGTH];
+            sprintf(tmp, this->getFormattedValue(this->get_internal_value()));
+            return tmp;
         }
 
         virtual void set_internal_value(int value) {
@@ -264,7 +277,8 @@ class NumberControl : public MenuItem {
         virtual void change_value(int new_value) {
             if (readOnly) return;
             int last_value = get_current_value();
-            set_current_value(new_value);
+            Serial.printf("NumberControl#change_value(%i) about to call set_current_value(%i)", new_value, new_value);
+            this->set_current_value(new_value);
             if (on_change_handler!=nullptr) {
                 if (this->debug)  { Serial.println("NumberControl calling on_change_handler"); Serial.flush(); }
                 on_change_handler(last_value, this->get_internal_value());
@@ -293,7 +307,7 @@ class NumberControl : public MenuItem {
         }
 
         // override in subclass if need to do something special eg getter/setter
-        virtual void set_current_value(int value) { 
+        virtual void set_current_value(int value) {
             //this->internal_value = value;
             if (target_variable!=nullptr)
                 *target_variable = value;
@@ -319,17 +333,21 @@ class DirectNumberControl : public NumberControl {
 
     virtual bool knob_left() override {
         if (readOnly) return false;
-        Serial.printf("DirectNumberControl knob_left, internal_value=%i\n", internal_value);
-        decrease_value();
+        Serial.printf("------ DirectNumberControl#knob_left, internal_value=%i\n", internal_value);
+        increase_value();
+        Serial.printf("------ DirectNumberControl#knob_left, about to call change_value(%i)\n", internal_value);
         change_value(internal_value);
+        Serial.printf(">------<\n");
         //project.select_loop_number(ui_selected_loop_number);
         return true;
     }
     virtual bool knob_right() override {
         if (readOnly) return false;
-        Serial.printf("DirectNumberControl knob_right, internal_value=%i\n", internal_value);
-        increase_value();
+        Serial.printf("------ DirectNumberControl#knob_right, internal_value=%i\n", internal_value);
+        decrease_value();
+        Serial.printf("------ DirectNumberControl#knob_right, about to call change_value(%i)\n", internal_value);
         change_value(internal_value);
+        Serial.printf(">------<\n");
         //project.select_loop_number(internal_value);
         return true;
     }
@@ -508,7 +526,7 @@ class PinnedPanelMenuItem : public MenuItem {
 
         PinnedPanelMenuItem(const char *label) : MenuItem(label) {};
 
-        void update_ticks(unsigned long ticks) {
+        virtual void update_ticks(unsigned long ticks) override {
             this->ticks = ticks;
         }
 };

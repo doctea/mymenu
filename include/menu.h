@@ -219,6 +219,10 @@ class Menu {
         void update_ticks(unsigned long ticks) {
             if (pinned_panel!=nullptr)
                 pinned_panel->update_ticks(ticks);
+
+            for (int i = 0 ; i < this->items.size() ; i++) {
+                this->items.get(i)->update_ticks(ticks);
+            }
         }
 
         void update_inputs() {
