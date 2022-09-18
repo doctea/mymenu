@@ -58,13 +58,13 @@ class MenuItem {
             return tft->getCursorY();
         }
 
-        void colours(bool inverted) {
+        virtual void colours(bool inverted) {
             colours(inverted, /*tft->WHITE*/C_WHITE, BLACK);
         }
-        void colours(bool inverted, int fg) {
+        virtual void colours(bool inverted, int fg) {
             colours(inverted, fg, BLACK);
         }
-        void colours(bool inverted, int fg, int bg) {
+        virtual void colours(bool inverted, int fg, int bg) {
             if (!inverted) {
                 tft->setTextColor(fg, bg);
             } else {
@@ -73,12 +73,12 @@ class MenuItem {
             }
         }
         
-        int header(const char *text, Coord pos, bool selected = false, bool opened = false) {
+        virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false) {
             if (!this->show_header) return pos.y;
 
             tft->drawLine(pos.x, pos.y, tft->width(), pos.y, C_WHITE);
             tft->setCursor(pos.x, pos.y+1);
-            colours(selected);
+            colours(selected, C_WHITE, BLACK);
             tft->setTextSize(0);
             if (opened) {
                 //tft->print(">>>");

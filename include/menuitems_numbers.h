@@ -56,10 +56,10 @@ class NumberControl : public MenuItem {
             internal_value = getter();
         }*/
         // value doesn't matter, we're just using the datatype to set the default
-        DataType get_default_step_for_type(double step) {
+        virtual DataType get_default_step_for_type(double step) {
             return 0.1;
         }
-        DataType get_default_step_for_type(int step) {
+        virtual DataType get_default_step_for_type(int step) {
             return 1;
         }
 
@@ -74,22 +74,37 @@ class NumberControl : public MenuItem {
         }*/
         virtual const char *getFormattedValue(bool value) {
             static char fmt[MENU_C_MAX] = "      ";
-            sprintf(fmt, "%s", value?"On":"Off");
+            if (this->debug)
+                sprintf(fmt, "%s [bool]", value?"On":"Off");
+            else
+                sprintf(fmt, "%s", value?"On":"Off");
             return fmt;
         }
         virtual const char *getFormattedValue(int value) {
             static char fmt[MENU_C_MAX] = "      ";
-            sprintf(fmt, "%5i", value);
+            if (this->debug)
+                sprintf(fmt, "%5i [int]", value);
+            else
+                sprintf(fmt, "%5i", value);
             return fmt;
         }
         virtual const char *getFormattedValue(double value) {
             static char fmt[MENU_C_MAX] = "      ";
-            sprintf(fmt, "%3.2f", value);
+            if (this->debug)
+                sprintf(fmt, "%3.2f [double]", value);
+            else
+                sprintf(fmt, "%3.2f", value);
+
             return fmt;
         }
 
         virtual const char *getFormattedValue() {
-            return this->getFormattedValue((DataType)get_current_value());
+            return this->getFormattedValue((DataType)this->get_current_value());
+        }
+        virtual const char *getFormattedInternalValue() {
+            static char tmp[MAX_LABEL_LENGTH];
+            sprintf(tmp, this->getFormattedValue((DataType)this->get_internal_value()));
+            return tmp;
         }
 
         virtual DataType get_internal_value() {
@@ -148,12 +163,6 @@ class NumberControl : public MenuItem {
             return nullptr;
         }
 
-        virtual const char *getFormattedInternalValue() {
-            static char tmp[MAX_LABEL_LENGTH];
-            sprintf(tmp, this->getFormattedValue(this->get_internal_value()));
-            return tmp;
-        }
-
         virtual void set_internal_value(DataType value) {
             if (this->debug)  { Serial.printf("NumberControl.set_internal_value(%i)..\n", value); }
             this->internal_value = value;
@@ -188,7 +197,7 @@ class NumberControl : public MenuItem {
         virtual void change_value(DataType new_value) {
             if (this->readOnly) 
                 return;
-            DataType last_value = get_current_value();
+            DataType last_value = this->get_current_value();
             Serial.printf("NumberControl#change_value(%f) about to call set_current_value(%f)", (double)new_value, (double)new_value);
             this->set_current_value(new_value);
             if (on_change_handler!=nullptr) {
@@ -207,12 +216,12 @@ class NumberControl : public MenuItem {
         }
 
         // override in subclass if need to do something special eg getter/setter
-        virtual int get_current_value() {
+        virtual DataType get_current_value() {
             if (this->debug)  { Serial.printf("About to get_current_value in %s\n", this->label); Serial.flush(); }
-            if (target_variable!=nullptr)
-                return *target_variable;
-            if (getter!=nullptr)
-                return getter();
+            if (this->target_variable!=nullptr)
+                return *this->target_variable;
+            if (this->getter!=nullptr)
+                return this->getter();
             if (this->debug) { Serial.printf("Did get_current_value in %s\n", this->label); Serial.flush(); }
 
             return 0;
@@ -221,10 +230,10 @@ class NumberControl : public MenuItem {
         // override in subclass if need to do something special eg getter/setter
         virtual void set_current_value(DataType value) {
             //this->internal_value = value;
-            if (target_variable!=nullptr)
-                *target_variable = value;
-            if (setter!=nullptr)
-                setter(value);
+            if (this->target_variable!=nullptr)
+                *this->target_variable = value;
+            if (this->setter!=nullptr)
+                this->setter(value);
         }
 
         virtual void setStep(DataType step) {

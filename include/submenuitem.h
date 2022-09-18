@@ -3,6 +3,9 @@
 
 #include "Arduino.h"
 
+#include "menu.h"
+#include "colours.h"
+
 #include "menuitems.h"
 
 class SubMenuItem : public MenuItem {
@@ -21,8 +24,9 @@ class SubMenuItem : public MenuItem {
             return this->always_show==false;
         }
         virtual bool action_opened() override {
-            if (this->allow_takeover())
-                tft->clear();
+            //if (this->allow_takeover())
+            //    tft->clear();
+            tft->clear();
             return MenuItem::action_opened();
         }
 
@@ -41,7 +45,7 @@ class SubMenuItem : public MenuItem {
 
         virtual void add(MenuItem *item) {
             if (item!=nullptr) {
-                item->tft = this->tft;
+                //item->tft = this->tft;
                 this->items.add(item);
             }
         }
@@ -49,10 +53,14 @@ class SubMenuItem : public MenuItem {
         bool needs_redraw = true;
         virtual int display(Coord pos, bool selected, bool opened) override {
             static int last_opened = -2;
-            if (opened!=last_opened || needs_redraw)
+            static bool previously_opened = false;
+            /*if (currently_opened!=last_opened || needs_redraw || (opened!=previously_opened)) {
+                Serial.printf("%s is clearing due to needs_redraw (%s) or opened!=last_opened (currently_opened=%i, last_opened=%i)\n", this->label, needs_redraw?"true":"false", opened, last_opened);
                 tft->clear();
+            }
             needs_redraw = false;
-            last_opened = opened;
+            last_opened = currently_opened;
+            previously_opened = opened;*/
 
             int y = header(this->label, pos, selected, opened);
             colours(false,C_WHITE,BLACK);
@@ -61,10 +69,20 @@ class SubMenuItem : public MenuItem {
 
             if (opened || this->always_show) {
                 //tft->clear();
+                //colours(false, C_WHITE, BLACK);
                 for (int i = start_item ; i < this->items.size() ; i++) {
+                    //tft->println("wtf?");
+                    //y = tft->getCursorY();
+
+                    tft->setTextColor(C_WHITE, BLACK);
+                    //Serial.printf("fg is %0x, bg is %0x\n")
                     y = this->items.get(i)->display(Coord(0,y), i==this->currently_selected, i==this->currently_opened);
                     if (y>=tft->height()) 
                         break;
+
+                    //tft->println("wtf?");
+                    //y = tft->getCursorY();
+
                 }
                 // blank to bottom of screen
                 if (y < tft->height()) {

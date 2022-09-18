@@ -23,6 +23,7 @@ int Menu::display() {
             y = pinned_panel->display(Coord(0,0), false, false);
             //y = draw_message();
         // let the currently opened item take care of drawing all of the display
+        //Serial.println("allow_takeover!");
         items.get(currently_opened)->display(Coord(0,y), true, true);
     } else if (mode==DISPLAY_ONE) {
         // for screens that can only display one option at a time
