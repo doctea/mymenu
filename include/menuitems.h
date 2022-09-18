@@ -231,11 +231,18 @@ class NumberControl : public MenuItem {
                 tft->setTextSize(1);
 
             tft->printf(tmp);
+            tmp = this->getFormattedExtra();
+            if (tmp!=nullptr)
+                tft->printf(tmp);
             tft->setTextColor(C_WHITE, BLACK); tft->print((char*)"   ");    // cheap blank
             tft->println();
             if (this->debug) { Serial.printf("NumberControl base display finished in %s\n", label); }
 
             return tft->getCursorY();
+        }
+
+        virtual const char *getFormattedExtra() {
+            return nullptr;
         }
 
         virtual const char *getFormattedInternalValue() {
