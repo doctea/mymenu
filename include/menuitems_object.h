@@ -4,7 +4,7 @@
 //#include "menuitems.h"
 
 template<class TargetClass, class DataType>
-class ObjectNumberControl : public NumberControl {
+class ObjectNumberControl : public NumberControl<DataType> {
     public:
     bool debug = false;
     DataType internal_value;
@@ -19,7 +19,7 @@ class ObjectNumberControl : public NumberControl {
                         void(TargetClass::*setter_func)(DataType), 
                         DataType(TargetClass::*getter_func)(), 
                         void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr
-                ) : NumberControl(label) {
+                ) : NumberControl<DataType>(label) {
         this->target_object = target_object;
         this->getter = getter_func;
         this->setter = setter_func;
@@ -35,13 +35,13 @@ class ObjectNumberControl : public NumberControl {
                         void (*on_change_handler)(DataType last_value, DataType new_value),
                         DataType minimum_value,
                         DataType maximum_value
-                ) : ObjectNumberControl(label, target_object, setter_func, getter_func, on_change_handler) {
+                ) : ObjectNumberControl<TargetClass,DataType>(label, target_object, setter_func, getter_func, on_change_handler) {
         this->minimum_value = minimum_value;
         this->maximum_value = maximum_value;
     }
 
     virtual void on_add() override {
-        NumberControl::on_add();
+        NumberControl<DataType>::on_add();
         if (this->target_object!=nullptr && this->getter!=nullptr) 
             this->set_internal_value( (this->target_object->*getter)() );
     }
@@ -55,8 +55,8 @@ class ObjectNumberControl : public NumberControl {
         this->internal_value = value;
     }
 
-    virtual void change_value(int new_value) override {
-        if (readOnly) return;
+    virtual void change_value(DataType new_value) override {
+        if (this->readOnly) return;
         if (this->debug) { Serial.printf("ObjectNumberControl#change_value(%i)..\n", new_value); Serial.flush(); }
         DataType last_value = get_current_value();
         //Serial.println("ObjectNumberControl#change_value about to call set_current_value");
@@ -88,9 +88,9 @@ class ObjectNumberControl : public NumberControl {
 
             char msg[255];
             //Serial.printf("about to build msg string...\n");
-            sprintf(msg, "Set %8s to %i", label, value);
+            sprintf(msg, "Set %8s to %i", this->label, value);
             //Serial.printf("about to set_last_message!");
-            msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
+            msg[this->tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
             menu_set_last_message(msg,GREEN);
         }
         if (this->debug) { Serial.println("Done."); Serial.flush(); }

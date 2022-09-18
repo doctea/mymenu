@@ -33,19 +33,21 @@ class SubMenuItem : public MenuItem {
             }
         }
 
-        virtual void update_ticks(unsigned long ticks) {
+        virtual void update_ticks(unsigned long ticks) override {
             for (int i = 0 ; i < items.size() ; i++) {
                 items.get(i)->update_ticks(ticks);
             }
         }
 
         virtual void add(MenuItem *item) {
-            if (item!=nullptr)
+            if (item!=nullptr) {
+                item->tft = this->tft;
                 this->items.add(item);
+            }
         }
 
         bool needs_redraw = true;
-        virtual int display(Coord pos, bool selected, bool opened) {
+        virtual int display(Coord pos, bool selected, bool opened) override {
             static int last_opened = -2;
             if (opened!=last_opened || needs_redraw)
                 tft->clear();
@@ -140,7 +142,7 @@ class SubMenuItem : public MenuItem {
             return true;
         }
 
-        virtual bool button_right() {
+        virtual bool button_right() override {
             if (currently_opened!=-1) {
                 if (items.get(currently_opened)->button_right()) {
 
