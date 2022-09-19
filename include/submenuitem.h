@@ -16,7 +16,7 @@ class SubMenuItem : public MenuItem {
         LinkedList<MenuItem*> items = LinkedList<MenuItem*>();
 
         // always_show argument determines whether to show items even when menu isn't opened
-        SubMenuItem(char *label, bool always_show = false) : MenuItem(label) {
+        SubMenuItem(const char *label, bool always_show = false) : MenuItem(label) {
             this->always_show = always_show;
         }
 
@@ -26,6 +26,7 @@ class SubMenuItem : public MenuItem {
         virtual bool action_opened() override {
             //if (this->allow_takeover())
             //    tft->clear();
+            this->currently_selected = 0;
             tft->clear();
             return MenuItem::action_opened();
         }
@@ -45,22 +46,27 @@ class SubMenuItem : public MenuItem {
 
         virtual void add(MenuItem *item) {
             if (item!=nullptr) {
-                //item->tft = this->tft;
+                item->tft = this->tft;
                 this->items.add(item);
             }
         }
 
         bool needs_redraw = true;
+        int previously_selected = -2;
         virtual int display(Coord pos, bool selected, bool opened) override {
             static int last_opened = -2;
             static bool previously_opened = false;
+
+            if (currently_selected!=previously_selected || needs_redraw)
+                tft->clear();
+            previously_selected = currently_selected;
             /*if (currently_opened!=last_opened || needs_redraw || (opened!=previously_opened)) {
                 Serial.printf("%s is clearing due to needs_redraw (%s) or opened!=last_opened (currently_opened=%i, last_opened=%i)\n", this->label, needs_redraw?"true":"false", opened, last_opened);
                 tft->clear();
-            }
+            }*/
             needs_redraw = false;
-            last_opened = currently_opened;
-            previously_opened = opened;*/
+            //last_opened = currently_opened;
+            //previously_opened = opened;
 
             int y = header(this->label, pos, selected, opened);
             colours(false,C_WHITE,BLACK);

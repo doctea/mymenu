@@ -6,9 +6,17 @@
 #include "menu.h"
 #include "colours.h"
 
+// type agnostic ancestor
+class NumberControlBase : public MenuItem {
+    public:
+        NumberControlBase(const char *label) : MenuItem(label) {};
+
+        virtual int renderValue(bool opened, bool selected, int textSize);
+};
+
 // generic control for selecting a number
 template<class DataType = int>
-class NumberControl : public MenuItem {
+class NumberControl : public NumberControlBase {//MenuItem {
     public:
         bool debug = false;
         void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr;
@@ -24,7 +32,7 @@ class NumberControl : public MenuItem {
         bool readOnly = false;
         bool go_back_on_select = false;
 
-        NumberControl(const char* label) : MenuItem(label) {
+        NumberControl(const char* label) : NumberControlBase(label) {
             this->step = this->get_default_step_for_type((DataType)0);    // setup default step
         }
         NumberControl(const char* label, DataType in_start_value, DataType min_value, DataType max_value) : NumberControl(label) {
@@ -93,7 +101,8 @@ class NumberControl : public MenuItem {
             if (this->debug)
                 sprintf(fmt, "%3.2f [double]", value);
             else
-                sprintf(fmt, "%3.2f", value);
+                //sprintf(fmt, "%3.2f", value);
+                sprintf(fmt, "%3.0f%%", (value*100.0));
 
             return fmt;
         }
@@ -126,7 +135,7 @@ class NumberControl : public MenuItem {
             if (this->debug) { Serial.println("did colours"); Serial.flush(); }
             //tft->setTextSize(2);        // was 2 ?
             //char tmp[tft->get_c_max()] = "                   ";
-            const char *tmp;
+            /*const char *tmp;
             if (this->debug) { Serial.println("did setting tmp"); Serial.flush(); }
             
             if (this->debug) { Serial.printf("NumberControl#display in %s about to do getFormattedValue() ting...\n", this->label); Serial.flush(); }
@@ -136,7 +145,7 @@ class NumberControl : public MenuItem {
                 //Serial.printf("NumberControl#display is opened for '%s', formatted value is '%s' (strlen %i)\n", this->label, printable_value, strlen(printable_value));
                 //Serial.printf("in opened NumberControl for %s, with internal_value %i, got formattedvalue '%s'\n", this->label, internal_value, this->getFormattedValue(internal_value));
             } else {
-                //tft->printf("value: %*i\n", 4, get_current_value()); //*target_variable); //target->transpose);
+                //tft->printf("value: %*i\n", 4, get_current_value()); // *target_variable); //target->transpose);
                 //sprintf(tmp, "%s", this->getFormattedValue()); //get_current_value());
                 tmp = this->getFormattedValue();
             }
@@ -147,8 +156,11 @@ class NumberControl : public MenuItem {
                 tft->setTextSize(2);
             else
                 tft->setTextSize(1);
+            tft->printf(tmp);                
+                */
 
-            tft->printf(tmp);
+            this->renderValue(selected, opened, tft->get_c_max()/2); //, strlen(tmp)<tft->get_c_max()/2);
+            const char *tmp;
             tmp = this->getFormattedExtra();
             if (tmp!=nullptr)
                 tft->printf(tmp);
@@ -156,6 +168,34 @@ class NumberControl : public MenuItem {
             tft->println();
             if (this->debug) { Serial.printf("NumberControl base display finished in %s\n", label); }
 
+            return tft->getCursorY();
+        }
+
+        virtual int renderValue(bool selected, bool opened, int max_width) override {
+            const char *tmp;
+            if (this->debug) { Serial.println("did setting tmp"); Serial.flush(); }
+            
+            if (this->debug) { Serial.printf("NumberControl#renderValue in %s about to do getFormattedValue() ting...\n", this->label); Serial.flush(); }
+            if (opened) {
+                //tft->printf("value: %*i\n", 4, internal_value);
+                tmp = this->getFormattedInternalValue();
+                //Serial.printf("NumberControl#display is opened for '%s', formatted value is '%s' (strlen %i)\n", this->label, printable_value, strlen(printable_value));
+                //Serial.printf("in opened NumberControl for %s, with internal_value %i, got formattedvalue '%s'\n", this->label, internal_value, this->getFormattedValue(internal_value));
+            } else {
+                //tft->printf("value: %*i\n", 4, get_current_value()); //*target_variable); //target->transpose);
+                //sprintf(tmp, "%s", this->getFormattedValue()); //get_current_value());
+                tmp = this->getFormattedValue();
+            }
+            if (this->debug) { Serial.printf("NumberControl#renderValue in %s just did getFormattedValue() ting!\n", this->label); Serial.flush(); }
+
+            // adjust size dependent on size of formatted value
+            if (strlen(tmp)<max_width) 
+                tft->setTextSize(2);
+            else
+                tft->setTextSize(1);
+            //tft->setTextSize(textSize);
+
+            tft->println(tmp);
             return tft->getCursorY();
         }
 
