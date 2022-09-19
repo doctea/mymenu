@@ -11,7 +11,7 @@ class NumberControlBase : public MenuItem {
     public:
         NumberControlBase(const char *label) : MenuItem(label) {};
 
-        virtual int renderValue(bool opened, bool selected, int textSize);
+        virtual int renderValue(bool opened, bool selected, uint16_t max_width);
 };
 
 // generic control for selecting a number
@@ -171,7 +171,7 @@ class NumberControl : public NumberControlBase {//MenuItem {
             return tft->getCursorY();
         }
 
-        virtual int renderValue(bool selected, bool opened, int max_width) override {
+        virtual int renderValue(bool selected, bool opened, uint16_t max_width) override {
             const char *tmp;
             if (this->debug) { Serial.println("did setting tmp"); Serial.flush(); }
             
