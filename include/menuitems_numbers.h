@@ -65,9 +65,15 @@ class NumberControl : public NumberControlBase {//MenuItem {
         }*/
         // value doesn't matter, we're just using the datatype to set the default
         virtual DataType get_default_step_for_type(double step) {
-            return 0.1;
+            return 0.05;
         }
         virtual DataType get_default_step_for_type(int step) {
+            return 1;
+        }
+        virtual DataType get_default_step_for_type(long step) {
+            return 1;
+        }
+        virtual DataType get_default_step_for_type(unsigned long step) {
             return 1;
         }
 
@@ -285,10 +291,10 @@ template<class DataType = int>
 class DirectNumberControl : public NumberControl<DataType> {
     public:
     DirectNumberControl(const char* label) : NumberControl<DataType>(label) {};
-    DirectNumberControl(const char* label, DataType *in_target_variable, DataType start_value, DataType min_value, DataType max_value, void (*on_change_handler)(DataType last_value, DataType new_value)) 
+    DirectNumberControl(const char* label, DataType *in_target_variable, DataType start_value, DataType min_value, DataType max_value, void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr) 
             : NumberControl<DataType>(label, in_target_variable, start_value, min_value, max_value, on_change_handler) {
     }
-    DirectNumberControl(const char* label, DataType (*getter)(), void (*setter)(DataType value), DataType min_value, DataType max_value, void (*on_change_handler)(DataType last_value, DataType new_value))
+    DirectNumberControl(const char* label, DataType (*getter)(), void (*setter)(DataType value), DataType min_value, DataType max_value, void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr)
             : NumberControl<DataType>(label, getter, setter, min_value, max_value, on_change_handler) {
     }
 
