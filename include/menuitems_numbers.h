@@ -112,7 +112,7 @@ class NumberControl : public NumberControlBase {//MenuItem {
         }
         virtual const char *getFormattedInternalValue() {
             static char tmp[MAX_LABEL_LENGTH];
-            sprintf(tmp, this->getFormattedValue((DataType)this->get_internal_value()));
+            sprintf(tmp, "%s", this->getFormattedValue((DataType)this->get_internal_value()));
             return tmp;
         }
 
@@ -164,7 +164,7 @@ class NumberControl : public NumberControlBase {//MenuItem {
             tmp = this->getFormattedExtra();
             if (tmp!=nullptr)
                 tft->printf(tmp);
-            tft->setTextColor(C_WHITE, BLACK); tft->print((char*)"   ");    // cheap blank
+            //tft->setTextColor(C_WHITE, BLACK); tft->print((char*)"   ");    // cheap blank
             tft->println();
             if (this->debug) { Serial.printf("NumberControl base display finished in %s\n", label); }
 

@@ -31,6 +31,15 @@ class SubMenuItem : public MenuItem {
             return MenuItem::action_opened();
         }
 
+        virtual void add(MenuItem *item) {
+            if (item!=nullptr) {
+                item->tft = this->tft;
+                this->items.add(item);
+            } else {
+                Serial.println("WARNING: SubMenuItem#add passed a nullptr!");
+            }
+        }
+
         virtual void on_add() override {
             for (int i = 0 ; i < this->items.size() ; i++) {
                 this->items.get(i)->set_tft(this->tft);
@@ -44,12 +53,6 @@ class SubMenuItem : public MenuItem {
             }
         }
 
-        virtual void add(MenuItem *item) {
-            if (item!=nullptr) {
-                item->tft = this->tft;
-                this->items.add(item);
-            }
-        }
 
         bool needs_redraw = true;
         int previously_selected = -2;
@@ -60,10 +63,10 @@ class SubMenuItem : public MenuItem {
             if (currently_selected!=previously_selected || needs_redraw)
                 tft->clear();
             previously_selected = currently_selected;
-            /*if (currently_opened!=last_opened || needs_redraw || (opened!=previously_opened)) {
-                Serial.printf("%s is clearing due to needs_redraw (%s) or opened!=last_opened (currently_opened=%i, last_opened=%i)\n", this->label, needs_redraw?"true":"false", opened, last_opened);
-                tft->clear();
-            }*/
+            //if (currently_opened!=last_opened || needs_redraw || (opened!=previously_opened)) {
+                //Serial.printf("%s is clearing due to needs_redraw (%s) or opened!=last_opened (currently_opened=%i, last_opened=%i)\n", this->label, needs_redraw?"true":"false", opened, last_opened);
+                //tft->clear();
+            //}
             needs_redraw = false;
             //last_opened = currently_opened;
             //previously_opened = opened;
@@ -71,24 +74,32 @@ class SubMenuItem : public MenuItem {
             int y = header(this->label, pos, selected, opened);
             colours(false,C_WHITE,BLACK);
 
+            if (currently_opened>=0 && this->items.get(currently_opened)->allow_takeover())
+                return this->items.get(currently_selected)->display(Coord(0,y), true, true);
+
             int start_item = currently_selected>=0 ? currently_selected : 0;
 
             if (opened || this->always_show) {
                 //tft->clear();
                 //colours(false, C_WHITE, BLACK);
                 for (int i = start_item ; i < this->items.size() ; i++) {
-                    //tft->println("wtf?");
-                    //y = tft->getCursorY();
+                    //tft->println("wtf1?");
+                    y = tft->getCursorY();
 
                     tft->setTextColor(C_WHITE, BLACK);
                     //Serial.printf("fg is %0x, bg is %0x\n")
-                    y = this->items.get(i)->display(Coord(0,y), i==this->currently_selected, i==this->currently_opened);
+                    //Serial.printf("SubMenuItem#display():\ttft@%p\n", this->tft);
+                    //tft->println("wtf2?");
+                    pos.x = 0; pos.y = tft->getCursorY();
+                    y = this->items.get(i)->display(
+                        pos, i==this->currently_selected, i==this->currently_opened
+                    );
+                    tft->setTextColor(C_WHITE, BLACK);
+                    //tft->println("wtf3?");
+                    y = tft->getCursorY();
+
                     if (y>=tft->height()) 
                         break;
-
-                    //tft->println("wtf?");
-                    //y = tft->getCursorY();
-
                 }
                 // blank to bottom of screen
                 if (y < tft->height()) {

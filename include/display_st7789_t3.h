@@ -71,6 +71,7 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
         return tft->getCursorY();
     }
     virtual void setTextColor(uint16_t fg, uint16_t bg = ST77XX_BLACK) override {
+        //Serial.printf("setTextColor setting fg=%0x,\tbg=%0x\n", fg, bg);
         tft->setTextColor(fg, bg);
     }
     virtual void drawLine(int x0, int y0, int x1, int y1, uint16_t color) override {
@@ -144,6 +145,7 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
 
     virtual void clear(bool force = false) {
         tft->fillScreen(BLACK);
+        tft->setTextColor(C_WHITE);
         //tft->fillRect(0, 0, tft->width(), tft->height(), BLACK);
     }
 

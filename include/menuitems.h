@@ -61,10 +61,10 @@ class MenuItem {
         virtual void colours(bool inverted) {
             colours(inverted, /*tft->WHITE*/C_WHITE, BLACK);
         }
-        virtual void colours(bool inverted, int fg) {
+        virtual void colours(bool inverted, uint16_t fg) {
             colours(inverted, fg, BLACK);
         }
-        virtual void colours(bool inverted, int fg, int bg) {
+        virtual void colours(bool inverted, uint16_t fg, uint16_t bg) {
             if (!inverted) {
                 tft->setTextColor(fg, bg);
             } else {
