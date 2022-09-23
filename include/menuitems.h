@@ -168,9 +168,11 @@ class SelectorControl : public MenuItem {
                 bool is_current_value_selected = available_values[i]==current_value; //getter();
                 int col = is_current_value_selected ? GREEN : C_WHITE;
                 colours(opened && selected_value_index==i, col, BLACK);
+                //tft->setCursor(pos.x, pos.y);   // ?? commented out to re-fix quantiser control..
                 //colours(true, col, ST7735_BLUE);
                 //Serial.printf("for item %i/%i, printing %s\n", i, num_values, get_label_for_value(available_values[i]));
                 tft->printf("%s", (char*)get_label_for_value(available_values[i])); //available_values[i]);
+                //pos.y = tft->getCursorY();      // ?? commented out to re-fix quantiser control..
                 //tft->printf("%i", available_values[i]);
                 tft->setTextColor(BLACK,BLACK);
                 if (i<num_values-1) 
