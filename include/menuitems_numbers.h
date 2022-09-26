@@ -12,6 +12,8 @@ class NumberControlBase : public MenuItem {
         NumberControlBase(const char *label) : MenuItem(label) {};
 
         virtual int renderValue(bool opened, bool selected, uint16_t max_width);
+
+        uint16_t colour = 0xFFFF;
 };
 
 // generic control for selecting a number
@@ -31,6 +33,7 @@ class NumberControl : public NumberControlBase {//MenuItem {
         DataType step = this->get_default_step_for_type(internal_value);
         bool readOnly = false;
         bool go_back_on_select = false;
+
 
         NumberControl(const char* label) : NumberControlBase(label) {
             this->step = this->get_default_step_for_type((DataType)0);    // setup default step
@@ -137,7 +140,8 @@ class NumberControl : public NumberControlBase {//MenuItem {
             if (this->debug) { Serial.println("did setcursor"); Serial.flush(); }
 
             if (this->debug) { Serial.printf("NumberControl#display in %s about to do colours...\n", this->label); Serial.flush(); }
-            colours(opened, opened ? GREEN : C_WHITE, BLACK);
+            //colours(opened, opened ? GREEN : C_WHITE, BLACK);
+            colours(opened, opened ? GREEN : this->colour, BLACK);
             if (this->debug) { Serial.println("did colours"); Serial.flush(); }
             //tft->setTextSize(2);        // was 2 ?
             //char tmp[tft->get_c_max()] = "                   ";
@@ -290,6 +294,7 @@ class NumberControl : public NumberControlBase {//MenuItem {
 template<class DataType = int>
 class DirectNumberControl : public NumberControl<DataType> {
     public:
+
     DirectNumberControl(const char* label) : NumberControl<DataType>(label) {};
     DirectNumberControl(const char* label, DataType *in_target_variable, DataType start_value, DataType min_value, DataType max_value, void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr) 
             : NumberControl<DataType>(label, in_target_variable, start_value, min_value, max_value, on_change_handler) {
