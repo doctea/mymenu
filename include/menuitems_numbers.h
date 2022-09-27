@@ -18,7 +18,7 @@ class NumberControlBase : public MenuItem {
 
 // generic control for selecting a number
 template<class DataType = int>
-class NumberControl : public NumberControlBase {//MenuItem {
+class NumberControl : public NumberControlBase {
     public:
         bool debug = false;
         void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr;
@@ -31,29 +31,26 @@ class NumberControl : public NumberControlBase {//MenuItem {
         DataType minimum_value = 0;
         DataType maximum_value = 100;
         DataType step = this->get_default_step_for_type(internal_value);
+
         bool readOnly = false;
         bool go_back_on_select = false;
 
-
         NumberControl(const char* label) : NumberControlBase(label) {
-            this->step = this->get_default_step_for_type((DataType)0);    // setup default step
+            this->step = this->get_default_step_for_type((DataType)0);    // setup default step based on our template DataType
         }
-        NumberControl(const char* label, DataType in_start_value, DataType min_value, DataType max_value) : NumberControl(label) {
-            internal_value = in_start_value;
+        NumberControl(const char* label, DataType start_value, DataType min_value, DataType max_value) 
+            : NumberControl(label) {
+            internal_value = start_value;
             minimum_value = min_value;
             maximum_value = max_value;
         };
-        NumberControl(const char* label, DataType *in_target_variable, DataType start_value, DataType min_value, DataType max_value, void (*on_change_handler)(DataType last_value, DataType new_value)) 
-            : NumberControl(label) {
-            //NumberControl(label, start_value, min_value, max_value) {
-            internal_value = start_value;
-            minimum_value = min_value;
-            maximum_value = max_value; 
-            target_variable = in_target_variable;
+        NumberControl(const char* label, DataType *target_variable, DataType start_value, DataType min_value, DataType max_value, void (*on_change_handler)(DataType last_value, DataType new_value)) 
+            : NumberControl(label, start_value, min_value, max_value) {
+            target_variable = target_variable;
             this->on_change_handler = on_change_handler;
         };
-        NumberControl(const char* label, DataType (*getter)(), void (*setter)(DataType value), DataType min_value, DataType max_value, void (*on_change_handler)(DataType last_value, DataType new_value)) : 
-            NumberControl(label) {
+        NumberControl(const char* label, DataType (*getter)(), void (*setter)(DataType value), DataType min_value, DataType max_value, void (*on_change_handler)(DataType last_value, DataType new_value)) 
+            : NumberControl(label) {
             this->getter = getter;
             this->setter = setter;
 
@@ -63,10 +60,7 @@ class NumberControl : public NumberControlBase {//MenuItem {
             this->on_change_handler = on_change_handler;
         };
 
-        /*virtual void on_add() override {
-            internal_value = getter();
-        }*/
-        // value doesn't matter, we're just using the datatype to set the default
+        // step value passed here doesn't matter -- we're just using the datatype overload to set the default
         virtual DataType get_default_step_for_type(double step) {
             return 0.05;
         }
@@ -78,6 +72,10 @@ class NumberControl : public NumberControlBase {//MenuItem {
         }
         virtual DataType get_default_step_for_type(unsigned long step) {
             return 1;
+        }
+
+        virtual void setStep(DataType step) {
+            this->step = step;
         }
 
         virtual void setReadOnly(bool readOnly = true) {
@@ -143,33 +141,9 @@ class NumberControl : public NumberControlBase {//MenuItem {
             //colours(opened, opened ? GREEN : C_WHITE, BLACK);
             colours(opened, opened ? GREEN : this->colour, BLACK);
             if (this->debug) { Serial.println("did colours"); Serial.flush(); }
-            //tft->setTextSize(2);        // was 2 ?
-            //char tmp[tft->get_c_max()] = "                   ";
-            /*const char *tmp;
-            if (this->debug) { Serial.println("did setting tmp"); Serial.flush(); }
-            
-            if (this->debug) { Serial.printf("NumberControl#display in %s about to do getFormattedValue() ting...\n", this->label); Serial.flush(); }
-            if (opened) {
-                //tft->printf("value: %*i\n", 4, internal_value);
-                tmp = this->getFormattedInternalValue();
-                //Serial.printf("NumberControl#display is opened for '%s', formatted value is '%s' (strlen %i)\n", this->label, printable_value, strlen(printable_value));
-                //Serial.printf("in opened NumberControl for %s, with internal_value %i, got formattedvalue '%s'\n", this->label, internal_value, this->getFormattedValue(internal_value));
-            } else {
-                //tft->printf("value: %*i\n", 4, get_current_value()); // *target_variable); //target->transpose);
-                //sprintf(tmp, "%s", this->getFormattedValue()); //get_current_value());
-                tmp = this->getFormattedValue();
-            }
-            if (this->debug) { Serial.printf("NumberControl#display in %s just did getFormattedValue() ting!\n", this->label); Serial.flush(); }
-
-            // adjust size dependent on size of formatted value
-            if (strlen(tmp)<tft->get_c_max()/2) 
-                tft->setTextSize(2);
-            else
-                tft->setTextSize(1);
-            tft->printf(tmp);                
-                */
 
             this->renderValue(selected, opened, tft->get_c_max()/2); //, strlen(tmp)<tft->get_c_max()/2);
+
             const char *tmp;
             tmp = this->getFormattedExtra();
             if (tmp!=nullptr)
@@ -225,7 +199,6 @@ class NumberControl : public NumberControlBase {//MenuItem {
             //project.select_loop_number(ui_selected_loop_number);
         }
         virtual void increase_value() {
-            //internal_value += step;
             //Serial.printf("NumberControl#increase_value() with %f and %f?\n", get_internal_value(), this->step);
             this->set_internal_value(get_internal_value() + this->step);
             if (get_internal_value() >= this->maximum_value)
@@ -240,7 +213,6 @@ class NumberControl : public NumberControlBase {//MenuItem {
         virtual bool knob_right() {
             if (!this->readOnly)
                 increase_value();
-            //project.select_loop_number(internal_value);
             return true;
         }
 
@@ -257,9 +229,9 @@ class NumberControl : public NumberControlBase {//MenuItem {
             }
         }
 
+        // return true if should exit back to main menu
         virtual bool button_select() {
             if (readOnly) return true;
-            //this->target->set_transpose(internal_value);           
             change_value(this->get_internal_value());
 
             return (go_back_on_select);
@@ -286,9 +258,6 @@ class NumberControl : public NumberControlBase {//MenuItem {
                 this->setter(value);
         }
 
-        virtual void setStep(DataType step) {
-            this->step = step;
-        }
 };
 
 template<class DataType = int>
@@ -296,8 +265,8 @@ class DirectNumberControl : public NumberControl<DataType> {
     public:
 
     DirectNumberControl(const char* label) : NumberControl<DataType>(label) {};
-    DirectNumberControl(const char* label, DataType *in_target_variable, DataType start_value, DataType min_value, DataType max_value, void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr) 
-            : NumberControl<DataType>(label, in_target_variable, start_value, min_value, max_value, on_change_handler) {
+    DirectNumberControl(const char* label, DataType *target_variable, DataType start_value, DataType min_value, DataType max_value, void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr) 
+            : NumberControl<DataType>(label, target_variable, start_value, min_value, max_value, on_change_handler) {
     }
     DirectNumberControl(const char* label, DataType (*getter)(), void (*setter)(DataType value), DataType min_value, DataType max_value, void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr)
             : NumberControl<DataType>(label, getter, setter, min_value, max_value, on_change_handler) {
@@ -331,93 +300,5 @@ class DirectNumberControl : public NumberControl<DataType> {
         return true;
     }
 };
-
-
-/*template<class DataType>
-class DirectDataNumberControl : public NumberControl {
-    public:
-
-    void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr;
-
-    DataType (*getter)() = nullptr;
-    void (*setter)(DataType value) = nullptr;
-
-    DataType *target_variable = nullptr;
-    DataType internal_value = 0.0;
-    DataType minimum_value = 0.0;
-    DataType maximum_value = 1.0;
-    DataType step = 0.1;
-
-    DirectDataNumberControl(const char* label) : NumberControl(label) {};
-    DirectDataNumberControl(const char* label, DataType *in_target_variable, DataType start_value, DataType min_value, DataType max_value, void (*on_change_handler)(DataType last_value, int new_value)) 
-            : NumberControl(label, in_target_variable, start_value, min_value, max_value, on_change_handler) {
-    }
-    DirectDataNumberControl(const char* label, DataType (*getter)(), void (*setter)(DataType value), DataType min_value, DataType max_value, void (*on_change_handler)(DataType last_value, int new_value))
-            : NumberControl(label, getter, setter, min_value, max_value, on_change_handler) {
-    }
-
-    virtual DataType get_internal_value() {
-        return this->internal_value;
-    }
-    // override in subclass if need to do something special eg getter/setter
-    virtual void set_current_value(DataType value) {
-        //this->internal_value = value;
-        if (target_variable!=nullptr)
-            *target_variable = value;
-        if (setter!=nullptr)
-            setter(value);
-    }
-
-    virtual void setStep(DataType step) {
-        this->step = step;
-    }
-
-    virtual void increase_value() {
-        this->internal_value = constrain(internal_value + step, this->minimum_value, this->maximum_value);
-    }
-    virtual void decrease_value() {
-        this->internal_value = constrain(internal_value - step, this->minimum_value, this->maximum_value);
-    }
-
-    virtual void change_value(DataType new_value) {
-        if (readOnly) return;
-        int last_value = get_current_value();
-        Serial.printf("NumberControl#change_value(%i) about to call set_current_value(%i)", new_value, new_value);
-        this->set_current_value(new_value);
-        if (on_change_handler!=nullptr) {
-            if (this->debug)  { Serial.println("NumberControl calling on_change_handler"); Serial.flush(); }
-            on_change_handler(last_value, this->get_internal_value());
-            if (this->debug)  { Serial.println("NumberControl after on_change_handler"); Serial.flush(); }
-        }
-    }
-
-    virtual bool knob_left() override {
-        if (readOnly) return false;
-        Serial.printf("------ DirectNumberControl#knob_left, internal_value=%i\n", internal_value);
-        increase_value();
-        Serial.printf("------ DirectNumberControl#knob_left, about to call change_value(%i)\n", internal_value);
-        change_value(internal_value);
-        Serial.printf(">------<\n");
-        //project.select_loop_number(ui_selected_loop_number);
-        return true;
-    }
-    virtual bool knob_right() override {
-        if (readOnly) return false;
-        Serial.printf("------ DirectNumberControl#knob_right, internal_value=%i\n", internal_value);
-        decrease_value();
-        Serial.printf("------ DirectNumberControl#knob_right, about to call change_value(%i)\n", internal_value);
-        change_value(internal_value);
-        Serial.printf(">------<\n");
-        //project.select_loop_number(internal_value);
-        return true;
-    }
-    virtual bool button_select() override {
-        if (readOnly) return true;
-        //this->target->set_transpose(internal_value);
-        internal_value = this->get_current_value();// * this->maximum_value; 
-        change_value(internal_value);
-        return true;
-    }
-};*/
 
 #endif
