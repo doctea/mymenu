@@ -40,13 +40,13 @@ class NumberControl : public NumberControlBase {
         }
         NumberControl(const char* label, DataType start_value, DataType min_value, DataType max_value) 
             : NumberControl(label) {
-            internal_value = start_value;
-            minimum_value = min_value;
-            maximum_value = max_value;
+            this->internal_value = start_value;
+            this->minimum_value = min_value;
+            this->maximum_value = max_value;
         };
         NumberControl(const char* label, DataType *target_variable, DataType start_value, DataType min_value, DataType max_value, void (*on_change_handler)(DataType last_value, DataType new_value)) 
             : NumberControl(label, start_value, min_value, max_value) {
-            target_variable = target_variable;
+            this->target_variable = target_variable;
             this->on_change_handler = on_change_handler;
         };
         NumberControl(const char* label, DataType (*getter)(), void (*setter)(DataType value), DataType min_value, DataType max_value, void (*on_change_handler)(DataType last_value, DataType new_value)) 
@@ -54,9 +54,9 @@ class NumberControl : public NumberControlBase {
             this->getter = getter;
             this->setter = setter;
 
-            internal_value = getter();
-            minimum_value = min_value;
-            maximum_value = max_value;
+            this->internal_value = getter();
+            this->minimum_value = min_value;
+            this->maximum_value = max_value;
             this->on_change_handler = on_change_handler;
         };
 
@@ -160,9 +160,9 @@ class NumberControl : public NumberControlBase {
         // TODO: actually limit the output to the width (currently it just uses a smaller size if it doesn't fit in the requested number of characters)
         virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
             const char *tmp;
-            if (this->debug) { Serial.println("did setting tmp"); Serial.flush(); }
+            //if (this->debug) { Serial.println("renderValue() did setting tmp"); Serial.flush(); }
             
-            if (this->debug) { Serial.printf("NumberControl#renderValue in %s about to do getFormattedValue() ting...\n", this->label); Serial.flush(); }
+            //if (this->debug) { Serial.printf("NumberControl#renderValue in %s about to do getFormattedValue() ting...\n", this->label); Serial.flush(); }
             if (opened) {
                 //tft->printf("value: %*i\n", 4, internal_value);
                 tmp = this->getFormattedInternalValue();
@@ -173,7 +173,7 @@ class NumberControl : public NumberControlBase {
                 //sprintf(tmp, "%s", this->getFormattedValue()); //get_current_value());
                 tmp = this->getFormattedValue();
             }
-            if (this->debug) { Serial.printf("NumberControl#renderValue in %s just did getFormattedValue() ting!\n", this->label); Serial.flush(); }
+            //if (this->debug) { Serial.printf("NumberControl#renderValue in %s just did getFormattedValue() ting!\n", this->label); Serial.flush(); }
 
             // adjust size, dependent on size of formatted value and passed-in max_width
             if (strlen(tmp)<max_character_width) 
@@ -192,6 +192,7 @@ class NumberControl : public NumberControlBase {
 
         virtual void set_internal_value(DataType value) {
             if (this->debug)  { Serial.printf("NumberControl.set_internal_value(%i)..\n", value); }
+            //this->internal_value = value;
             this->internal_value = constrain(value, this->minimum_value, this->maximum_value);
         }
 
@@ -217,8 +218,9 @@ class NumberControl : public NumberControlBase {
             if (this->readOnly) 
                 return;
             DataType last_value = this->get_current_value();
-            Serial.printf("NumberControl#change_value(%f) about to call set_current_value(%f)", (double)new_value, (double)new_value);
+            //Serial.printf("NumberControl#change_value(%f) about to call set_current_value(%f)", (double)new_value, (double)new_value);
             this->set_current_value(new_value);
+            //Serial.printf("NumberControl#change_value(%f) after set_current_value(%f) get_current_value got %f\n", (double)new_value, (double)new_value, this->get_current_value());
             if (on_change_handler!=nullptr) {
                 if (this->debug)  { Serial.println("NumberControl calling on_change_handler"); Serial.flush(); }
                 on_change_handler(last_value, this->get_internal_value());
@@ -227,21 +229,25 @@ class NumberControl : public NumberControlBase {
         }
 
         // return true if should exit back to main menu
-        virtual bool button_select() {
+        virtual bool button_select() override {
             if (readOnly) return true;
             change_value(this->get_internal_value());
 
             return (go_back_on_select);
         }
 
+        virtual bool action_opened() override {
+            return !readOnly;
+        }
+
         // override in subclass if need to do something special eg getter/setter
         virtual DataType get_current_value() {
-            if (this->debug)  { Serial.printf("About to get_current_value in %s\n", this->label); Serial.flush(); }
+            //if (this->debug)  { Serial.printf("About to get_current_value in %s\n", this->label); Serial.flush(); }
             if (this->target_variable!=nullptr)
                 return *this->target_variable;
             if (this->getter!=nullptr)
                 return this->getter();
-            if (this->debug) { Serial.printf("Did get_current_value in %s\n", this->label); Serial.flush(); }
+            //if (this->debug) { Serial.printf("Did get_current_value in %s\n", this->label); Serial.flush(); }
 
             return 0;
         }
