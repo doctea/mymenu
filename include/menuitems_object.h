@@ -24,6 +24,8 @@ class ObjectNumberControl : public NumberControl<DataType> {
         this->getter = getter_func;
         this->setter = setter_func;
         this->on_change_handler = on_change_handler;
+        this->minimum_value = 0;
+        this->maximum_value = 100;
 
         if (this->target_object!=nullptr && this->getter!=nullptr) 
             this->set_internal_value( (this->target_object->*getter)() );
@@ -52,7 +54,7 @@ class ObjectNumberControl : public NumberControl<DataType> {
 
     virtual void set_internal_value(DataType value) {
         if (this->debug) { Serial.printf("ObjectNumberControl.set_internal_value(%i)..\n", value); }
-        this->internal_value = value;
+        this->internal_value = constrain(value, this->minimum_value, this->maximum_value);
     }
 
     virtual void change_value(DataType new_value) override {
