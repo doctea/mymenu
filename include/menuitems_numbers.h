@@ -11,7 +11,7 @@ class NumberControlBase : public MenuItem {
     public:
         NumberControlBase(const char *label) : MenuItem(label) {};
 
-        virtual int renderValue(bool opened, bool selected, uint16_t max_width);
+        virtual int renderValue(bool opened, bool selected, uint16_t max_character_width);
 
         uint16_t colour = 0xFFFF;
 };
@@ -142,6 +142,7 @@ class NumberControl : public NumberControlBase {
             colours(opened, opened ? GREEN : this->colour, BLACK);
             if (this->debug) { Serial.println("did colours"); Serial.flush(); }
 
+            // render the value
             this->renderValue(selected, opened, tft->get_c_max()/2); //, strlen(tmp)<tft->get_c_max()/2);
 
             const char *tmp;
@@ -155,7 +156,9 @@ class NumberControl : public NumberControlBase {
             return tft->getCursorY();
         }
 
-        virtual int renderValue(bool selected, bool opened, uint16_t max_width) override {
+        // just render the value without the rest of the widget, restricting it to the max_character_width characters
+        // TODO: actually limit the output to the width (currently it just uses a smaller size if it doesn't fit in the requested number of characters)
+        virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
             const char *tmp;
             if (this->debug) { Serial.println("did setting tmp"); Serial.flush(); }
             
@@ -172,8 +175,8 @@ class NumberControl : public NumberControlBase {
             }
             if (this->debug) { Serial.printf("NumberControl#renderValue in %s just did getFormattedValue() ting!\n", this->label); Serial.flush(); }
 
-            // adjust size dependent on size of formatted value
-            if (strlen(tmp)<max_width) 
+            // adjust size, dependent on size of formatted value and passed-in max_width
+            if (strlen(tmp)<max_character_width) 
                 tft->setTextSize(2);
             else
                 tft->setTextSize(1);
@@ -189,20 +192,14 @@ class NumberControl : public NumberControlBase {
 
         virtual void set_internal_value(DataType value) {
             if (this->debug)  { Serial.printf("NumberControl.set_internal_value(%i)..\n", value); }
-            this->internal_value = value;
+            this->internal_value = constrain(value, this->minimum_value, this->maximum_value);
         }
 
         virtual void decrease_value() {
             this->set_internal_value(get_internal_value() - this->step);
-            if (get_internal_value() < this->minimum_value)
-                set_internal_value(this->minimum_value); // = NUM_LOOP_SLOTS_PER_PROJECT-1;
-            //project.select_loop_number(ui_selected_loop_number);
         }
         virtual void increase_value() {
-            //Serial.printf("NumberControl#increase_value() with %f and %f?\n", get_internal_value(), this->step);
             this->set_internal_value(get_internal_value() + this->step);
-            if (get_internal_value() >= this->maximum_value)
-                set_internal_value(this->maximum_value);
         }
 
         virtual bool knob_left() {
