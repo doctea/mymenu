@@ -50,6 +50,7 @@ class Menu {
     public:
         bool debug = false;
         bool debug_times = false;
+
         void setDebugTimes(bool value) {
             this->debug_times = value;
         }
@@ -174,6 +175,11 @@ class Menu {
             tft->start();
         }
 
+        void add(LinkedList<MenuItem *> items) {
+            for (int i = 0 ; i < items.size() ; i++) {
+                this->add(items.get(i));
+            }
+        }
         void add(MenuItem *m) {
             if (m!=nullptr) {
                 m->tft = this->tft;
