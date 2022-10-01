@@ -11,9 +11,7 @@ class NumberControlBase : public MenuItem {
     public:
         NumberControlBase(const char *label) : MenuItem(label) {};
 
-        virtual int renderValue(bool opened, bool selected, uint16_t max_character_width);
-
-        uint16_t colour = 0xFFFF;
+        //virtual int renderValue(bool selected, bool opened, uint16_t max_character_width);
 };
 
 // generic control for selecting a number
@@ -98,18 +96,18 @@ class NumberControl : public NumberControlBase {
         virtual const char *getFormattedValue(int value) {
             static char fmt[MENU_C_MAX] = "      ";
             if (this->debug)
-                sprintf(fmt, "%5i [int]", value);
+                sprintf(fmt, "%-5i [int]", value);
             else
-                sprintf(fmt, "%5i", value);
+                sprintf(fmt, "%-5i", value);
             return fmt;
         }
         virtual const char *getFormattedValue(double value) {
             static char fmt[MENU_C_MAX] = "      ";
             if (this->debug)
-                sprintf(fmt, "%3.2f [double]", value);
+                sprintf(fmt, "%-3.2f [double]", value);
             else
                 //sprintf(fmt, "%3.2f", value);
-                sprintf(fmt, "%3.0f%%", (value*100.0));
+                sprintf(fmt, "%-3.0f%%", (value*100.0));
 
             return fmt;
         }
@@ -159,6 +157,7 @@ class NumberControl : public NumberControlBase {
         // just render the value without the rest of the widget, restricting it to the max_character_width characters
         // TODO: actually limit the output to the width (currently it just uses a smaller size if it doesn't fit in the requested number of characters)
         virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
+            if (this->debug) Serial.printf("\t\trenderValue() in NumberControl with max_character_width %i\n", max_character_width);
             const char *tmp;
             //if (this->debug) { Serial.println("renderValue() did setting tmp"); Serial.flush(); }
             

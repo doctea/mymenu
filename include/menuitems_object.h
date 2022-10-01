@@ -131,12 +131,16 @@ class ObjectToggleControl : public MenuItem {
             //char tmp[20] = "";
             tft->setTextSize(2);
 
-            if ((this->target_object->*getter)()) {
-                tft->println("On");
-            } else {
-                tft->println("Off");
-            }
-            
+            this->renderValue(selected, opened, MENU_C_MAX);
+
+            return tft->getCursorY();
+        }
+
+        // render the current value at current position
+        virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
+            const char *txt = (this->target_object->*getter)() ? "On" : "Off";
+            tft->setTextSize((strlen(txt) < max_character_width/2) ? 2 : 1);
+            tft->println(txt);
             return tft->getCursorY();
         }
 

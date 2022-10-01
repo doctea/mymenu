@@ -143,25 +143,31 @@ class SubMenuItem : public MenuItem {
         }
 
         virtual bool button_select() override {
+            Serial.printf("SubMenuItem#button_select(), currently_opened is %i\n", currently_opened);
             if (currently_opened==-1) {
                 if (currently_selected>=0) {
                     if (items.get(currently_selected)->action_opened()) {
                         currently_opened = currently_selected;
-                        //Serial.printf("submenuitem#button_select() opened subitem %i\n", currently_opened);
+                        //Serial.printf("submenuitem#button_select() opened subitem %i (%s)\n", currently_opened, items.get(currently_selected)->label);
                         return false;
                     } else {
-                        return true;
+                        return false;
                     }
                 }
             } else {
-                //Serial.printf("submenuitem#button_select() on %i\n", currently_opened);
+                //Serial.printf("in submenuitem(%s)#button_select() on currently_opened=%i (%s)\n", this->label, currently_opened, items.get(currently_opened)->label);
                 // an item is currently opened, so call select on that item
                 if (items.get(currently_opened)->button_select()) {
+                    //Serial.println("\tbutton_select returned true! setting currently_opened=-1 and returning false..");
                     //Serial.println("submenuitem#button_select() calling button_back and then returning false");
-                    button_back();
+                    //button_back();
+                    currently_selected = currently_opened;
+                    currently_opened = -1;
                     return false;
-                } else
+                } else {
+                    //Serial.println("\tbutton_select returned false! so also returning false!");
                     return false;
+                }
             }
             return true;
         }

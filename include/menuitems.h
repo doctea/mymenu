@@ -18,6 +18,8 @@ class MenuItem {
 
         char label[MAX_LABEL_LENGTH];
 
+        uint16_t colour = 0xFFFF;
+
         bool show_header = true;
 
         bool debug = false;
@@ -53,8 +55,14 @@ class MenuItem {
             tft->setCursor(pos.x,pos.y);
             //tft->setTextColor(ST77XX_WHITE, ST77XX_BLACK);
             colours(selected);
-            tft->printf("%s [s:%i o:%i]", label, (int)selected, (int)opened);
+            //tft->printf("%s [s:%i o:%i]", label, (int)selected, (int)opened);
+            this->renderValue(selected, opened, MENU_C_MAX);
             //return (tft->getTextSizeY() * 8) + 2;
+            return tft->getCursorY();
+        }
+
+        virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) {
+            tft->printf("%s [s:%i o:%i]", label, (int)selected, (int)opened);
             return tft->getCursorY();
         }
 
@@ -136,6 +144,7 @@ class SelectorControl : public MenuItem {
         int selected_value_index;
         int *available_values;
 
+
         virtual void setter (int new_value) {
         }
         virtual int getter () {
@@ -168,18 +177,27 @@ class SelectorControl : public MenuItem {
                 bool is_current_value_selected = available_values[i]==current_value; //getter();
                 int col = is_current_value_selected ? GREEN : C_WHITE;
                 colours(opened && selected_value_index==i, col, BLACK);
-                //tft->setCursor(pos.x, pos.y);   // ?? commented out to re-fix quantiser control..
-                //colours(true, col, ST7735_BLUE);
-                //Serial.printf("for item %i/%i, printing %s\n", i, num_values, get_label_for_value(available_values[i]));
-                tft->printf("%s", (char*)get_label_for_value(available_values[i])); //available_values[i]);
-                //pos.y = tft->getCursorY();      // ?? commented out to re-fix quantiser control..
-                //tft->printf("%i", available_values[i]);
+
+                tft->printf("%s", (char*)get_label_for_value(available_values[i]));
+
+                //this->renderValue(selected, opened, MENU_C_MAX);
+
                 tft->setTextColor(BLACK,BLACK);
                 if (i<num_values-1) 
                     tft->printf(" ");
             }
             if (tft->getCursorX()>0) // if we haven't wrapped onto next line then do it manually
                 tft->println("");
+            return tft->getCursorY();
+        }
+
+        virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
+            char label[MAX_LABEL_LENGTH];
+            strcpy(label, get_label_for_value(available_values[opened ? selected_value_index : this->getter()]));
+            if (strlen(label) > max_character_width) {
+                label[max_character_width] = '\0';
+            }
+            tft->printf("%s", label);
             return tft->getCursorY();
         }
 

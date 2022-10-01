@@ -117,13 +117,15 @@ class Menu {
             return true;
         }
         bool button_select() {
-            Serial.printf("button_select() on item %i\n", currently_selected);
+            Serial.printf("Menu#button_select() on item %i\n", currently_selected);
             if (currently_opened==-1) {
-                Serial.printf("button_select with currently_opened menuitem -1 - selecting %i\n", currently_selected);
-                if (items.get(currently_selected)->action_opened())
+                Serial.printf("button_select with currently_opened menuitem -1 - opening %i\n", currently_selected);
+                if (items.get(currently_selected)->action_opened()) {
                     currently_opened = currently_selected;
+                    return false;
+                }
             } else {
-                Serial.printf("button_select subselect on %i\n", currently_opened);
+                Serial.printf("Menu#button_select() subselecting already-opened %i (%s)\n", currently_opened, items.get(currently_opened)->label);
                 if (items.get(currently_opened)->button_select()) 
                     button_back();
             } 
