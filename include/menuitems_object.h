@@ -74,7 +74,7 @@ class ObjectNumberControl : public NumberControl<DataType> {
         if (this->target_object!=nullptr && this->getter!=nullptr) {
             if (this->debug) { Serial.printf("ObjectNumberControl#get_current_value in %s about to call getter\n", this->label); Serial.flush(); }
             DataType v = (this->target_object->*getter)();
-            if (this->debug) { Serial.println("Called getter!"); Serial.flush(); }
+            if (this->debug) { Serial.printf("Called getter and got value %i!", v); Serial.flush(); }
             return v;
         }
         
@@ -244,32 +244,7 @@ class ObjectActionItem : public MenuItem {
 
 };
 
-/*template<class TargetClass, class DataType>
-class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
 
-    public:
-    DataType *available_values = nullptr;
-
-    ObjectSelectorControl(const char* label, 
-                        TargetClass *target_object, 
-                        void(TargetClass::*setter_func)(DataType), 
-                        DataType(TargetClass::*getter_func)(), 
-                        void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr
-    ) : ObjectNumberControl<TargetClass,DataType>(label, target_object, setter_func, getter_func, on_change_handler) {}
-
-    virtual const char*get_label_for_value(int value) {
-        static char value_label[MENU_C_MAX];
-        sprintf(value_label, "%i", value);
-        return value_label;
-    }
-
-    virtual const char *getFormattedInternalValue() override {
-        return this->get_label_for_value(this->get_internal_value());
-    }
-    virtual const char *getFormattedValue() override {
-        return this->get_label_for_value(this->get_current_value());
-    }
-
-};*/
+#include "menuitems_object_selector.h"
 
 #endif
