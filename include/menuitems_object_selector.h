@@ -109,7 +109,7 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
 
             char msg[255];
             //Serial.printf("about to build msg string...\n");
-            sprintf(msg, "Set %8s to %i", this->label, value);
+            sprintf(msg, "Set %8s to %s", this->label, get_label_for_value(value));
             //Serial.printf("about to set_last_message!");
             msg[this->tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
             menu_set_last_message(msg,GREEN);

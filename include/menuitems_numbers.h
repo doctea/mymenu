@@ -104,17 +104,17 @@ class NumberControl : public NumberControlBase {
         virtual const char *getFormattedValue(uint32_t value) {
             static char fmt[MENU_C_MAX] = "      ";
             if (this->debug)
-                sprintf(fmt, "%-5u [ulong]", value);
+                sprintf(fmt, "%-5u [ulong]", (unsigned int) value);
             else
-                sprintf(fmt, "%-5u", value);
+                sprintf(fmt, "%-5u", (unsigned int) value);
             return fmt;
         }
         virtual const char *getFormattedValue(int32_t value) {
             static char fmt[MENU_C_MAX] = "      ";
             if (this->debug)
-                sprintf(fmt, "%-5i [long]", value);
+                sprintf(fmt, "%-5i [long]", (int)value);
             else
-                sprintf(fmt, "%-5i", value);
+                sprintf(fmt, "%-5i", (int)value);
             return fmt;
         }
         virtual const char *getFormattedValue(double value) {
