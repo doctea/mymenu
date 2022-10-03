@@ -9,7 +9,7 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
         const char *label;
     };
 
-    LinkedList<option> available_values = LinkedList<option>();
+    LinkedList<option> *available_values = new LinkedList<option>();
 
     public:
 
@@ -23,14 +23,14 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
         //this->debug = true;
     }
 
-    bool action_opened() override {
+    virtual bool action_opened() override {
         this->internal_value = this->get_index_for_value((this->target_object->*this->getter)());
         return ObjectNumberControl<TargetClass,DataType>::action_opened();
     }
 
     virtual void add_available_value(DataType value, const char *label) {
-        available_values.add(option { .value = value, .label = label });
-        this->maximum_value = available_values.size() - 1;
+        available_values->add(option { .value = value, .label = label });
+        this->maximum_value = available_values->size() - 1;
     }
 
     /*virtual int get_index_for_value(int value) {
@@ -45,9 +45,9 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
     }*/
 
     virtual int get_index_for_value(DataType value) {
-        int size = available_values.size();
+        int size = available_values->size();
         for (int i = 0 ; i < size ; i++) {
-            if (available_values.get(i).value==value) {
+            if (available_values->get(i).value==value) {
                 //Serial.printf("get_index_for_value(%i) returning %i\n", value, i);
                 return i;
             }
@@ -55,10 +55,10 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
         return -1;
     }
     virtual const DataType get_value_for_index(int index) {
-        if (index<0 || index>=available_values.size())
+        if (index<0 || index>=available_values->size())
             return 0;
         //Serial.printf("get_value_for_index(%i) returning %i\n", index, available_values.get(index).value);
-        return available_values.get(index).value;
+        return available_values->get(index).value;
     }
     virtual const char*get_label_for_value(int value) {
         /*static char value_label[MENU_C_MAX];
@@ -68,10 +68,10 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
         return this->get_label_for_index(index);
     }
     virtual const char*get_label_for_index(int index) {
-        if (index<0 || index>=available_values.size())
+        if (index<0 || index>=available_values->size())
             return "N/A";
         //Serial.printf("get_label_for_index(%i) returning '%s'\n", index, available_values.get(index).label);
-        return available_values.get(index).label;
+        return available_values->get(index).label;
     }
 
     virtual const char *getFormattedInternalValue() override {
