@@ -25,9 +25,9 @@ class SubMenuItemBar : public SubMenuItem {
 
         // draw all the sub-widgets
         // todo: include a widget to select the modulation source for the slot
-        int width_per_item = this->tft->width()/(this->items.size() /*+1*/);
-        if (this->debug) Serial.printf("display in SubMenuItemBar got width_per_item=%i from tftwidth %i / itemsize %i\n", width_per_item, this->tft->width(), this->items.size());
-        for (int i = 0 ; i < this->items.size() ; i++) {
+        int width_per_item = this->tft->width()/(this->items->size() /*+1*/);
+        if (this->debug) Serial.printf("display in SubMenuItemBar got width_per_item=%i from tftwidth %i / itemsize %i\n", width_per_item, this->tft->width(), this->items->size());
+        for (int i = 0 ; i < this->items->size() ; i++) {
             int temp_y = this->small_display(i, i * width_per_item, start_y, width_per_item, this->currently_selected==i, this->currently_opened==i);
             if (temp_y>finish_y)
                 finish_y = temp_y;
@@ -43,7 +43,7 @@ class SubMenuItemBar : public SubMenuItem {
     virtual int small_display(int index, int x, int y, int width, bool is_selected, bool is_opened) {
         if (this->debug) Serial.printf("\tSubMenuItemBar: start of small_display for index %i, passed in x,y=%i,%i and width=%i\n", index, x, y, width);
 
-        MenuItem *ctrl = items.get(index);
+        MenuItem *ctrl = items->get(index);
         int width_in_chars = 8; // presumed font width
         char fmt[10];
 

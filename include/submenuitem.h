@@ -13,11 +13,12 @@ class SubMenuItem : public MenuItem {
         bool always_show = false;       // whether to hide items until menu is opened or not
         int currently_selected = -1;
         int currently_opened = -1;
-        LinkedList<MenuItem*> items = LinkedList<MenuItem*>();
+        LinkedList<MenuItem*> *items = nullptr; // = LinkedList<MenuItem*>();
 
         // always_show argument determines whether to show items even when menu isn't opened
         SubMenuItem(const char *label, bool always_show = false) : MenuItem(label) {
             this->always_show = always_show;
+            this->items = new LinkedList<MenuItem*>();
         }
 
         virtual bool allow_takeover() override {
@@ -36,22 +37,22 @@ class SubMenuItem : public MenuItem {
         virtual void add(MenuItem *item) {
             if (item!=nullptr) {
                 item->tft = this->tft;
-                this->items.add(item);
+                this->items->add(item);
             } else {
                 Serial.println("WARNING: SubMenuItem#add passed a nullptr!");
             }
         }
 
         virtual void on_add() override {
-            for (int i = 0 ; i < this->items.size() ; i++) {
-                this->items.get(i)->set_tft(this->tft);
-                this->items.get(i)->on_add();
+            for (int i = 0 ; i < this->items->size() ; i++) {
+                this->items->get(i)->set_tft(this->tft);
+                this->items->get(i)->on_add();
             }
         }
 
         virtual void update_ticks(unsigned long ticks) override {
-            for (int i = 0 ; i < items.size() ; i++) {
-                items.get(i)->update_ticks(ticks);
+            for (int i = 0 ; i < items->size() ; i++) {
+                items->get(i)->update_ticks(ticks);
             }
         }
 
@@ -78,15 +79,15 @@ class SubMenuItem : public MenuItem {
             int y = header(this->label, pos, selected, opened);
             colours(false,C_WHITE,BLACK);
 
-            if (currently_opened>=0 && this->items.get(currently_opened)->allow_takeover())
-                return this->items.get(currently_selected)->display(Coord(0,y), true, true);
+            if (currently_opened>=0 && this->items->get(currently_opened)->allow_takeover())
+                return this->items->get(currently_selected)->display(Coord(0,y), true, true);
 
             int start_item = currently_selected>=0 ? currently_selected : 0;
 
             if (opened || this->always_show) {
                 //tft->clear();
                 //colours(false, C_WHITE, BLACK);
-                for (int i = start_item ; i < this->items.size() ; i++) {
+                for (int i = start_item ; i < this->items->size() ; i++) {
                     //tft->println("wtf1?");
                     y = tft->getCursorY();
 
@@ -95,7 +96,7 @@ class SubMenuItem : public MenuItem {
                     //Serial.printf("SubMenuItem#display():\ttft@%p\n", this->tft);
                     //tft->println("wtf2?");
                     pos.x = 0; pos.y = tft->getCursorY();
-                    y = this->items.get(i)->display(
+                    y = this->items->get(i)->display(
                         pos, i==this->currently_selected, i==this->currently_opened
                     );
                     this->tft->setTextColor(C_WHITE, BLACK);
@@ -114,7 +115,7 @@ class SubMenuItem : public MenuItem {
                     }
                 }
             } else {
-                tft->printf("[%i sub-items...]\n", this->items.size());
+                tft->printf("[%i sub-items...]\n", this->items->size());
                 y = tft->getCursorY();
             }
 
@@ -125,20 +126,20 @@ class SubMenuItem : public MenuItem {
             if (currently_opened==-1) {
                 currently_selected--;
                 if (currently_selected<0)
-                    currently_selected = items.size()-1;
+                    currently_selected = items->size()-1;
                 return true;
             } else {
-                return this->items.get(currently_opened)->knob_left();
+                return this->items->get(currently_opened)->knob_left();
             }
         }
         virtual bool knob_right() override {
             if (currently_opened==-1) {
                 currently_selected++;
-                if (currently_selected>=items.size())
+                if (currently_selected>=items->size())
                     currently_selected = 0;
                 return true;
             } else {
-                return this->items.get(currently_opened)->knob_right();
+                return this->items->get(currently_opened)->knob_right();
             }
         }
 
@@ -146,7 +147,7 @@ class SubMenuItem : public MenuItem {
             Serial.printf("SubMenuItem#button_select(), currently_opened is %i\n", currently_opened);
             if (currently_opened==-1) {
                 if (currently_selected>=0) {
-                    if (items.get(currently_selected)->action_opened()) {
+                    if (items->get(currently_selected)->action_opened()) {
                         currently_opened = currently_selected;
                         //Serial.printf("submenuitem#button_select() opened subitem %i (%s)\n", currently_opened, items.get(currently_selected)->label);
                         return false;
@@ -157,7 +158,7 @@ class SubMenuItem : public MenuItem {
             } else {
                 //Serial.printf("in submenuitem(%s)#button_select() on currently_opened=%i (%s)\n", this->label, currently_opened, items.get(currently_opened)->label);
                 // an item is currently opened, so call select on that item
-                if (items.get(currently_opened)->button_select()) {
+                if (items->get(currently_opened)->button_select()) {
                     //Serial.println("\tbutton_select returned true! setting currently_opened=-1 and returning false..");
                     //Serial.println("submenuitem#button_select() calling button_back and then returning false");
                     //button_back();
@@ -174,7 +175,7 @@ class SubMenuItem : public MenuItem {
 
         virtual bool button_back() override {
             needs_redraw = true;    // force a redraw if we've selected
-            if (currently_opened!=-1 && !items.get(currently_opened)->button_back()) {
+            if (currently_opened!=-1 && !items->get(currently_opened)->button_back()) {
                 //Serial.println("submenuitem#button_back() got a false back from the selected item's button_back, setting currently_opened etc then returning true");
                 currently_selected = currently_opened;
                 currently_opened = -1;
@@ -189,7 +190,7 @@ class SubMenuItem : public MenuItem {
 
         virtual bool button_right() override {
             if (currently_opened!=-1) {
-                if (items.get(currently_opened)->button_right()) {
+                if (items->get(currently_opened)->button_right()) {
 
                 } else {
 
@@ -242,12 +243,12 @@ class DualMenuItem : public SubMenuItem {
             int y = header(this->label, pos, selected, opened);
             colours(false,C_WHITE,BLACK);
 
-            if (currently_opened>=0 && this->items.get(currently_opened)->allow_takeover())
-                return this->items.get(currently_selected)->display(Coord(0,y), true, true);
+            if (currently_opened>=0 && this->items->get(currently_opened)->allow_takeover())
+                return this->items->get(currently_selected)->display(Coord(0,y), true, true);
 
             int start_item = 0; //currently_selected>=0 ? currently_selected : 0;
 
-            int width_per_item = tft->width() / items.size();
+            int width_per_item = tft->width() / items->size();
             int start_y = y;
             int highest_y = y;
 
@@ -255,7 +256,7 @@ class DualMenuItem : public SubMenuItem {
                 //tft->clear();
                 //colours(false, C_WHITE, BLACK);
                 int count = 0;
-                for (int i = start_item ; i < this->items.size() ; i++) {
+                for (int i = start_item ; i < this->items->size() ; i++) {
                     //tft->println("wtf1?");
                     //y = tft->getCursorY();
 
@@ -273,16 +274,16 @@ class DualMenuItem : public SubMenuItem {
                     tft->setCursor(pos.x, pos.y+1);
                     colours((!opened && selected) || (opened && i==this->currently_selected), C_WHITE, BLACK);
                     tft->setTextSize(0);
-                    tft->println(this->items.get(i)->label);
+                    tft->println(this->items->get(i)->label);
                     colours(false);
                     pos.y = tft->getCursorY();  // set position to just under the fake header
 
-                    if (this->debug) Serial.printf("%i: Drawing %s\tat\t%i,%i\t selected=%s\t and opened=%s\n", count, items.get(i)->label, pos.x, pos.y, i==this->currently_selected?"true":"false", i==this->currently_opened?"true":"false");
-                    y = this->items.get(i)->display(
+                    if (this->debug) Serial.printf("%i: Drawing %s\tat\t%i,%i\t selected=%s\t and opened=%s\n", count, items->get(i)->label, pos.x, pos.y, i==this->currently_selected?"true":"false", i==this->currently_opened?"true":"false");
+                    y = this->items->get(i)->display(
                         pos, i==this->currently_selected, i==this->currently_opened
                     );
                     if (y>highest_y) {
-                        if (this->debug) Serial.printf("count %i: Subitem %s\t%i has x,y of\t%i,%i, higher than previous record\t%i (with is %i)\n", count, this->items.get(i)->label, i, pos.x, y, highest_y, width_per_item);
+                        if (this->debug) Serial.printf("count %i: Subitem %s\t%i has x,y of\t%i,%i, higher than previous record\t%i (with is %i)\n", count, this->items->get(i)->label, i, pos.x, y, highest_y, width_per_item);
                         highest_y = y;
                     }
                     //this->tft->setTextColor(C_WHITE, BLACK);
@@ -303,7 +304,7 @@ class DualMenuItem : public SubMenuItem {
                 }
                 y = highest_y;
             } else {
-                tft->printf("[%i sub-items...]\n", this->items.size());
+                tft->printf("[%i sub-items...]\n", this->items->size());
                 y = tft->getCursorY();
             }
 
