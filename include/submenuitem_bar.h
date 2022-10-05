@@ -25,10 +25,17 @@ class SubMenuItemBar : public SubMenuItem {
 
         // draw all the sub-widgets
         // todo: include a widget to select the modulation source for the slot
-        int width_per_item = this->tft->width()/(this->items->size() /*+1*/);
+        int width_per_item = this->tft->width() / (this->items->size() /*+1*/);
         if (this->debug) Serial.printf("display in SubMenuItemBar got width_per_item=%i from tftwidth %i / itemsize %i\n", width_per_item, this->tft->width(), this->items->size());
-        for (int i = 0 ; i < this->items->size() ; i++) {
-            int temp_y = this->small_display(i, i * width_per_item, start_y, width_per_item, this->currently_selected==i, this->currently_opened==i);
+        for (int item_index = 0 ; item_index < this->items->size() ; item_index++) {
+            int temp_y = this->small_display(
+                item_index, 
+                item_index * width_per_item, 
+                start_y, 
+                width_per_item, 
+                this->currently_selected==item_index, 
+                this->currently_opened==item_index
+            );
             if (temp_y>finish_y)
                 finish_y = temp_y;
         }
@@ -60,14 +67,13 @@ class SubMenuItemBar : public SubMenuItem {
         tft->setTextSize(0);
         tft->printf(fmt, ctrl->label);
         y = tft->getCursorY();
-
         if (this->debug) Serial.printf("\t bottom of header is %i\n", y);
-        // position for value
-        tft->setCursor(x, y);   // reset cursor to underneath the label
 
+        // get position ready for value
+        tft->setCursor(x, y);   // reset cursor to underneath the label
         if (this->debug) Serial.printf("\tdoing renderValue at %i,%i\n", x, y);
 
-        // render the item
+        // actually render the item
         y = ctrl->renderValue(is_selected, is_opened, width/width_in_chars);
 
         if (this->debug) Serial.printf("\tend of small_display, returning y=%i\n", y);

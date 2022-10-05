@@ -138,7 +138,11 @@ class ObjectToggleControl : public MenuItem {
         // render the current value at current position
         virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
             const char *txt = (this->target_object->*getter)() ? "On" : "Off";
-            tft->setTextSize((strlen(txt) < max_character_width/2) ? 2 : 1);
+            bool use_small = strlen(txt) <= (max_character_width/2);
+            byte textSize = use_small ? 2 : 1;
+            if (this->debug) 
+                Serial.printf("%s:\trenderValue '%s' (len %i) with max_character_width %i got textSize %i\n", this->label, txt, strlen(txt), max_character_width/2, textSize);
+            tft->setTextSize(textSize);
             tft->println(txt);
             return tft->getCursorY();
         }
