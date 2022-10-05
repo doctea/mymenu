@@ -6,12 +6,9 @@
 template<class TargetClass, class DataType>
 class ObjectNumberControl : public NumberControl<DataType> {
     public:
-    bool debug = false;
-    DataType internal_value;
-
     void(TargetClass::*setter)(DataType) = nullptr;
     DataType(TargetClass::*getter)() = nullptr;
-    void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr;
+    //void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr;
     TargetClass *target_object = nullptr;
 
     ObjectNumberControl(const char* label, 
@@ -48,33 +45,34 @@ class ObjectNumberControl : public NumberControl<DataType> {
             this->set_internal_value( (this->target_object->*getter)() );
     }
 
-    virtual DataType get_internal_value() override {
+    /*virtual DataType get_internal_value() override {
         return this->internal_value;
-    }
+    }*/
 
-    virtual void set_internal_value(DataType value) {
-        if (this->debug) { Serial.printf("ObjectNumberControl.set_internal_value(%i)..\n", value); }
+    /*virtual void set_internal_value(DataType value) override {
+        if (this->debug) Serial.printf("ObjectNumberControl.set_internal_value(%i)..\n", value);
         this->internal_value = constrain(value, this->minimum_value, this->maximum_value);
-    }
+        if (this->debug) Serial.printf("constrained to %i (%i:%i)\n", this->internal_value, this->minimum_value, this->maximum_value);
+    }*/
 
     virtual void change_value(DataType new_value) override {
         if (this->readOnly) return;
         if (this->debug) { Serial.printf("ObjectNumberControl#change_value(%i)..\n", new_value); Serial.flush(); }
-        DataType last_value = get_current_value();
+        DataType last_value = this->get_current_value();
         //Serial.println("ObjectNumberControl#change_value about to call set_current_value");
         this->set_current_value(new_value);
-        if (on_change_handler!=nullptr) {
+        if (this->on_change_handler!=nullptr) {
             if (this->debug)  { Serial.println("ObjectNumberControl calling on_change_handler"); Serial.flush(); }
-            on_change_handler(last_value, internal_value);
+            (this->on_change_handler)(last_value, this->internal_value);
         }
     }
 
     // override in subclass if need to do something special eg getter/setter
     virtual DataType get_current_value() override {
         if (this->target_object!=nullptr && this->getter!=nullptr) {
-            if (this->debug) { Serial.printf("ObjectNumberControl#get_current_value in %s about to call getter\n", this->label); Serial.flush(); }
+            //if (this->debug) { Serial.printf("%s: ObjectNumberControl#get_current_value in %s about to call getter\n", this->label); Serial.flush(); }
             DataType v = (this->target_object->*getter)();
-            if (this->debug) { Serial.printf("Called getter and got value %i!", v); Serial.flush(); }
+            if (this->debug) { Serial.printf("%s: Called getter and got value %i!\n", this->label, v); Serial.flush(); }
             return v;
         }
         
@@ -107,14 +105,15 @@ class ObjectToggleControl : public MenuItem {
 
         void(TargetClass::*setter)(bool) = nullptr;
         bool(TargetClass::*getter)() = nullptr;
-        void (*on_change_handler)(int last_value, int new_value) = nullptr;
+
+        void (*on_change_handler)(bool last_value, bool new_value) = nullptr;
 
         ObjectToggleControl(
             const char *label, 
             TargetClass *target_object, 
             void(TargetClass::*setter)(bool), 
             bool(TargetClass::*getter)(), 
-            void (*on_change_handler)(int last_value, int new_value)
+            void (*on_change_handler)(bool last_value, bool new_value)
         ) : MenuItem(label) {
             this->target_object = target_object;
             this->setter = setter;

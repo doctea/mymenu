@@ -206,9 +206,9 @@ class NumberControl : public NumberControlBase {
         }
 
         virtual void set_internal_value(DataType value) {
-            if (this->debug) Serial.printf("%s: NumberControl.set_internal_value(%i)\twith constraint (%i:%i)..\n", this->label, value, (int)this->minimum_value, (int)this->maximum_value);
             //this->internal_value = value;
             this->internal_value = constrain(value, this->minimum_value, this->maximum_value);
+            if (this->debug) Serial.printf("%s: NumberControl.set_internal_value(%i)\twith constraint (%i:%i) resulted in %i\n", this->label, value, (int)this->minimum_value, (int)this->maximum_value, this->internal_value);
         }
 
         virtual void decrease_value() {
