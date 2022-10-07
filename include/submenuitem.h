@@ -15,10 +15,12 @@ class SubMenuItem : public MenuItem {
         int currently_opened = -1;
         LinkedList<MenuItem*> *items = nullptr; // = LinkedList<MenuItem*>();
 
-        // always_show argument determines whether to show items even when menu isn't opened
-        SubMenuItem(const char *label, bool always_show = false) : MenuItem(label) {
-            this->always_show = always_show;
+        SubMenuItem(const char *label) : MenuItem(label) {
             this->items = new LinkedList<MenuItem*>();
+        }
+        // always_show argument determines whether to show items even when menu isn't opened
+        SubMenuItem(const char *label, bool always_show) : SubMenuItem(label) {
+            this->always_show = always_show;            
         }
 
         virtual bool allow_takeover() override {

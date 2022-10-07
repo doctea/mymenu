@@ -198,32 +198,11 @@ class ActionItem : public MenuItem {
     }
 
     virtual int display(Coord pos, bool selected, bool opened) override {
-
         pos.y = header(button_label, pos, selected, opened);
         tft->setCursor(pos.x,pos.y);
         tft->setTextSize(1);
 
         colours(opened, opened ? GREEN : C_WHITE, BLACK);
-        //tft->setTextSize(2);        // was 2 ?
-        //char tmp[20] = "";
-        
-        /*if (opened) {
-            //tft->printf("value: %*i\n", 4, internal_value);
-            sprintf(tmp, "%s\n", this->getFormattedValue(internal_value));
-            Serial.printf("in opened NumberControl for %s, with internal_value %i, got formattedvalue '%s'\n", this->label, internal_value, this->getFormattedValue(internal_value));
-        } else {
-            //tft->printf("value: %*i\n", 4, get_current_value()); // *target_variable); //target->transpose);
-            sprintf(tmp, "%s\n", this->getFormattedValue()); //get_current_value());
-        }*/
-
-        // adjust size dependent on size of formatted value
-        /*if (strlen(tmp)<10) 
-            tft->setTextSize(2);
-        else
-            tft->setTextSize(1);
-
-        tft->printf(tmp);*/
-        //Serial.printf("NumberControl base display in %s?\n", label);
 
         return tft->getCursorY();
     }
@@ -239,18 +218,53 @@ class ActionItem : public MenuItem {
         msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
         menu_set_last_message(msg,GREEN);
 
-        /*if (parameter->getCurrentValue()<0.5) {
-            Serial.println("sending value_on");
-            parameter->setParamValue(value_on);
-        } else {
-            Serial.println("sending value_off");
-            parameter->setParamValue(value_off);
-        }
-        //this->parameter->setParamValue(((DataParameter*)parameter)->getCurrentValue() < 0.5);*/
         return false;   // don't 'open'
     }
 
 };
+
+
+class ActionConfirmItem : public ActionItem {
+    public:
+
+    ActionConfirmItem(const char *label, void (*on_open)()) : ActionItem(label, on_open) {}
+
+    virtual int display(Coord pos, bool selected, bool opened) override {
+        if (opened)
+            pos.y = header("??? Sure ???", pos, selected, opened);
+        else
+            pos.y = header(button_label, pos, selected, opened);
+        tft->setCursor(pos.x,pos.y);
+        tft->setTextSize(1);
+
+        colours(opened, opened ? GREEN : C_WHITE, BLACK);
+
+        return tft->getCursorY();
+    }
+
+    virtual bool action_opened() override {
+        Serial.println("ActionConfirmItem#action_opened");
+        //this->on_open();
+        return true; 
+    }
+
+    virtual bool button_select() override {
+        Serial.println("ActionConfirmItem#button_select");
+
+        this->on_open();
+
+        char msg[255];
+        //Serial.printf("about to build msg string...\n");
+        sprintf(msg, "Fired %8s", label);
+        //Serial.printf("about to set_last_message!");
+        msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
+        menu_set_last_message(msg,GREEN);
+
+        return true;    // return to menu
+    }
+
+};
+
 
 #include "menuitems_object.h"
 
