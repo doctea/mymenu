@@ -35,6 +35,8 @@ class NumberControl : public NumberControlBase {
         bool readOnly = false;
         bool go_back_on_select = false;
 
+        char float_unit = '%';
+
         NumberControl(const char* label) : NumberControlBase(label) {
             this->step = this->get_default_step_for_type((DataType)0);    // setup default step based on our template DataType
         }
@@ -123,10 +125,12 @@ class NumberControl : public NumberControlBase {
             static char fmt[MENU_C_MAX] = "      ";
             if (this->debug)
                 sprintf(fmt, "%-3.2f [double]", value);
-            else
-                //sprintf(fmt, "%3.2f", value);
-                sprintf(fmt, "%-3.0f%%", (value*this->float_mult));
-
+            else {
+                if (this->float_unit!=' ')
+                    sprintf(fmt, "%-3.0f%c", (value*this->float_mult), this->float_unit);
+                else
+                    sprintf(fmt, "%-3.0f", (value*this->float_unit));
+            }
             return fmt;
         }
 
