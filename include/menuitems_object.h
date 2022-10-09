@@ -127,7 +127,7 @@ class ObjectToggleControl : public MenuItem {
 
             colours(opened, opened ? GREEN : C_WHITE, BLACK);
             //tft->setTextSize(2);        // was 2 ?
-            //char tmp[20] = "";
+            //char tmp[MENU_C_MAX] = "";
             tft->setTextSize(2);
 
             this->renderValue(selected, opened, MENU_C_MAX);
@@ -177,11 +177,19 @@ class ObjectActionItem : public MenuItem {
     setter_def setter;
     getter_def getter;
 
-    ObjectActionItem(const char *label, TargetClass *target_object, setter_def setter, getter_def getter, const char *button_label_true, const char *button_label_false = nullptr) 
-        : MenuItem(label) 
-    {
+    ObjectActionItem(const char *label, TargetClass *target_object) : MenuItem(label) {
         this->target_object = target_object;
-        this->setter = setter;
+    }
+
+    ObjectActionItem(const char *label, TargetClass *target_object, setter_def setter) : 
+        ObjectActionItem(label, target_object) {
+            this->setter = setter;
+        }
+
+    ObjectActionItem(const char *label, TargetClass *target_object, setter_def setter, getter_def getter, const char *button_label_true, const char *button_label_false = nullptr) 
+        : ObjectActionItem(label, target_object, setter) {
+        /*this->target_object = target_object;
+        this->setter = setter;*/
         this->getter = getter;
 
         //while(1) {
@@ -206,9 +214,7 @@ class ObjectActionItem : public MenuItem {
             sprintf(this->button_label_false, ">> %s <<", label);
 
         //Serial.printf("after button_label_false in ObjectActionItem constructor, button_label_true is '%s' from '%s'\n", this->button_label_true, button_label_true);
-
         //}
-
     };
     //ObjectActionItem(const char *label, TargetClass *target_object, setter_def *setter, getter_def *getter, const char *button_label_true) 
     //    : ObjectActionItem(label, target_object, setter, getter, button_label_true, label) {}; 
@@ -216,7 +222,11 @@ class ObjectActionItem : public MenuItem {
     virtual int display(Coord pos, bool selected, bool opened) override {
         //Serial.printf("button_label_true is %s\n", this->button_label_true);
         //char *button_label = this->target_object->*get_label( this->target_object->*getter() );
-        char *button_label = (this->target_object->*getter)() ? this->button_label_true : this->button_label_false;
+        char *button_label = nullptr;
+        if (this->getter!=nullptr && this->button_label_true!=nullptr)
+            button_label = (this->target_object->*getter)() ? this->button_label_true : this->button_label_false;
+        else
+            button_label = this->button_label_false;
         pos.y = header(button_label, pos, selected, opened);
 
         tft->setCursor(pos.x,pos.y);
@@ -250,38 +260,40 @@ class ObjectActionItem : public MenuItem {
 
 template<class TargetClass>
 class ObjectActionConfirmItem : public ObjectActionItem<TargetClass> /*, virtual public ActionConfirmItem */ {
-    /*using ActionConfirmItem::action_opened;
-    using ActionConfirmItem::button_select;
-    using ActionConfirmItem::display;
-    using ObjectConfirmItem::on_open;*/
-
     public:
 
     using setter_def = void(TargetClass::*)();
+    setter_def setter = nullptr;
 
     ObjectActionConfirmItem(
         const char *label, 
         TargetClass *target_object, 
         setter_def setter
-    ) : ObjectActionItem<TargetClass>(label, target_object, setter, nullptr, nullptr, nullptr) {};
+    ) : ObjectActionItem<TargetClass>(label, target_object) {
+        this->setter = setter;
+    };
 
     virtual int display(Coord pos, bool selected, bool opened) override {
         if (opened)
-            pos.y = header("??? Sure ???", pos, selected, opened);
+            pos.y = this->header("??? Sure ???", pos, selected, opened);
         else
-            pos.y = header(this->label, pos, selected, opened);
+            pos.y = this->header(this->label, pos, selected, opened);
         this->tft->setCursor(pos.x,pos.y);
         this->tft->setTextSize(1);
 
-        colours(opened, opened ? GREEN : C_WHITE, BLACK);
+        this->colours(opened, opened ? GREEN : C_WHITE, BLACK);
 
-        return this->tft->getCursorY();
+        return this->tft->getCursorY() + this->tft->getRowHeight();
     }
 
     virtual bool action_opened() override {
         Serial.println("ActionConfirmItem#action_opened");
         //this->on_open();
         return true; 
+    }
+
+    virtual void on_open() override {
+        (this->target_object->*setter)();
     }
 
     virtual bool button_select() override {
