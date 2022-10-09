@@ -30,6 +30,8 @@ class NumberControl : public NumberControlBase {
         DataType maximum_value = 100;
         DataType step = this->get_default_step_for_type(internal_value);
 
+        DataType float_mult = 100.0;
+
         bool readOnly = false;
         bool go_back_on_select = false;
 
@@ -123,7 +125,7 @@ class NumberControl : public NumberControlBase {
                 sprintf(fmt, "%-3.2f [double]", value);
             else
                 //sprintf(fmt, "%3.2f", value);
-                sprintf(fmt, "%-3.0f%%", (value*100.0));
+                sprintf(fmt, "%-3.0f%%", (value*this->float_mult));
 
             return fmt;
         }

@@ -227,7 +227,7 @@ class ObjectActionItem : public MenuItem {
         return tft->getCursorY();
     }
 
-    void on_open() {
+    virtual void on_open() {
         (this->target_object->*setter)(true);
     }
 
@@ -243,6 +243,60 @@ class ObjectActionItem : public MenuItem {
         menu_set_last_message(msg,GREEN);
 
         return false;   // don't 'open'
+    }
+
+};
+
+
+template<class TargetClass>
+class ObjectActionConfirmItem : public ObjectActionItem<TargetClass> /*, virtual public ActionConfirmItem */ {
+    /*using ActionConfirmItem::action_opened;
+    using ActionConfirmItem::button_select;
+    using ActionConfirmItem::display;
+    using ObjectConfirmItem::on_open;*/
+
+    public:
+
+    using setter_def = void(TargetClass::*)();
+
+    ObjectActionConfirmItem(
+        const char *label, 
+        TargetClass *target_object, 
+        setter_def setter
+    ) : ObjectActionItem<TargetClass>(label, target_object, setter, nullptr, nullptr, nullptr) {};
+
+    virtual int display(Coord pos, bool selected, bool opened) override {
+        if (opened)
+            pos.y = header("??? Sure ???", pos, selected, opened);
+        else
+            pos.y = header(this->label, pos, selected, opened);
+        this->tft->setCursor(pos.x,pos.y);
+        this->tft->setTextSize(1);
+
+        colours(opened, opened ? GREEN : C_WHITE, BLACK);
+
+        return this->tft->getCursorY();
+    }
+
+    virtual bool action_opened() override {
+        Serial.println("ActionConfirmItem#action_opened");
+        //this->on_open();
+        return true; 
+    }
+
+    virtual bool button_select() override {
+        Serial.println("ActionConfirmItem#button_select");
+
+        this->on_open();
+
+        char msg[255];
+        //Serial.printf("about to build msg string...\n");
+        sprintf(msg, "Fired %8s", this->label);
+        //Serial.printf("about to set_last_message!");
+        msg[this->tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
+        menu_set_last_message(msg,GREEN);
+
+        return true;    // return to menu
     }
 
 };
