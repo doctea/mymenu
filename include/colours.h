@@ -45,7 +45,7 @@
     #define BLACK   ST77XX_BLACK
     #define RED     ST77XX_RED
     #define GREEN   ST77XX_GREEN
-    #define BLUE    ST77XX_BLUE
+    #define BLUE    ST77XX_CYAN
     #define YELLOW  ST77XX_YELLOW
     #define ORANGE  ST77XX_ORANGE
     #define PURPLE  ST77XX_MAGENTA
