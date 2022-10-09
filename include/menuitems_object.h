@@ -219,59 +219,6 @@ class ObjectActionItem : public MenuItem {
         return y;
     }
 
-    /*virtual int display(Coord pos, bool selected, bool opened) override {
-        //Serial.printf("button_label_true is %s\n", this->button_label_true);
-        //char *button_label = this->target_object->*get_label( this->target_object->*getter() );
-        char *button_label = nullptr;
-        if (this->getter!=nullptr && this->button_label_true!=nullptr)
-            button_label = (this->target_object->*getter)() ? this->button_label_true : this->button_label_false;
-        else
-            button_label = this->button_label_false;
-        pos.y = header(button_label, pos, selected, opened);
-
-        tft->setCursor(pos.x,pos.y);
-        tft->setTextSize(1);
-
-        //colours(opened, opened ? GREEN : C_WHITE, BLACK);
-
-        return tft->getCursorY();
-        //this->tft->setCursor(pos.x, pos.y);
-        //return this->renderValue(selected, opened, MENU_C_MAX/2);
-    }
-
-    virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
-        return this->display(Coord(tft->getCursorX(), tft->getCursorY()), selected, opened);
-        /*Serial.println("ObjectConfirmItem#renderValue..!");
-        //const char *txt = (this->target_object->*getter)() ? "On" : "Off";
-        char *button_label = nullptr;
-        if (this->target_object!=nullptr && this->getter!=nullptr && this->button_label_true!=nullptr) {
-            Serial.println("using has-target branch"); Serial.flush();
-            if (this->target_object!=nullptr) Serial.println("target_object isn't null");
-            if (this->getter!=nullptr) Serial.println("getter isn't null");
-            if (this->button_label_true!=nullptr) Serial.println("button_label_true isn't null");
-            Serial.flush();
-            Serial.printf("has target_object %p, getter %p, button_label_true '%s'\n", this->target_object, this->getter, this->button_label_true); Serial.flush();
-            button_label = (this->target_object->*getter)() ? this->button_label_true : this->button_label_false; Serial.flush();
-        } else {
-            Serial.print("using button_label_false as target/getter or true are null");
-            button_label = this->button_label_false;
-        }
-        
-        Serial.printf("got button_label '%s'\n", button_label);
-
-        bool use_small = strlen(button_label) <= (max_character_width/2);
-        byte textSize = use_small ? 2 : 1;
-
-        if (this->debug) 
-            Serial.printf("%s:\trenderValue '%s' (len %i) with max_character_width %i got textSize %i\n", this->label, button_label, strlen(button_label), max_character_width/2, textSize);
-
-        tft->setTextSize(textSize);
-        tft->println(button_label);
-
-        Serial.println("ObjectConfirmItem#renderValue returning");
-        return tft->getCursorY();*/
-    //}
-
     virtual void on_open() {
         (this->target_object->*setter)(true);
     }
