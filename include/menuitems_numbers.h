@@ -74,6 +74,9 @@ class NumberControl : public NumberControlBase {
         virtual DataType get_default_step_for_type(unsigned long step) {
             return 1;
         }
+        virtual DataType get_default_step_for_type(unsigned long long step) {
+            return 1;
+        }
 
         virtual void setStep(DataType step) {
             this->step = step;
@@ -110,6 +113,14 @@ class NumberControl : public NumberControlBase {
                 sprintf(fmt, "%-5u [ulong]", (unsigned int) value);
             else
                 sprintf(fmt, "%-5u", (unsigned int) value);
+            return fmt;
+        }
+        virtual const char *getFormattedValue(unsigned long long value) {
+            static char fmt[MENU_C_MAX] = "      ";
+            if (this->debug)
+                sprintf(fmt, "%-5u [ulong]", (unsigned long long) value);
+            else
+                sprintf(fmt, "%-5u", (unsigned long long) value);
             return fmt;
         }
         virtual const char *getFormattedValue(int32_t value) {
