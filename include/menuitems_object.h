@@ -57,12 +57,12 @@ class ObjectNumberControl : public NumberControl<DataType> {
 
     virtual void change_value(DataType new_value) override {
         if (this->readOnly) return;
-        if (this->debug) { Serial.printf("ObjectNumberControl#change_value(%i)..\n", new_value); Serial.flush(); }
+        if (this->debug) { Serial.printf(F("ObjectNumberControl#change_value(%i)..\n"), new_value); Serial.flush(); }
         DataType last_value = this->get_current_value();
         //Serial.println("ObjectNumberControl#change_value about to call set_current_value");
         this->set_current_value(new_value);
         if (this->on_change_handler!=nullptr) {
-            if (this->debug)  { Serial.println("ObjectNumberControl calling on_change_handler"); Serial.flush(); }
+            if (this->debug)  { Serial.println(F("ObjectNumberControl calling on_change_handler")); Serial.flush(); }
             (this->on_change_handler)(last_value, this->internal_value);
         }
     }
@@ -72,7 +72,7 @@ class ObjectNumberControl : public NumberControl<DataType> {
         if (this->target_object!=nullptr && this->getter!=nullptr) {
             //if (this->debug) { Serial.printf("%s: ObjectNumberControl#get_current_value in %s about to call getter\n", this->label); Serial.flush(); }
             DataType v = (this->target_object->*getter)();
-            if (this->debug) { Serial.printf("%s: Called getter and got value %i!\n", this->label, v); Serial.flush(); }
+            if (this->debug) { Serial.printf(F("%s: Called getter and got value %i!\n"), this->label, v); Serial.flush(); }
             return v;
         }
         
@@ -82,7 +82,7 @@ class ObjectNumberControl : public NumberControl<DataType> {
     // override in subclass if need to do something special eg getter/setter
     virtual void set_current_value(DataType value) override { 
         //this->internal_value = value;
-        if (this->debug) { Serial.printf("ObjectNumberControl#set_current_value(%i)\n", value); Serial.flush(); }
+        if (this->debug) { Serial.printf(F("ObjectNumberControl#set_current_value(%i)\n"), value); Serial.flush(); }
         if (this->target_object!=nullptr && this->setter!=nullptr) {
             (this->target_object->*setter)(value);
 
@@ -93,7 +93,7 @@ class ObjectNumberControl : public NumberControl<DataType> {
             msg[this->tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
             menu_set_last_message(msg,GREEN);
         }
-        if (this->debug) { Serial.println("Done."); Serial.flush(); }
+        if (this->debug) { Serial.println(F("Done.")); Serial.flush(); }
     }
 };
 
@@ -141,14 +141,14 @@ class ObjectToggleControl : public MenuItem {
             bool use_small = strlen(txt) <= (max_character_width/2);
             byte textSize = use_small ? 2 : 1;
             if (this->debug) 
-                Serial.printf("%s:\trenderValue '%s' (len %i) with max_character_width %i got textSize %i\n", this->label, txt, strlen(txt), max_character_width/2, textSize);
+                Serial.printf(F("%s:\trenderValue '%s' (len %i) with max_character_width %i got textSize %i\n"), this->label, txt, strlen(txt), max_character_width/2, textSize);
             tft->setTextSize(textSize);
             tft->println(txt);
             return tft->getCursorY();
         }
 
         virtual bool action_opened() override {
-            if (this->debug) Serial.printf("ObjectToggleControl#action_opened on %s\n", this->label);
+            if (this->debug) Serial.printf(F("ObjectToggleControl#action_opened on %s\n"), this->label);
             bool value = !(this->target_object->*getter)();
             //this->internal_value = !this->internal_value;
 
@@ -224,7 +224,7 @@ class ObjectActionItem : public MenuItem {
     }
 
     virtual bool action_opened() override {
-        Serial.println("ObjectActionItem#action_opened");
+        Serial.println(F("ObjectActionItem#action_opened"));
         this->on_open();
 
         char msg[255];
@@ -276,7 +276,7 @@ class ObjectActionConfirmItem : public ObjectActionItem<TargetClass> {
     }
 
     virtual bool action_opened() override {
-        Serial.println("ActionConfirmItem#action_opened");
+        Serial.println(F("ActionConfirmItem#action_opened"));
         //this->on_open();
         return true; 
     }
@@ -286,7 +286,7 @@ class ObjectActionConfirmItem : public ObjectActionItem<TargetClass> {
     }
 
     virtual bool button_select() override {
-        Serial.println("ActionConfirmItem#button_select");
+        Serial.println(F("ActionConfirmItem#button_select"));
 
         this->on_open();
 
