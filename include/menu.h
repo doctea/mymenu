@@ -320,6 +320,20 @@ class Menu {
             }
         #endif
 
+        uint16_t get_next_colour() {
+            static int index = 0;
+            static const uint16_t colours[] = {
+                tft->rgb(50,0,0),
+                tft->rgb(0,50,0),
+                tft->rgb(0,0,50),
+                tft->rgb(0,50,50),
+                tft->rgb(50,0,50),
+                tft->rgb(50,50,0)
+            };
+            index%=6;
+            return colours[index++];
+        }
+
 };
 
 extern Menu *menu;

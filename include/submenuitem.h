@@ -49,6 +49,7 @@ class SubMenuItem : public MenuItem {
             for (int i = 0 ; i < this->items->size() ; i++) {
                 this->items->get(i)->set_tft(this->tft);
                 this->items->get(i)->on_add();
+                this->items->get(i)->set_default_colours(this->default_fg, this->default_bg);
             }
         }
 
@@ -79,7 +80,7 @@ class SubMenuItem : public MenuItem {
             //previously_opened = opened;
 
             int y = header(this->label, pos, selected, opened);
-            colours(false,C_WHITE,BLACK);
+            colours(false,this->default_fg,this->default_bg);
 
             if (currently_opened>=0 && this->items->get(currently_opened)->allow_takeover())
                 return this->items->get(currently_selected)->display(Coord(0,y), true, true);
@@ -93,7 +94,7 @@ class SubMenuItem : public MenuItem {
                     //tft->println("wtf1?");
                     y = tft->getCursorY();
 
-                    tft->setTextColor(C_WHITE, BLACK);
+                    tft->setTextColor(this->default_fg, this->default_bg);
                     //Serial.printf("fg is %0x, bg is %0x\n")
                     //Serial.printf("SubMenuItem#display():\ttft@%p\n", this->tft);
                     //tft->println("wtf2?");
@@ -101,7 +102,7 @@ class SubMenuItem : public MenuItem {
                     y = this->items->get(i)->display(
                         pos, i==this->currently_selected, i==this->currently_opened
                     );
-                    this->tft->setTextColor(C_WHITE, BLACK);
+                    tft->setTextColor(this->default_fg, this->default_bg);
                     //tft->println("wtf3?");
                     y = this->tft->getCursorY();
 
@@ -243,7 +244,7 @@ class DualMenuItem : public SubMenuItem {
             //previously_opened = opened;
 
             int y = header(this->label, pos, selected, opened);
-            colours(false,C_WHITE,BLACK);
+            colours(false,this->default_fg,this->default_bg);
 
             if (currently_opened>=0 && this->items->get(currently_opened)->allow_takeover())
                 return this->items->get(currently_selected)->display(Coord(0,y), true, true);
@@ -272,9 +273,9 @@ class DualMenuItem : public SubMenuItem {
                     pos.y = start_y;
 
                     // draw fake headers for subitem
-                    tft->drawLine(pos.x, pos.y, tft->width(), pos.y, C_WHITE);
+                    tft->drawLine(pos.x, pos.y, tft->width(), pos.y, this->default_fg);
                     tft->setCursor(pos.x, pos.y+1);
-                    colours((!opened && selected) || (opened && i==this->currently_selected), C_WHITE, BLACK);
+                    colours((!opened && selected) || (opened && i==this->currently_selected), this->default_fg, this->default_bg);
                     tft->setTextSize(0);
                     tft->println(this->items->get(i)->label);
                     colours(false);

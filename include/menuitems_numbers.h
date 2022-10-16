@@ -169,7 +169,7 @@ class NumberControl : public NumberControlBase {
 
             if (this->debug) { Serial.printf(F("NumberControl#display in %s about to do colours...\n"), this->label); Serial.flush(); }
             //colours(opened, opened ? GREEN : C_WHITE, BLACK);
-            colours(opened, opened ? GREEN : this->colour, BLACK);
+            colours(opened, opened ? GREEN : this->default_fg, this->default_bg);
             if (this->debug) { Serial.println("did colours"); Serial.flush(); }
 
             // render the value

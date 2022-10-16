@@ -18,7 +18,8 @@ class MenuItem {
 
         char label[MAX_LABEL_LENGTH];
 
-        uint16_t colour = 0xFFFF;
+        uint16_t default_fg = C_WHITE; //0xFFFF;
+        uint16_t default_bg = BLACK;
 
         bool show_header = true;
 
@@ -38,6 +39,11 @@ class MenuItem {
             if (this->debug) Serial.printf(F("MenuItem#on_add in %s\n"), this->label);
             menu_c_max = tft->get_c_max();
         }    // called when this menuitem is added to menu
+
+        void set_default_colours(uint16_t fg, uint16_t bg) {
+            this->default_fg = fg;
+            this->default_bg = bg;
+        }
 
         // called every tick, in case anything needs doing
         virtual void update_ticks(unsigned long ticks) {
@@ -70,10 +76,10 @@ class MenuItem {
         }
 
         virtual void colours(bool inverted) {
-            colours(inverted, /*tft->WHITE*/C_WHITE, BLACK);
+            colours(inverted, /*tft->WHITE*/this->default_fg, this->default_bg);
         }
         virtual void colours(bool inverted, uint16_t fg) {
-            colours(inverted, fg, BLACK);
+            colours(inverted, fg, this->default_bg);
         }
         virtual void colours(bool inverted, uint16_t fg, uint16_t bg) {
             if (!inverted) {
@@ -87,9 +93,9 @@ class MenuItem {
         virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false) {
             if (!this->show_header) return pos.y;
 
-            tft->drawLine(pos.x, pos.y, tft->width(), pos.y, C_WHITE);
+            tft->drawLine(pos.x, pos.y, tft->width(), pos.y, this->default_fg);
             tft->setCursor(pos.x, pos.y+1);
-            colours(selected, C_WHITE, BLACK);
+            colours(selected, this->default_fg, this->default_bg);
             tft->setTextSize(0);
             if (opened) {
                 //tft->print(">>>");
@@ -211,7 +217,7 @@ class ActionItem : public MenuItem {
         tft->setCursor(pos.x,pos.y);
         tft->setTextSize(1);
 
-        colours(opened, opened ? GREEN : C_WHITE, BLACK);
+        colours(opened, opened ? GREEN : this->default_fg, this->default_bg);
 
         return tft->getCursorY();
     }
@@ -246,7 +252,7 @@ class ActionConfirmItem : public ActionItem {
         tft->setCursor(pos.x,pos.y);
         tft->setTextSize(1);
 
-        colours(opened, opened ? GREEN : C_WHITE, BLACK);
+        colours(opened, opened ? GREEN : this->default_fg, this->default_bg);
 
         return tft->getCursorY();
     }
@@ -276,14 +282,13 @@ class ActionConfirmItem : public ActionItem {
 
 class SeparatorMenuItem : public MenuItem {
     public:
-        int16_t colour = C_WHITE;
-        SeparatorMenuItem(char *label, int16_t colour = C_WHITE) : MenuItem(label) {
+        //int16_t colour = C_WHITE;
+        SeparatorMenuItem(char *label) : MenuItem(label) {
             this->selectable = false;
-            this->colour = colour;
         }
 
         virtual int display(Coord pos, bool selected, bool opened) override {
-            tft->drawLine(pos.x, pos.y, tft->width(), pos.y, colour);
+            tft->drawLine(pos.x, pos.y, tft->width(), pos.y, this->default_fg);
             pos.y += 2;
 
             pos.y = header(label, pos, selected, opened);
@@ -294,9 +299,9 @@ class SeparatorMenuItem : public MenuItem {
         virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false) {
             if (!this->show_header) return pos.y;
 
-            tft->drawLine(pos.x, pos.y, tft->width(), pos.y, this->colour);
+            tft->drawLine(pos.x, pos.y, tft->width(), pos.y, this->default_fg);
             tft->setCursor(pos.x, pos.y+1);
-            colours(!selected, this->colour, BLACK);
+            colours(!selected, this->default_fg, this->default_bg);
             tft->setTextSize(0);
             /*if (opened) {
                 //tft->print(">>>");
