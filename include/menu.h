@@ -90,10 +90,10 @@ class Menu {
                 if (currently_selected<0) 
                     currently_selected = items->size()-1;
                 Serial.printf(F("selected %i aka %s\n"), currently_selected, items->get(currently_selected)->label);
-                /*if (currently_selected>=0 && currently_selected < items->size() && !items->get(currently_selected)->is_selectable()) {
-                    Serial.println("?? extra knob_left because isn't selectable");
+                if (currently_selected>=0 && currently_selected < items->size() && !items->get(currently_selected)->is_selectable()) {
+                    //Serial.println("?? extra knob_left because isn't selectable");
                     knob_left();
-                }*/
+                }
             }
             if (debug) {
                 char msg[tft->get_c_max()] = "";
@@ -112,10 +112,10 @@ class Menu {
                 if (currently_selected >= items->size())
                     currently_selected = 0;
                 Serial.printf(F("selected %i aka %s\n"), currently_selected, items->get(currently_selected)->label);
-                /*if (currently_selected>=0 && currently_selected < items->size() && !items->get(currently_selected)->is_selectable()) {
-                    Serial.println("?? extra knob_right because isn't selectable");
+                if (currently_selected>=0 && currently_selected < items->size() && !items->get(currently_selected)->is_selectable()) {
+                    //Serial.println("?? extra knob_right because isn't selectable");
                     knob_right();
-                }*/
+                }
             }
             if (debug) {
                 char msg[tft->get_c_max()] = "";

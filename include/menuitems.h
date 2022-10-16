@@ -290,6 +290,28 @@ class SeparatorMenuItem : public MenuItem {
 
             return pos.y;
         }
+
+        virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false) {
+            if (!this->show_header) return pos.y;
+
+            tft->drawLine(pos.x, pos.y, tft->width(), pos.y, this->colour);
+            tft->setCursor(pos.x, pos.y+1);
+            colours(!selected, this->colour, BLACK);
+            tft->setTextSize(0);
+            /*if (opened) {
+                //tft->print(">>>");
+                //tft->printf((char*)"%-19s",(char*)text);   // \n not needed as reaching to edge
+                tft->printf((char*)tft->get_header_open_format(), (char*)text);
+            } else if (selected) {
+                //tft->printf((char*)"%-22s",(char*)text);   // \n not needed as reaching to edge
+                tft->printf((char*)tft->get_header_selected_format(), (char*)text);
+            } else {*/
+                tft->printf((char*)tft->get_header_format(), (char*)text);
+            //}
+            colours(false);
+            //return (tft->getTextSize()+1)*6;
+            return tft->getCursorY();
+        }
 };
 
 #include "menuitems_object.h"
