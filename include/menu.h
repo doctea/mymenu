@@ -178,21 +178,21 @@ class Menu {
             this->items = new LinkedList<MenuItem*>();
         }
 
-        void setup_display() {
+        FLASHMEM void setup_display() {
             Serial.println("setup_display about to do tft->setup().."); Serial.flush();
             tft->setup();
             Serial.println("tft->setup() done!"); Serial.flush();
         }
-        void start() {
+        FLASHMEM void start() {
             tft->start();
         }
 
-        void add(LinkedList<MenuItem *> *items) {
+        FLASHMEM void add(LinkedList<MenuItem *> *items) {
             for (int i = 0 ; i < items->size() ; i++) {
                 this->add(items->get(i));
             }
         }
-        void add(MenuItem *m) {
+        FLASHMEM void add(MenuItem *m) {
             if (m!=nullptr) {
                 m->tft = this->tft;
                 m->on_add();
@@ -201,7 +201,7 @@ class Menu {
                 Serial.println("Passed nullptr to menu#add!");
             }
         }
-        void add_pinned(PinnedPanelMenuItem *m) {
+        FLASHMEM void add_pinned(PinnedPanelMenuItem *m) {
             if (m!=nullptr) {
                 m->tft = this->tft;
                 m->on_add();
