@@ -24,6 +24,8 @@ class MenuItem {
 
         bool debug = false;
 
+        bool selectable = true;
+
         MenuItem set_tft(DisplayTranslator *tft) {
             this->tft = tft;
             return *this;
@@ -132,6 +134,12 @@ class MenuItem {
         virtual bool allow_takeover() {
             return false;
         }
+
+        // whether we should be allowed to hover over this one
+        virtual bool is_selectable () {
+            return this->selectable;
+        }
+
 };
 
 #include "menuitems_numbers.h"
@@ -265,6 +273,23 @@ class ActionConfirmItem : public ActionItem {
 
 };
 
+class SeparatorMenuItem : public MenuItem {
+    public:
+        int16_t colour = C_WHITE;
+        SeparatorMenuItem(char *label, int16_t colour = C_WHITE) : MenuItem(label) {
+            this->selectable = false;
+            this->colour = colour;
+        }
+
+        virtual int display(Coord pos, bool selected, bool opened) override {
+            tft->drawLine(pos.x, pos.y, tft->width(), pos.y, colour);
+            pos.y += 2;
+
+            pos.y = header(label, pos, selected, opened);
+
+            return pos.y;
+        }
+};
 
 #include "menuitems_object.h"
 

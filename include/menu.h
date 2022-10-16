@@ -14,7 +14,7 @@ class Coord {
 #include "menu_io.h"
 
 #ifndef MENU_MAX_PANELS
-    #define MENU_MAX_PANELS 30
+    #define MENU_MAX_PANELS 50
 #endif
 
 //extern Menu menu;
@@ -90,6 +90,10 @@ class Menu {
                 if (currently_selected<0) 
                     currently_selected = items.size()-1;
                 Serial.printf("selected %i aka %s\n", currently_selected, items.get(currently_selected)->label);
+                /*if (currently_selected>=0 && currently_selected < items.size() && !items.get(currently_selected)->is_selectable()) {
+                    Serial.println("?? extra knob_left because isn't selectable");
+                    knob_left();
+                }*/
             }
             if (debug) {
                 char msg[tft->get_c_max()] = "";
@@ -108,12 +112,17 @@ class Menu {
                 if (currently_selected >= items.size())
                     currently_selected = 0;
                 Serial.printf("selected %i aka %s\n", currently_selected, items.get(currently_selected)->label);
+                /*if (currently_selected>=0 && currently_selected < items.size() && !items.get(currently_selected)->is_selectable()) {
+                    Serial.println("?? extra knob_right because isn't selectable");
+                    knob_right();
+                }*/
             }
             if (debug) {
                 char msg[tft->get_c_max()] = "";
                 sprintf(msg, "knob_left to %i", currently_selected);
                 set_last_message(msg);
             }
+
             return true;
         }
         bool button_select() {
@@ -160,7 +169,7 @@ class Menu {
             return true;
         }
 
-        char last_message[40] = "...started up...";
+        char last_message[MENU_C_MAX] = "...started up...";
         uint32_t message_colour = C_WHITE;
         DisplayTranslator *tft;
 
