@@ -35,7 +35,7 @@ class MenuItem {
             strcpy(label, in_label);
         }
         virtual void on_add() {
-            if (this->debug) Serial.printf("MenuItem#on_add in %s\n", this->label);
+            if (this->debug) Serial.printf(F("MenuItem#on_add in %s\n"), this->label);
             menu_c_max = tft->get_c_max();
         }    // called when this menuitem is added to menu
 
@@ -59,6 +59,7 @@ class MenuItem {
             colours(selected);
             //tft->printf("%s [s:%i o:%i]", label, (int)selected, (int)opened);
             this->renderValue(selected, opened, MENU_C_MAX);
+            this->tft->println();
             //return (tft->getTextSizeY() * 8) + 2;
             return tft->getCursorY();
         }
@@ -216,7 +217,7 @@ class ActionItem : public MenuItem {
     }
 
     virtual bool action_opened() override {
-        Serial.println("ActionItem#action_opened");
+        Serial.println(F("ActionItem#action_opened"));
         this->on_open();
 
         char msg[255];
@@ -251,13 +252,13 @@ class ActionConfirmItem : public ActionItem {
     }
 
     virtual bool action_opened() override {
-        Serial.println("ActionConfirmItem#action_opened");
+        Serial.println(F("ActionConfirmItem#action_opened"));
         //this->on_open();
         return true; 
     }
 
     virtual bool button_select() override {
-        Serial.println("ActionConfirmItem#button_select");
+        Serial.println(F("ActionConfirmItem#button_select"));
 
         this->on_open();
 

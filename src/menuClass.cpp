@@ -17,14 +17,14 @@ int Menu::display() {
     tft->setTextColor(C_WHITE, BLACK);
 
     // now draw the menu
-    if (currently_opened>=0 && items.get(currently_opened)->allow_takeover()) {
+    if (currently_opened>=0 && items->get(currently_opened)->allow_takeover()) {
         // takeover -- focus on this menu item only
         if (pinned_panel!=nullptr)
             y = pinned_panel->display(Coord(0,0), false, false);
             //y = draw_message();
         // let the currently opened item take care of drawing all of the display
         //Serial.println("allow_takeover!");
-        items.get(currently_opened)->display(Coord(0,y), true, true);
+        items->get(currently_opened)->display(Coord(0,y), true, true);
     } else if (mode==DISPLAY_ONE) {
         // for screens that can only display one option at a time
         static int last_displayed = 0;
@@ -43,8 +43,8 @@ int Menu::display() {
         if (debug) { Serial.println(F("display()=> about to draw_message()")); Serial.flush(); }
         y = draw_message();
 
-        if (currently_selected>=0 && currently_selected < items.size()) {
-            items.get(currently_selected)->display(Coord(0,y), true, currently_opened==currently_selected);
+        if (currently_selected>=0 && currently_selected < items->size()) {
+            items->get(currently_selected)->display(Coord(0,y), true, currently_opened==currently_selected);
             last_displayed = currently_selected;
         }
 
@@ -78,7 +78,7 @@ int Menu::display() {
             int adj_y = 0;
             for (int i = 0 ; i < items.size() ; i++) {
                 adj_y += panel_bottom[i];
-                Serial.printf("item %i accumulated height %i trying to fit into %i\n", i, adj_y, tft->height());
+                Serial.printf(F("item %i accumulated height %i trying to fit into %i\n"), i, adj_y, tft->height());
                 if (target_y - adj_y < tft->height()) {
                     Serial.println("\tyes!");
                     start_panel = i;
@@ -90,7 +90,7 @@ int Menu::display() {
             //tft.fillWindow(ST77XX_BLACK);
             tft->clear();
             //tft->fillRect(0, 0, tft->width(), tft->height(), BLACK);
-            start_panel = constrain(start_panel, 0, items.size()-1);
+            start_panel = constrain(start_panel, 0, items->size()-1);
         } else {
             start_panel = 0;
             tft->clear();
@@ -98,7 +98,7 @@ int Menu::display() {
         }
         //if (panel_bottom[currently_selected] >= tft->height()/2)
         //    start_panel = currently_selected - 1;
-        start_panel = constrain(start_panel, 0, items.size()-1);
+        start_panel = constrain(start_panel, 0, items->size()-1);
 
         static int last_start_panel = -1;
         if (last_start_panel!=start_panel) {
@@ -121,8 +121,8 @@ int Menu::display() {
 
         // draw each menu item's panel
         //int start_y = 0;
-        for (int i = start_panel ; i < items.size() ; i++) {
-            MenuItem *item = items.get(i);
+        for (int i = start_panel ; i < items->size() ; i++) {
+            MenuItem *item = items->get(i);
             /*if(item->label[0]=='T')
                 delay(5000);*/
 
