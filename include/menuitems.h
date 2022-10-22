@@ -150,11 +150,11 @@ class MenuItem {
 };
 
 #include "menuitems_numbers.h"
-
 #include "menuitems_selector.h"
 #include "menuitems_pinned.h"
 
 String get_note_name(int pitch);
+const char *get_note_name_c(int pitch);
 class HarmonyStatus : public MenuItem {
     int *last_note = nullptr;
     int *current_note = nullptr;
@@ -185,14 +185,14 @@ class HarmonyStatus : public MenuItem {
                 tft->println((char *)"[not set]");
             } else if (this->other_value!=nullptr) {
                 tft->printf("%4s : %4s : %4s\n",     // \n not needed on smaller screen because already fills row.. is needed on big tft?
-                    (char*)(get_note_name(*last_note).c_str()), 
-                    (char*)(get_note_name(*current_note).c_str()),
-                    (char*)(get_note_name(*other_value).c_str())
+                    (char*)(get_note_name_c(*last_note)), 
+                    (char*)(get_note_name_c(*current_note)),
+                    (char*)(get_note_name_c(*other_value))
                 );
             } else {
                 tft->printf("%4s : %4s\n",     // \n not needed on smaller screen because already fills row.. is needed on big tft?
-                    (char*)(get_note_name(*last_note).c_str()), 
-                    (char*)(get_note_name(*current_note).c_str())
+                    (char*)(get_note_name_c(*last_note)), 
+                    (char*)(get_note_name_c(*current_note))
                 );
             }
             return tft->getCursorY();

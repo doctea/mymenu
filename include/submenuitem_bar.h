@@ -54,6 +54,13 @@ class SubMenuItemBar : public SubMenuItem {
         int width_in_chars = 8; // presumed font width
         char fmt[10];
 
+        /*Serial.printf("small_display in %s, item %i (%s), got colour %4x!\n", 
+            this->label, 
+            index, 
+            ctrl->label,
+            ctrl->default_fg
+        );*/
+
         // prepare label header format
         colours(false, ctrl->default_fg, ctrl->default_bg);
         byte display_width = min((int)(width/width_in_chars), (int)strlen(ctrl->label));

@@ -40,6 +40,7 @@ class SubMenuItem : public MenuItem {
             if (item!=nullptr) {
                 item->tft = this->tft;
                 this->items->add(item);
+                item->set_default_colours(this->default_fg, this->default_bg);  // do it here so that we can override it after being added, but this still isnt foolproof
             } else {
                 Serial.println("WARNING: SubMenuItem#add passed a nullptr!");
             }
@@ -49,7 +50,7 @@ class SubMenuItem : public MenuItem {
             for (int i = 0 ; i < this->items->size() ; i++) {
                 this->items->get(i)->set_tft(this->tft);
                 this->items->get(i)->on_add();
-                this->items->get(i)->set_default_colours(this->default_fg, this->default_bg);
+                //this->items->get(i)->set_default_colours(this->default_fg, this->default_bg); // inherit colours .. but breaks when we set custom colours eg in ParameterMenuItem..
             }
         }
 
