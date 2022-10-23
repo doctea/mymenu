@@ -187,8 +187,9 @@ class Menu {
             tft->start();
         }
 
-        FLASHMEM void add(LinkedList<MenuItem *> *items) {
+        FLASHMEM void add(LinkedList<MenuItem *> *items, int16_t default_fg_colour = C_WHITE) {
             for (int i = 0 ; i < items->size() ; i++) {
+                items->get(i)->set_default_colours(default_fg_colour, BLACK);
                 this->add(items->get(i));
             }
         }
@@ -323,12 +324,19 @@ class Menu {
         uint16_t get_next_colour() {
             static int index = 0;
             static const uint16_t colours[] = {
-                tft->rgb(50,0,0),
+                /*tft->rgb(50,0,0),
                 tft->rgb(0,50,0),
                 tft->rgb(0,0,50),
                 tft->rgb(0,50,50),
                 tft->rgb(50,0,50),
-                tft->rgb(50,50,0)
+                tft->rgb(50,50,0)*/
+                tft->rgb(255,200,200),
+                tft->rgb(200,255,200),
+                tft->rgb(200,200,255),
+                tft->rgb(200,200,255),
+                tft->rgb(200,255,255),
+                tft->rgb(255,200,255),
+                tft->rgb(255,255,200)
             };
             index%=6;
             return colours[index++];

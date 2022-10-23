@@ -62,7 +62,13 @@ class SubMenuItemBar : public SubMenuItem {
         );*/
 
         // prepare label header format
-        colours(false, ctrl->default_fg, ctrl->default_bg);
+        int16_t colour = C_WHITE;
+        if (ctrl->default_fg!=colour)
+            colour = ctrl->default_fg;
+        else
+            colour = this->default_fg;
+
+        colours(false, colour, ctrl->default_bg);
         byte display_width = min((int)(width/width_in_chars), (int)strlen(ctrl->label));
         sprintf(fmt, "%%-%is\n", display_width);    // becomes eg "%-6s\n"
         if (this->debug) Serial.printf("\tGot format '%s'\n", fmt);

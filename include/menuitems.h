@@ -40,7 +40,7 @@ class MenuItem {
             menu_c_max = tft->get_c_max();
         }    // called when this menuitem is added to menu
 
-        void set_default_colours(uint16_t fg, uint16_t bg) {
+        void set_default_colours(uint16_t fg, uint16_t bg = BLACK) {
             this->default_fg = fg;
             this->default_bg = bg;
         }
