@@ -118,7 +118,7 @@ class ObjectMultiToggleControl : public MenuItem {
             }
 
             //int width_per_item = (tft->width() / FONT_WIDTH) / (items.size() + (all_option ? 1 : 0));    // max size to be used for each item
-            int width_per_item = ((tft->width()-x) / FONT_WIDTH) / items.size(); // max size to be used for each item after the 'all' item is taken into account
+            const int width_per_item = ((tft->width()-x) / FONT_WIDTH) / items.size(); // max size to be used for each item after the 'all' item is taken into account
             
             for (uint8_t i = 0 ; i < items_size ; i++) {
                 MultiToggleItemBase *item = items.get(i);
@@ -154,21 +154,21 @@ class ObjectMultiToggleControl : public MenuItem {
             return max_height_reached; //tft->getCursorY();
         }
 
-        virtual bool knob_left() {
+        virtual bool knob_left() override {
             currently_selected--;
             if (currently_selected < 0) 
                 currently_selected = (this->all_option?1:0) + items.size() - 1;
             //Serial.printf("knob_right: selected %i\n", currently_selected);
             return true;
         }
-        virtual bool knob_right() {
+        virtual bool knob_right() override {
             currently_selected++;
             if (currently_selected >= (this->all_option?1:0) + items.size())
                 currently_selected = 0;
             //Serial.printf("knob_right: selected %i\n", currently_selected);
             return true;
         }
-        virtual bool button_select() {
+        virtual bool button_select() override {
             if (all_option && currently_selected == 0) { //items.size()) {
                 all_status = !all_status;
                 for (int i = 0 ; i < items.size() ; i++) {
