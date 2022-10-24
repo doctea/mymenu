@@ -62,11 +62,15 @@ class SubMenuItemBar : public SubMenuItem {
         );*/
 
         // prepare label header format
-        int16_t colour = C_WHITE;
-        if (ctrl->default_fg!=colour)
+        uint16_t colour = C_WHITE;
+        if (ctrl->default_fg != colour) {
+            //Serial.printf("ctrl's default_fg of\t%04x doesn't match default white of\t%04x - taking ctrl\n", ctrl->default_fg, colour);
             colour = ctrl->default_fg;
-        else
+        } else {
+            //Serial.printf("ctrl's default_fg of\t%04x matches default white of\t%04x - taking bar\n", ctrl->default_fg, colour);
             colour = this->default_fg;
+        }
+        //Serial.printf("small_display %s\tcolour is\t%04x, bar's colour is\t%04x =>\t%04x\n", ctrl->label, ctrl->default_fg, this->default_fg, colour);
 
         colours(false, colour, ctrl->default_bg);
         byte display_width = min((int)(width/width_in_chars), (int)strlen(ctrl->label));
@@ -76,7 +80,7 @@ class SubMenuItemBar : public SubMenuItem {
         // print label header
         if (this->debug) Serial.printf("\tdrawing header at %i,%i\n", x, y);
         tft->setCursor(x, y);
-        colours(is_selected, is_opened ? GREEN : ctrl->default_fg, ctrl->default_bg);
+        colours(is_selected, is_opened ? GREEN : colour, ctrl->default_bg);
         tft->setTextSize(0);
         tft->printf(fmt, ctrl->label);
         y = tft->getCursorY();

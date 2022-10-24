@@ -155,14 +155,17 @@ class MenuItem {
 
 String get_note_name(int pitch);
 const char *get_note_name_c(int pitch);
+
 class HarmonyStatus : public MenuItem {
     int *last_note = nullptr;
     int *current_note = nullptr;
     int *other_value = nullptr;
 
     public:
-        HarmonyStatus() : MenuItem("Harmony") {};
-        HarmonyStatus(const char *label, int *last_note, int *current_note) : MenuItem(label) {
+        HarmonyStatus(const char *label) : MenuItem(label) {
+            this->selectable = false;
+        };
+        HarmonyStatus(const char *label, int *last_note, int *current_note) : HarmonyStatus(label) {
             //MenuItem(label);
             this->last_note = last_note;
             this->current_note = current_note;
