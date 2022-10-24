@@ -74,6 +74,9 @@ class NumberControl : public NumberControlBase {
         virtual DataType get_default_step_for_type(unsigned long step) {
             return 1;
         }
+        virtual DataType get_default_step_for_type(unsigned long long step) {
+            return 1;
+        }
 
         virtual void setStep(DataType step) {
             this->step = step;
@@ -112,6 +115,14 @@ class NumberControl : public NumberControlBase {
                 sprintf(fmt, "%-5u", (unsigned int) value);
             return fmt;
         }
+        /*virtual const char *getFormattedValue(unsigned long long value) {
+            static char fmt[MENU_C_MAX] = "      ";
+            if (this->debug)
+                sprintf(fmt, "%-5u [ulong]", (unsigned long long) value);
+            else
+                sprintf(fmt, "%-5u", (unsigned long long) value);
+            return fmt;
+        }*/
         virtual const char *getFormattedValue(int32_t value) {
             static char fmt[MENU_C_MAX] = "      ";
             if (this->debug)
@@ -147,19 +158,19 @@ class NumberControl : public NumberControlBase {
         }
 
         virtual int display(Coord pos, bool selected, bool opened) override {
-            if (this->debug) {
-                Serial.println("NumberControl#display starting!"); Serial.flush();
-                Serial.printf("NumberControl#display in %s starting\n", this->label); Serial.flush();
-            }
+            /*if (this->debug) {
+                Serial.println(F("NumberControl#display starting!")); Serial.flush();
+                Serial.printf(F("NumberControl#display in %s starting\n"), this->label); Serial.flush();
+            }*/
             pos.y = header(label, pos, selected, opened);
-            if (this->debug) { Serial.println("did header"); Serial.flush(); }
+            //if (this->debug) { Serial.println(F("did header")); Serial.flush(); }
             tft->setCursor(pos.x,pos.y);
-            if (this->debug) { Serial.println("did setcursor"); Serial.flush(); }
+            //if (this->debug) { Serial.println(F("did setcursor")); Serial.flush(); }
 
-            if (this->debug) { Serial.printf("NumberControl#display in %s about to do colours...\n", this->label); Serial.flush(); }
+            //if (this->debug) { Serial.printf(F("NumberControl#display in %s about to do colours...\n"), this->label); Serial.flush(); }
             //colours(opened, opened ? GREEN : C_WHITE, BLACK);
-            colours(opened, opened ? GREEN : this->colour, BLACK);
-            if (this->debug) { Serial.println("did colours"); Serial.flush(); }
+            colours(opened, opened ? GREEN : this->default_fg, this->default_bg);
+            //if (this->debug) { Serial.println("did colours"); Serial.flush(); }
 
             // render the value
             this->renderValue(selected, opened, tft->get_c_max()/2); //, strlen(tmp)<tft->get_c_max()/2);
@@ -170,7 +181,7 @@ class NumberControl : public NumberControlBase {
                 tft->printf(tmp);
             //tft->setTextColor(C_WHITE, BLACK); tft->print((char*)"   ");    // cheap blank
             tft->println();
-            if (this->debug) { Serial.printf("NumberControl base display finished in %s\n", label); }
+            //if (this->debug) { Serial.printf(F("NumberControl base display finished in %s\n"), label); }
 
             return tft->getCursorY();
         }
@@ -178,7 +189,7 @@ class NumberControl : public NumberControlBase {
         // just render the value without the rest of the widget, restricting it to the max_character_width characters
         // TODO: actually limit the output to the width (currently it just uses a smaller size if it doesn't fit in the requested number of characters)
         virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
-            if (this->debug) Serial.printf("\t\trenderValue() in NumberControl with max_character_width %i\n", max_character_width);
+            //if (this->debug) Serial.printf(F("\t\trenderValue() in NumberControl with max_character_width %i\n"), max_character_width);
             const char *tmp;
             //if (this->debug) { Serial.println("renderValue() did setting tmp"); Serial.flush(); }
             
@@ -213,7 +224,8 @@ class NumberControl : public NumberControlBase {
         virtual void set_internal_value(DataType value) {
             //this->internal_value = value;
             this->internal_value = constrain(value, this->minimum_value, this->maximum_value);
-            if (this->debug) Serial.printf("%s: NumberControl.set_internal_value(%i)\twith constraint (%i:%i) resulted in %i\n", this->label, value, (int)this->minimum_value, (int)this->maximum_value, this->internal_value);
+            //if (this->debug) 
+            //Serial.printf(F("%s: NumberControl.set_internal_value(%i)\twith constraint (%i:%i) resulted in %i\n"), this->label, value, (int)this->minimum_value, (int)this->maximum_value, this->internal_value);
         }
 
         virtual void decrease_value() {
@@ -242,9 +254,9 @@ class NumberControl : public NumberControlBase {
             this->set_current_value(new_value);
             //Serial.printf("NumberControl#change_value(%f) after set_current_value(%f) get_current_value got %f\n", (double)new_value, (double)new_value, this->get_current_value());
             if (on_change_handler!=nullptr) {
-                if (this->debug)  { Serial.println("NumberControl calling on_change_handler"); Serial.flush(); }
+                //if (this->debug)  { Serial.println(F("NumberControl calling on_change_handler")); Serial.flush(); }
                 on_change_handler(last_value, this->get_internal_value());
-                if (this->debug)  { Serial.println("NumberControl after on_change_handler"); Serial.flush(); }
+                //if (this->debug)  { Serial.println(F("NumberControl after on_change_handler")); Serial.flush(); }
             }
         }
 
@@ -297,21 +309,21 @@ class DirectNumberControl : public NumberControl<DataType> {
 
     virtual bool knob_left() override {
         if (this->readOnly) return false;
-        Serial.printf("------ DirectNumberControl#knob_left, internal_value=%f\n", (double)this->internal_value);
+        //Serial.printf("------ DirectNumberControl#knob_left, internal_value=%f\n", (double)this->internal_value);
         this->decrease_value();
-        Serial.printf("------ DirectNumberControl#knob_left, about to call change_value(%f)\n", (double)this->internal_value);
+        //Serial.printf("------ DirectNumberControl#knob_left, about to call change_value(%f)\n", (double)this->internal_value);
         this->change_value(this->internal_value);
-        Serial.printf(">------<\n");
+        //Serial.printf(">------<\n");
 
         return true;
     }
     virtual bool knob_right() override {
         if (this->readOnly) return false;
-        Serial.printf("------ DirectNumberControl#knob_right, internal_value=%f\n", (double)this->internal_value);
+        //Serial.printf(F("------ DirectNumberControl#knob_right, internal_value=%f\n"), (double)this->internal_value);
         this->increase_value();
-        Serial.printf("------ DirectNumberControl#knob_right, about to call change_value(%f)\n", (double)this->internal_value);
+        //Serial.printf(F("------ DirectNumberControl#knob_right, about to call change_value(%f)\n"), (double)this->internal_value);
         this->change_value(this->internal_value);
-        Serial.printf(">------<\n");
+        //Serial.printf(F(">------<\n"));
 
         return true;
     }

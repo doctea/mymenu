@@ -94,7 +94,7 @@ class ObjectMultiToggleControl : public MenuItem {
             //tft->printf("width_per_item: %i\n", width_per_item);
             pos.y = tft->getCursorY();
 
-            colours(opened, opened ? GREEN : C_WHITE, BLACK);
+            colours(opened, opened ? GREEN : this->default_fg, this->default_bg);
             tft->setTextSize(1);
 
             int max_height_reached = 0;
@@ -110,7 +110,7 @@ class ObjectMultiToggleControl : public MenuItem {
             if (all_option) {
                 effectively_selected = currently_selected - 1;
                 if (currently_selected==0) all_selected = true;
-                colours(all_selected && opened, all_status ? GREEN : RED, BLACK);
+                colours(all_selected && opened, all_status ? GREEN : RED, this->default_bg);
                 tft->setCursor(x, pos.y);
                 tft->println("[ALL] ");
                 x += (7 * FONT_WIDTH);  // 7 being the size if "[ALL] " + 1
@@ -118,14 +118,14 @@ class ObjectMultiToggleControl : public MenuItem {
             }
 
             //int width_per_item = (tft->width() / FONT_WIDTH) / (items.size() + (all_option ? 1 : 0));    // max size to be used for each item
-            int width_per_item = ((tft->width()-x) / FONT_WIDTH) / items.size(); // max size to be used for each item after the 'all' item is taken into account
+            const int width_per_item = ((tft->width()-x) / FONT_WIDTH) / items.size(); // max size to be used for each item after the 'all' item is taken into account
             
             for (uint8_t i = 0 ; i < items_size ; i++) {
                 MultiToggleItemBase *item = items.get(i);
                 //Serial.printf("processing item %s\n", item->label);
 
                 // green or red according to whether underlying item is on or off, inverted if widget opened and item selected
-                colours((i==effectively_selected) && opened, item->do_getter() ? GREEN : RED, BLACK);
+                colours((i==effectively_selected) && opened, item->do_getter() ? GREEN : RED, this->default_bg);
 
                 // segment the label of the item up over multiple lines of `width_per_item` chars each
                 char tmp[width_per_item];
@@ -154,21 +154,21 @@ class ObjectMultiToggleControl : public MenuItem {
             return max_height_reached; //tft->getCursorY();
         }
 
-        virtual bool knob_left() {
+        virtual bool knob_left() override {
             currently_selected--;
             if (currently_selected < 0) 
                 currently_selected = (this->all_option?1:0) + items.size() - 1;
             //Serial.printf("knob_right: selected %i\n", currently_selected);
             return true;
         }
-        virtual bool knob_right() {
+        virtual bool knob_right() override {
             currently_selected++;
             if (currently_selected >= (this->all_option?1:0) + items.size())
                 currently_selected = 0;
             //Serial.printf("knob_right: selected %i\n", currently_selected);
             return true;
         }
-        virtual bool button_select() {
+        virtual bool button_select() override {
             if (all_option && currently_selected == 0) { //items.size()) {
                 all_status = !all_status;
                 for (int i = 0 ; i < items.size() ; i++) {

@@ -18,11 +18,14 @@ class MenuItem {
 
         char label[MAX_LABEL_LENGTH];
 
-        uint16_t colour = 0xFFFF;
+        uint16_t default_fg = C_WHITE; //0xFFFF;
+        uint16_t default_bg = BLACK;
 
         bool show_header = true;
 
         bool debug = false;
+
+        bool selectable = true;
 
         MenuItem set_tft(DisplayTranslator *tft) {
             this->tft = tft;
@@ -33,9 +36,14 @@ class MenuItem {
             strcpy(label, in_label);
         }
         virtual void on_add() {
-            if (this->debug) Serial.printf("MenuItem#on_add in %s\n", this->label);
+            if (this->debug) Serial.printf(F("MenuItem#on_add in %s\n"), this->label);
             menu_c_max = tft->get_c_max();
         }    // called when this menuitem is added to menu
+
+        void set_default_colours(uint16_t fg, uint16_t bg = BLACK) {
+            this->default_fg = fg;
+            this->default_bg = bg;
+        }
 
         // called every tick, in case anything needs doing
         virtual void update_ticks(unsigned long ticks) {
@@ -57,6 +65,7 @@ class MenuItem {
             colours(selected);
             //tft->printf("%s [s:%i o:%i]", label, (int)selected, (int)opened);
             this->renderValue(selected, opened, MENU_C_MAX);
+            this->tft->println();
             //return (tft->getTextSizeY() * 8) + 2;
             return tft->getCursorY();
         }
@@ -67,10 +76,10 @@ class MenuItem {
         }
 
         virtual void colours(bool inverted) {
-            colours(inverted, /*tft->WHITE*/C_WHITE, BLACK);
+            colours(inverted, /*tft->WHITE*/this->default_fg, this->default_bg);
         }
         virtual void colours(bool inverted, uint16_t fg) {
-            colours(inverted, fg, BLACK);
+            colours(inverted, fg, this->default_bg);
         }
         virtual void colours(bool inverted, uint16_t fg, uint16_t bg) {
             if (!inverted) {
@@ -84,9 +93,9 @@ class MenuItem {
         virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false) {
             if (!this->show_header) return pos.y;
 
-            tft->drawLine(pos.x, pos.y, tft->width(), pos.y, C_WHITE);
+            tft->drawLine(pos.x, pos.y, tft->width(), pos.y, this->default_fg);
             tft->setCursor(pos.x, pos.y+1);
-            colours(selected, C_WHITE, BLACK);
+            colours(selected, this->default_fg, this->default_bg);
             tft->setTextSize(0);
             if (opened) {
                 //tft->print(">>>");
@@ -132,14 +141,20 @@ class MenuItem {
         virtual bool allow_takeover() {
             return false;
         }
+
+        // whether we should be allowed to hover over this one
+        virtual bool is_selectable () {
+            return this->selectable;
+        }
+
 };
 
 #include "menuitems_numbers.h"
-
 #include "menuitems_selector.h"
 #include "menuitems_pinned.h"
 
 String get_note_name(int pitch);
+const char *get_note_name_c(int pitch);
 class HarmonyStatus : public MenuItem {
     int *last_note = nullptr;
     int *current_note = nullptr;
@@ -170,14 +185,14 @@ class HarmonyStatus : public MenuItem {
                 tft->println((char *)"[not set]");
             } else if (this->other_value!=nullptr) {
                 tft->printf("%4s : %4s : %4s\n",     // \n not needed on smaller screen because already fills row.. is needed on big tft?
-                    (char*)(get_note_name(*last_note).c_str()), 
-                    (char*)(get_note_name(*current_note).c_str()),
-                    (char*)(get_note_name(*other_value).c_str())
+                    (char*)(get_note_name_c(*last_note)), 
+                    (char*)(get_note_name_c(*current_note)),
+                    (char*)(get_note_name_c(*other_value))
                 );
             } else {
                 tft->printf("%4s : %4s\n",     // \n not needed on smaller screen because already fills row.. is needed on big tft?
-                    (char*)(get_note_name(*last_note).c_str()), 
-                    (char*)(get_note_name(*current_note).c_str())
+                    (char*)(get_note_name_c(*last_note)), 
+                    (char*)(get_note_name_c(*current_note))
                 );
             }
             return tft->getCursorY();
@@ -202,13 +217,13 @@ class ActionItem : public MenuItem {
         tft->setCursor(pos.x,pos.y);
         tft->setTextSize(1);
 
-        colours(opened, opened ? GREEN : C_WHITE, BLACK);
+        colours(opened, opened ? GREEN : this->default_fg, this->default_bg);
 
         return tft->getCursorY();
     }
 
     virtual bool action_opened() override {
-        Serial.println("ActionItem#action_opened");
+        Serial.println(F("ActionItem#action_opened"));
         this->on_open();
 
         char msg[255];
@@ -237,19 +252,19 @@ class ActionConfirmItem : public ActionItem {
         tft->setCursor(pos.x,pos.y);
         tft->setTextSize(1);
 
-        colours(opened, opened ? GREEN : C_WHITE, BLACK);
+        colours(opened, opened ? GREEN : this->default_fg, this->default_bg);
 
         return tft->getCursorY();
     }
 
     virtual bool action_opened() override {
-        Serial.println("ActionConfirmItem#action_opened");
+        Serial.println(F("ActionConfirmItem#action_opened"));
         //this->on_open();
         return true; 
     }
 
     virtual bool button_select() override {
-        Serial.println("ActionConfirmItem#button_select");
+        Serial.println(F("ActionConfirmItem#button_select"));
 
         this->on_open();
 
@@ -265,6 +280,44 @@ class ActionConfirmItem : public ActionItem {
 
 };
 
+class SeparatorMenuItem : public MenuItem {
+    public:
+        //int16_t colour = C_WHITE;
+        SeparatorMenuItem(char *label) : MenuItem(label) {
+            this->selectable = false;
+        }
+
+        virtual int display(Coord pos, bool selected, bool opened) override {
+            tft->drawLine(pos.x, pos.y, tft->width(), pos.y, this->default_fg);
+            pos.y += 2;
+
+            pos.y = header(label, pos, selected, opened);
+
+            return pos.y;
+        }
+
+        virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false) {
+            if (!this->show_header) return pos.y;
+
+            tft->drawLine(pos.x, pos.y, tft->width(), pos.y, this->default_fg);
+            tft->setCursor(pos.x, pos.y+1);
+            colours(!selected, this->default_fg, this->default_bg);
+            tft->setTextSize(0);
+            /*if (opened) {
+                //tft->print(">>>");
+                //tft->printf((char*)"%-19s",(char*)text);   // \n not needed as reaching to edge
+                tft->printf((char*)tft->get_header_open_format(), (char*)text);
+            } else if (selected) {
+                //tft->printf((char*)"%-22s",(char*)text);   // \n not needed as reaching to edge
+                tft->printf((char*)tft->get_header_selected_format(), (char*)text);
+            } else {*/
+                tft->printf((char*)tft->get_header_format(), (char*)text);
+            //}
+            colours(false);
+            //return (tft->getTextSize()+1)*6;
+            return tft->getCursorY();
+        }
+};
 
 #include "menuitems_object.h"
 

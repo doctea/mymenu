@@ -40,8 +40,9 @@ class SubMenuItem : public MenuItem {
             if (item!=nullptr) {
                 item->tft = this->tft;
                 this->items->add(item);
+                item->set_default_colours(this->default_fg, this->default_bg);  // do it here so that we can override it after being added, but this still isnt foolproof
             } else {
-                Serial.println("WARNING: SubMenuItem#add passed a nullptr!");
+                //Serial.println("WARNING: SubMenuItem#add passed a nullptr!");
             }
         }
 
@@ -49,6 +50,7 @@ class SubMenuItem : public MenuItem {
             for (int i = 0 ; i < this->items->size() ; i++) {
                 this->items->get(i)->set_tft(this->tft);
                 this->items->get(i)->on_add();
+                //this->items->get(i)->set_default_colours(this->default_fg, this->default_bg); // inherit colours .. but breaks when we set custom colours eg in ParameterMenuItem..
             }
         }
 
@@ -65,7 +67,7 @@ class SubMenuItem : public MenuItem {
             //static bool previously_opened = false;
 
             if (currently_selected!=previously_selected || needs_redraw) {
-                Serial.println("SubMenuItem#display: tft->clear ");
+                //Serial.println("SubMenuItem#display: tft->clear ");
                 this->tft->clear();
             }
             previously_selected = currently_selected;
@@ -79,7 +81,7 @@ class SubMenuItem : public MenuItem {
             //previously_opened = opened;
 
             int y = header(this->label, pos, selected, opened);
-            colours(false,C_WHITE,BLACK);
+            colours(false,this->default_fg,this->default_bg);
 
             if (currently_opened>=0 && this->items->get(currently_opened)->allow_takeover())
                 return this->items->get(currently_selected)->display(Coord(0,y), true, true);
@@ -93,7 +95,7 @@ class SubMenuItem : public MenuItem {
                     //tft->println("wtf1?");
                     y = tft->getCursorY();
 
-                    tft->setTextColor(C_WHITE, BLACK);
+                    tft->setTextColor(this->default_fg, this->default_bg);
                     //Serial.printf("fg is %0x, bg is %0x\n")
                     //Serial.printf("SubMenuItem#display():\ttft@%p\n", this->tft);
                     //tft->println("wtf2?");
@@ -101,7 +103,7 @@ class SubMenuItem : public MenuItem {
                     y = this->items->get(i)->display(
                         pos, i==this->currently_selected, i==this->currently_opened
                     );
-                    this->tft->setTextColor(C_WHITE, BLACK);
+                    tft->setTextColor(this->default_fg, this->default_bg);
                     //tft->println("wtf3?");
                     y = this->tft->getCursorY();
 
@@ -146,7 +148,7 @@ class SubMenuItem : public MenuItem {
         }
 
         virtual bool button_select() override {
-            Serial.printf("SubMenuItem#button_select(), currently_opened is %i\n", currently_opened);
+            //Serial.printf("SubMenuItem#button_select(), currently_opened is %i\n", currently_opened);
             if (currently_opened==-1) {
                 if (currently_selected>=0) {
                     if (items->get(currently_selected)->action_opened()) {
@@ -224,7 +226,7 @@ class DualMenuItem : public SubMenuItem {
         bool needs_redraw = true;
         int previously_selected = -2;
         virtual int display(Coord pos, bool selected, bool opened) override {
-            if (this->debug) Serial.println("display doublesubmenu ===>");
+            //if (this->debug) Serial.println("display doublesubmenu ===>");
             //static int previously_selected = -2;
             //static int previously_opened = -2;
 
@@ -243,7 +245,7 @@ class DualMenuItem : public SubMenuItem {
             //previously_opened = opened;
 
             int y = header(this->label, pos, selected, opened);
-            colours(false,C_WHITE,BLACK);
+            colours(false,this->default_fg,this->default_bg);
 
             if (currently_opened>=0 && this->items->get(currently_opened)->allow_takeover())
                 return this->items->get(currently_selected)->display(Coord(0,y), true, true);
@@ -272,20 +274,20 @@ class DualMenuItem : public SubMenuItem {
                     pos.y = start_y;
 
                     // draw fake headers for subitem
-                    tft->drawLine(pos.x, pos.y, tft->width(), pos.y, C_WHITE);
+                    tft->drawLine(pos.x, pos.y, tft->width(), pos.y, this->default_fg);
                     tft->setCursor(pos.x, pos.y+1);
-                    colours((!opened && selected) || (opened && i==this->currently_selected), C_WHITE, BLACK);
+                    colours((!opened && selected) || (opened && i==this->currently_selected), this->default_fg, this->default_bg);
                     tft->setTextSize(0);
                     tft->println(this->items->get(i)->label);
                     colours(false);
                     pos.y = tft->getCursorY();  // set position to just under the fake header
 
-                    if (this->debug) Serial.printf("%i: Drawing %s\tat\t%i,%i\t selected=%s\t and opened=%s\n", count, items->get(i)->label, pos.x, pos.y, i==this->currently_selected?"true":"false", i==this->currently_opened?"true":"false");
+                    //if (this->debug) Serial.printf("%i: Drawing %s\tat\t%i,%i\t selected=%s\t and opened=%s\n", count, items->get(i)->label, pos.x, pos.y, i==this->currently_selected?"true":"false", i==this->currently_opened?"true":"false");
                     y = this->items->get(i)->display(
                         pos, i==this->currently_selected, i==this->currently_opened
                     );
                     if (y>highest_y) {
-                        if (this->debug) Serial.printf("count %i: Subitem %s\t%i has x,y of\t%i,%i, higher than previous record\t%i (with is %i)\n", count, this->items->get(i)->label, i, pos.x, y, highest_y, width_per_item);
+                        //if (this->debug) Serial.printf("count %i: Subitem %s\t%i has x,y of\t%i,%i, higher than previous record\t%i (with is %i)\n", count, this->items->get(i)->label, i, pos.x, y, highest_y, width_per_item);
                         highest_y = y;
                     }
                     //this->tft->setTextColor(C_WHITE, BLACK);
@@ -310,8 +312,8 @@ class DualMenuItem : public SubMenuItem {
                 y = tft->getCursorY();
             }
 
-            if (this->debug) Serial.printf("For item\t%s, returning y\t%i\n", this->label, y);
-            if (this->debug) Serial.println("<===display doublesubmenu");
+            //if (this->debug) Serial.printf("For item\t%s, returning y\t%i\n", this->label, y);
+            //if (this->debug) Serial.println("<===display doublesubmenu");
 
             return y;
         }

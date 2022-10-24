@@ -36,7 +36,7 @@ class LoopMarkerPanel : public PinnedPanelMenuItem {
         virtual int display(Coord pos, bool selected = false, bool opened = false) override {
             //Serial.printf("PinnedPanel display colour RED is %4x, WHITE is %4x\n", RED, C_WHITE);
 
-            tft->setTextColor(C_WHITE, BLACK);
+            tft->setTextColor(this->default_fg, this->default_bg);
             //tft.setCursor(pos.x,pos.y);
             //int LOOP_LENGTH = PPQN * BEATS_PER_BAR * BARS_PER_PHRASE;
             int y = pos.y; //0;
@@ -52,7 +52,7 @@ class LoopMarkerPanel : public PinnedPanelMenuItem {
                 //if (ticks%loop_length==0)   // if we're at the start of loop then blank out the display 
                 if (new_position_width < last_position_width){
                     //Serial.println("so drawing black?");
-                    tft->fillRect(0,y,tft->width(), y+6, BLACK);
+                    tft->fillRect(0,y,tft->width(), y+6, this->default_bg);
                 } /*else {
                     Serial.println();
                 }*/

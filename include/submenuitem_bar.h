@@ -12,13 +12,13 @@ class SubMenuItemBar : public SubMenuItem {
         return false;
     }
 
-    virtual int display(Coord pos, bool selected, bool opened) override {       
+    virtual int display(Coord pos, bool selected, bool opened) override {
         if (this->debug) Serial.printf("Start of display in SubMenuItemBar, passed in %i,%i\n", pos.x, pos.y);
         pos.y = header(label, pos, selected, opened);
         if (this->debug) Serial.printf("\tafter header, y=%i\n", pos.y);
         tft->setCursor(pos.x, pos.y);
         //tft->setTextSize(1);
-        colours(opened, opened ? GREEN : C_WHITE, BLACK);
+        colours(opened, opened ? GREEN : this->default_fg, this->default_bg);
 
         int start_y = pos.y;        // y to start drawing at (just under header)
         int finish_y = pos.y;       // highest y that we finished drawing at
@@ -40,7 +40,7 @@ class SubMenuItemBar : public SubMenuItem {
                 finish_y = temp_y;
         }
 
-        tft->setTextColor(C_WHITE, BLACK);
+        tft->setTextColor(this->default_fg, this->default_bg);
         tft->setTextSize(0);
 
         if (this->debug) Serial.printf("End of display, y=%i\n--------\n", finish_y);
@@ -54,8 +54,21 @@ class SubMenuItemBar : public SubMenuItem {
         int width_in_chars = 8; // presumed font width
         char fmt[10];
 
+        /*Serial.printf("small_display in %s, item %i (%s), got colour %4x!\n", 
+            this->label, 
+            index, 
+            ctrl->label,
+            ctrl->default_fg
+        );*/
+
         // prepare label header format
-        colours(false, ctrl->colour, BLACK);
+        int16_t colour = C_WHITE;
+        if (ctrl->default_fg!=colour)
+            colour = ctrl->default_fg;
+        else
+            colour = this->default_fg;
+
+        colours(false, colour, ctrl->default_bg);
         byte display_width = min((int)(width/width_in_chars), (int)strlen(ctrl->label));
         sprintf(fmt, "%%-%is\n", display_width);    // becomes eg "%-6s\n"
         if (this->debug) Serial.printf("\tGot format '%s'\n", fmt);
@@ -63,7 +76,7 @@ class SubMenuItemBar : public SubMenuItem {
         // print label header
         if (this->debug) Serial.printf("\tdrawing header at %i,%i\n", x, y);
         tft->setCursor(x, y);
-        colours(is_selected, is_opened ? GREEN : ctrl->colour, BLACK);
+        colours(is_selected, is_opened ? GREEN : ctrl->default_fg, ctrl->default_bg);
         tft->setTextSize(0);
         tft->printf(fmt, ctrl->label);
         y = tft->getCursorY();
