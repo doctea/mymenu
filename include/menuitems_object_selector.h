@@ -110,12 +110,12 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
     virtual void set_current_value(DataType value) override { 
         //this->internal_value = value;
         //if (this->debug) { 
-            Serial.printf("ObjectSelectorControl#set_current_value() passed value %i ", value); Serial.flush(); 
+            Serial.printf(F("ObjectSelectorControl#set_current_value() passed value %i "), value); Serial.flush(); 
         //}
         if (this->target_object!=nullptr && this->setter!=nullptr) {
             //Serial.printf("ObjectSelectorControl#set_current_value() with index %i ", value); Serial.flush(); 
             value = this->get_value_for_index(value);
-            Serial.printf("\tConverted to value_for_index %i\n", value); Serial.flush(); 
+            Serial.printf(F("\tConverted to value_for_index %i\n"), value); Serial.flush(); 
             (this->target_object->*this->setter)(value);
 
             char msg[255];
@@ -126,7 +126,7 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
             msg[this->tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
             menu_set_last_message(msg,GREEN);
         }
-        if (this->debug) { Serial.println("Done."); Serial.flush(); }
+        if (this->debug) { Serial.println(F("Done.")); Serial.flush(); }
     }
 
 };
