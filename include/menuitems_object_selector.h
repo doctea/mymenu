@@ -110,22 +110,23 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
     virtual void set_current_value(DataType value) override { 
         //this->internal_value = value;
         //if (this->debug) { 
-            Serial.printf("ObjectSelectorControl#set_current_value() passed value %i ", value); Serial.flush(); 
+            Serial.printf(F("ObjectSelectorControl#set_current_value() passed value %i "), value); Serial.flush(); 
         //}
         if (this->target_object!=nullptr && this->setter!=nullptr) {
             //Serial.printf("ObjectSelectorControl#set_current_value() with index %i ", value); Serial.flush(); 
             value = this->get_value_for_index(value);
-            Serial.printf("\tConverted to value_for_index %i\n", value); Serial.flush(); 
+            Serial.printf(F("\tConverted to value_for_index %i\n"), value); Serial.flush(); 
             (this->target_object->*this->setter)(value);
 
             char msg[255];
             //Serial.printf("about to build msg string...\n");
+            // todo: fix compiler warning / type of value, may need to override or just only print FormattedValue to the message and not the real value
             sprintf(msg, "Set %8s to %s (%i)", this->label, get_label_for_value(value), value);
             //Serial.printf("about to set_last_message!");
             msg[this->tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
             menu_set_last_message(msg,GREEN);
         }
-        if (this->debug) { Serial.println("Done."); Serial.flush(); }
+        if (this->debug) { Serial.println(F("Done.")); Serial.flush(); }
     }
 
 };
