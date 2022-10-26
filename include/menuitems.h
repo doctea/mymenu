@@ -40,6 +40,11 @@ class MenuItem {
             menu_c_max = tft->get_c_max();
         }    // called when this menuitem is added to menu
 
+        virtual void update_label(char *new_label) {
+            Serial.printf("%s#update_label('%s')\n", this->label, new_label);
+            strcpy(this->label, new_label);
+        }
+
         void set_default_colours(uint16_t fg, uint16_t bg = BLACK) {
             this->default_fg = fg;
             this->default_bg = bg;

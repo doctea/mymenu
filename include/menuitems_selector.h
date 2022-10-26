@@ -9,7 +9,6 @@ class SelectorControl : public MenuItem {
         int selected_value_index;
         int *available_values;
 
-
         virtual void setter (int new_value) {
         }
         virtual int getter () {
