@@ -92,15 +92,16 @@ class NumberControl : public NumberControlBase {
             return fmt;
         }*/
         virtual const char *getFormattedValue(bool value) {
-            static char fmt[MENU_C_MAX] = "      ";
+            /*static char fmt[15] = "      ";
             if (this->debug)
                 sprintf(fmt, "%s [bool]", value?"On":"Off");
             else
                 sprintf(fmt, "%s", value?"On":"Off");
-            return fmt;
+            return fmt;*/
+            return value?"On":"Off";
         }
         virtual const char *getFormattedValue(int value) {
-            static char fmt[MENU_C_MAX] = "      ";
+            static char fmt[15] = "      ";
             if (this->debug)
                 sprintf(fmt, "%-5i [int]", value);
             else
@@ -108,7 +109,7 @@ class NumberControl : public NumberControlBase {
             return fmt;
         }
         virtual const char *getFormattedValue(uint32_t value) {
-            static char fmt[MENU_C_MAX] = "      ";
+            static char fmt[15] = "      ";
             if (this->debug)
                 sprintf(fmt, "%-5u [ulong]", (unsigned int) value);
             else
@@ -124,7 +125,7 @@ class NumberControl : public NumberControlBase {
             return fmt;
         }*/
         virtual const char *getFormattedValue(int32_t value) {
-            static char fmt[MENU_C_MAX] = "      ";
+            static char fmt[15] = "      ";
             if (this->debug)
                 sprintf(fmt, "%-5i [long]", (int)value);
             else
@@ -132,7 +133,7 @@ class NumberControl : public NumberControlBase {
             return fmt;
         }
         virtual const char *getFormattedValue(double value) {
-            static char fmt[MENU_C_MAX] = "      ";
+            static char fmt[20] = "      ";
             if (this->debug)
                 sprintf(fmt, "%-3.2f [double]", value);
             else {

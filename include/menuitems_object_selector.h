@@ -109,13 +109,11 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
     // override in subclass if need to do something special eg getter/setter
     virtual void set_current_value(DataType value) override { 
         //this->internal_value = value;
-        //if (this->debug) { 
-            Serial.printf(F("ObjectSelectorControl#set_current_value() passed value %i "), value); Serial.flush(); 
-        //}
+        //if (this->debug) { Serial.printf(F("ObjectSelectorControl#set_current_value() passed value %i "), value); Serial.flush(); }
         if (this->target_object!=nullptr && this->setter!=nullptr) {
             //Serial.printf("ObjectSelectorControl#set_current_value() with index %i ", value); Serial.flush(); 
             value = this->get_value_for_index(value);
-            Serial.printf(F("\tConverted to value_for_index %i\n"), value); Serial.flush(); 
+            //Serial.printf(F("\tConverted to value_for_index %i\n"), value); Serial.flush(); 
             (this->target_object->*this->setter)(value);
 
             char msg[255];
