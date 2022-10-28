@@ -76,7 +76,8 @@ class MenuItem {
         }
 
         virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) {
-            tft->printf("%s [s:%i o:%i]", label, (int)selected, (int)opened);
+            //tft->printf("%s [s:%i o:%i]", label, (int)selected, (int)opened);
+            tft->println(label);
             return tft->getCursorY();
         }
 

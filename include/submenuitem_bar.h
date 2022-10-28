@@ -4,6 +4,8 @@
 class SubMenuItemBar : public SubMenuItem {
     public:
 
+    bool show_sub_headers = true;
+
     SubMenuItemBar(const char *label) : SubMenuItem(label) {
 
     }
@@ -24,7 +26,6 @@ class SubMenuItemBar : public SubMenuItem {
         int finish_y = pos.y;       // highest y that we finished drawing at
 
         // draw all the sub-widgets
-        // todo: include a widget to select the modulation source for the slot
         int width_per_item = this->tft->width() / (this->items->size() /*+1*/);
         if (this->debug) Serial.printf("display in SubMenuItemBar got width_per_item=%i from tftwidth %i / itemsize %i\n", width_per_item, this->tft->width(), this->items->size());
         for (int item_index = 0 ; item_index < this->items->size() ; item_index++) {
@@ -78,13 +79,15 @@ class SubMenuItemBar : public SubMenuItem {
         if (this->debug) Serial.printf("\tGot format '%s'\n", fmt);
 
         // print label header
-        if (this->debug) Serial.printf("\tdrawing header at %i,%i\n", x, y);
-        tft->setCursor(x, y);
-        colours(is_selected, is_opened ? GREEN : colour, ctrl->default_bg);
-        tft->setTextSize(0);
-        tft->printf(fmt, ctrl->label);
-        y = tft->getCursorY();
-        if (this->debug) Serial.printf("\t bottom of header is %i\n", y);
+        if (this->show_sub_headers) {
+            if (this->debug) Serial.printf("\tdrawing header at %i,%i\n", x, y);
+            tft->setCursor(x, y);
+            colours(is_selected, is_opened ? GREEN : colour, ctrl->default_bg);
+            tft->setTextSize(0);
+            tft->printf(fmt, ctrl->label);
+            y = tft->getCursorY();
+            if (this->debug) Serial.printf("\t bottom of header is %i\n", y);
+        }
 
         // get position ready for value
         tft->setCursor(x, y);   // reset cursor to underneath the label

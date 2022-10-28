@@ -136,6 +136,8 @@ class SubMenuItem : public MenuItem {
                 currently_selected--;
                 if (currently_selected<0)
                     currently_selected = items->size()-1;
+                if (!items->get(currently_selected)->is_selectable())
+                    return this->knob_left();
                 return true;
             } else {
                 return this->items->get(currently_opened)->knob_left();
@@ -146,6 +148,8 @@ class SubMenuItem : public MenuItem {
                 currently_selected++;
                 if (currently_selected>=items->size())
                     currently_selected = 0;
+                if (!items->get(currently_selected)->is_selectable())
+                    return this->knob_right();
                 return true;
             } else {
                 return this->items->get(currently_opened)->knob_right();
