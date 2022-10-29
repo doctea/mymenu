@@ -299,6 +299,9 @@ class SeparatorMenuItem : public MenuItem {
         SeparatorMenuItem(char *label) : MenuItem(label) {
             this->selectable = false;
         }
+        SeparatorMenuItem(char *label, uint16_t default_fg) : SeparatorMenuItem(label) {
+            this->default_fg = default_fg;
+        }
 
         virtual int display(Coord pos, bool selected, bool opened) override {
             tft->drawLine(pos.x, pos.y, tft->width(), pos.y, this->default_fg);
@@ -323,6 +326,7 @@ class SeparatorMenuItem : public MenuItem {
             tft->drawLine(start_x, pos.y+3, tft->width(), pos.y+2, this->default_fg);
             tft->drawLine(start_x, pos.y+6, tft->width(), pos.y+4, this->default_fg);
             tft->drawLine(start_x, pos.y+8, tft->width(), pos.y+6, this->default_fg);*/
+            tft->setTextSize(0);
 
             colours(false, this->default_fg, this->default_bg);
             tft->drawLine(pos.x, pos.y, tft->width(), pos.y, this->default_fg);

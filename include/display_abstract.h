@@ -69,7 +69,7 @@ class DisplayTranslator {
 
     virtual int getRowHeight() { return 1; };
 
-    virtual int characterWidth() { return 7; };
+    virtual int characterWidth() { return 1; };
 
     virtual void updateDisplay() {};
 

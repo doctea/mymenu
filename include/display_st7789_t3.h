@@ -58,6 +58,7 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
         //tft->useFrameBuffer(true);
     }
 
+
     virtual void setCursor(int x, int y) override {
         tft->setCursor(x,y);
     }
@@ -140,8 +141,11 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
     }
 
     virtual int getRowHeight() override {
-        return (tft->getTextSize()+1) * 8;
+        return (tft->getTextSize()+1) * 7;
     }
+    virtual int characterWidth() override { 
+        return (tft->getTextSize()) * 7;
+    };
 
     virtual void clear(bool force = false) {
         tft->fillScreen(BLACK);

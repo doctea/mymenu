@@ -161,11 +161,12 @@ template<class TargetClass>
 class ObjectActionItem : public MenuItem {
     public:
 
-    TargetClass *target_object;
-    char button_label_false[MAX_LABEL_LENGTH];//   = "                               ";
-    char button_label_true[MAX_LABEL_LENGTH];//    = "                               ";
+    TargetClass *target_object = nullptr;
+    char button_label_false[MAX_LABEL_LENGTH] = "";//   = "                               ";
+    char button_label_true[MAX_LABEL_LENGTH] = "";//    = "                               ";
     //char button_label[MAX_LABEL_LENGTH]         = "                             ";
 
+    using setter_def_2 = void(TargetClass::*)();
     using setter_def = void(TargetClass::*)(bool);
     //using get_label_def = char*(TargetClass::*)(bool); //, get_label_def *get_label
     using getter_def = bool(TargetClass::*)();
@@ -173,8 +174,9 @@ class ObjectActionItem : public MenuItem {
     //void(TargetClass::*setter)(bool) = nullptr; 
     //bool(TargetClass::*getter)() = nullptr;
     //get_label_def *get_label = nullptr; //void(TargetClass::*setter)(bool) = nullptr;
-    setter_def setter;
-    getter_def getter;
+    setter_def setter = nullptr;
+    setter_def_2 setter2 = nullptr;
+    getter_def getter = nullptr;
 
     ObjectActionItem(const char *label, TargetClass *target_object) : MenuItem(label) {
         this->target_object = target_object;
@@ -184,12 +186,15 @@ class ObjectActionItem : public MenuItem {
         ObjectActionItem(label, target_object) {
             this->setter = setter;
         }
+    ObjectActionItem(const char *label, TargetClass *target_object, setter_def_2 setter) : 
+        ObjectActionItem(label, target_object) {
+            this->setter2 = setter;
+        }
+
 
     ObjectActionItem(const char *label, TargetClass *target_object, setter_def setter, getter_def getter, const char *button_label_true, const char *button_label_false = nullptr) 
         : ObjectActionItem(label, target_object, setter) {
         this->getter = getter;
-
-        //while(1) {
 
         if (button_label_true!=nullptr) {
             strcpy(this->button_label_true, button_label_true);
@@ -209,17 +214,24 @@ class ObjectActionItem : public MenuItem {
 
     virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
         char *button_label = nullptr;
-        if (this->getter!=nullptr && this->button_label_true!=nullptr)
+        if (this->getter!=nullptr && this->button_label_true[0]) {
             button_label = (this->target_object->*getter)() ? this->button_label_true : this->button_label_false;
-        else
+        } else if (button_label_false[0]) {
+            Serial.printf("%s: rendering button_label_false '%s'\n", this->label, this->button_label_false);
             button_label = this->button_label_false;
+        } else {
+            button_label = label;
+        }
         int y = header(button_label, Coord(this->tft->getCursorX(), this->tft->getCursorY()), selected, opened);
 
         return y;
     }
 
     virtual void on_open() {
-        (this->target_object->*setter)(true);
+        if (this->setter!=nullptr)
+            (this->target_object->*setter)(true);
+        else if (this->setter2!=nullptr)
+            (this->target_object->*setter2)();
     }
 
     virtual bool action_opened() override {
