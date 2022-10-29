@@ -98,7 +98,7 @@ int Menu::display() {
         }
         //if (panel_bottom[currently_selected] >= tft->height()/2)
         //    start_panel = currently_selected - 1;
-        start_panel = constrain(start_panel, 0, items->size()-1);
+        start_panel = constrain(start_panel-2, 0, items->size()-1);
 
         static int last_start_panel = -1;
         if (last_start_panel!=start_panel) {

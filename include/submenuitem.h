@@ -17,6 +17,7 @@ class SubMenuItem : public MenuItem {
 
         SubMenuItem(const char *label) : MenuItem(label) {
             this->items = new LinkedList<MenuItem*>();
+            go_back_on_select = true;
         }
         // always_show argument determines whether to show items even when menu isn't opened
         SubMenuItem(const char *label, bool always_show) : SubMenuItem(label) {
@@ -91,7 +92,8 @@ class SubMenuItem : public MenuItem {
             if (currently_opened>=0 && this->items->get(currently_opened)->allow_takeover())
                 return this->items->get(currently_selected)->display(Coord(0,y), true, true);
 
-            int start_item = currently_selected>=0 ? currently_selected : 0;
+            //int start_item = currently_selected>=0 ? currently_selected : 0;
+            int start_item = constrain(currently_selected-2, 0, this->items->size()-1);
 
             if (opened || this->always_show) {
                 //tft->clear();
@@ -183,7 +185,7 @@ class SubMenuItem : public MenuItem {
                     return false;
                 }
             }
-            return true;
+            return go_back_on_select;
         }
 
         virtual bool button_back() override {

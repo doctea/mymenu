@@ -188,6 +188,6 @@ class ObjectMultiToggleControl : public MenuItem {
                 sprintf(tmp, "Toggled %s to %s", item->label, new_mode?"on":"off");
                 menu->set_last_message(tmp);
             }
-            return false; //go_back_on_select;
+            return go_back_on_select;
         }
 };

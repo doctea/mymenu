@@ -69,6 +69,8 @@ class DisplayTranslator {
 
     virtual int getRowHeight() { return 1; };
 
+    virtual int characterWidth() { return 7; };
+
     virtual void updateDisplay() {};
 
     // by ktownsend from https://forums.adafruit.com/viewtopic.php?t=21536

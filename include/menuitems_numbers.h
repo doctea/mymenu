@@ -34,7 +34,6 @@ class NumberControl : public NumberControlBase {
         char float_unit = '%';
 
         bool readOnly = false;
-        bool go_back_on_select = false;
 
         NumberControl(const char* label) : NumberControlBase(label) {
             this->step = this->get_default_step_for_type((DataType)0);    // setup default step based on our template DataType
@@ -266,7 +265,7 @@ class NumberControl : public NumberControlBase {
             if (readOnly) return true;
             change_value(this->get_internal_value());
 
-            return (go_back_on_select);
+            return go_back_on_select;
         }
 
         virtual bool action_opened() override {
@@ -303,9 +302,11 @@ class DirectNumberControl : public NumberControl<DataType> {
     DirectNumberControl(const char* label) : NumberControl<DataType>(label) {};
     DirectNumberControl(const char* label, DataType *target_variable, DataType start_value, DataType min_value, DataType max_value, void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr) 
             : NumberControl<DataType>(label, target_variable, start_value, min_value, max_value, on_change_handler) {
+                this->go_back_on_select = true;
     }
     DirectNumberControl(const char* label, DataType (*getter)(), void (*setter)(DataType value), DataType min_value, DataType max_value, void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr)
             : NumberControl<DataType>(label, getter, setter, min_value, max_value, on_change_handler) {
+                this->go_back_on_select = true;
     }
 
     virtual bool knob_left() override {
@@ -331,9 +332,10 @@ class DirectNumberControl : public NumberControl<DataType> {
     virtual bool button_select() override {
         if (this->readOnly) return true;
 
-        this->internal_value = this->get_current_value();// * this->maximum_value; 
+        this->internal_value = this->get_current_value();
         this->change_value(this->internal_value);
-        return true;
+
+        return this->go_back_on_select;
     }
 };
 

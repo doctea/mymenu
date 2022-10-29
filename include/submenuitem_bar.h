@@ -35,7 +35,8 @@ class SubMenuItemBar : public SubMenuItem {
                 start_y, 
                 width_per_item, 
                 this->currently_selected==item_index, 
-                this->currently_opened==item_index
+                this->currently_opened==item_index,
+                !opened && selected
             );
             if (temp_y>finish_y)
                 finish_y = temp_y;
@@ -48,11 +49,11 @@ class SubMenuItemBar : public SubMenuItem {
         return finish_y;//tft->getCursorY();
     }
 
-    virtual int small_display(int index, int x, int y, int width, bool is_selected, bool is_opened) {
-        if (this->debug) Serial.printf("\tSubMenuItemBar: start of small_display for index %i, passed in x,y=%i,%i and width=%i\n", index, x, y, width);
+    virtual int small_display(int index, int x, int y, int width_in_pixels, bool is_selected, bool is_opened, bool outer_selected) {
+        if (this->debug) Serial.printf("\tSubMenuItemBar: start of small_display for index %i, passed in x,y=%i,%i and width=%i\n", index, x, y, width_in_pixels);
 
         MenuItem *ctrl = items->get(index);
-        int width_in_chars = 8; // presumed font width
+        int character_width_in_pixels = tft->characterWidth(); // presumed font width
         char fmt[10];
 
         /*Serial.printf("small_display in %s, item %i (%s), got colour %4x!\n", 
@@ -72,9 +73,9 @@ class SubMenuItemBar : public SubMenuItem {
             colour = this->default_fg;
         }
         //Serial.printf("small_display %s\tcolour is\t%04x, bar's colour is\t%04x =>\t%04x\n", ctrl->label, ctrl->default_fg, this->default_fg, colour);
+        //colours(false, colour, ctrl->default_bg);
 
-        colours(false, colour, ctrl->default_bg);
-        byte display_width = min((int)(width/width_in_chars), (int)strlen(ctrl->label));
+        byte display_width = min((int)(width_in_pixels/character_width_in_pixels), (int)strlen(ctrl->label));
         sprintf(fmt, "%%-%is\n", display_width);    // becomes eg "%-6s\n"
         if (this->debug) Serial.printf("\tGot format '%s'\n", fmt);
 
@@ -94,7 +95,7 @@ class SubMenuItemBar : public SubMenuItem {
         if (this->debug) Serial.printf("\tdoing renderValue at %i,%i\n", x, y);
 
         // actually render the item
-        y = ctrl->renderValue(is_selected, is_opened, width/width_in_chars);
+        y = ctrl->renderValue(outer_selected || is_selected, is_opened, display_width); //width/width_in_chars);
 
         if (this->debug) Serial.printf("\tend of small_display, returning y=%i\n", y);
         return y;

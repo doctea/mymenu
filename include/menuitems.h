@@ -13,6 +13,8 @@ void menu_set_last_message(const char *msg, int colour);
 // basic line
 class MenuItem {
     public:
+        bool debug = false;
+
         DisplayTranslator *tft;
         int menu_c_max = MENU_C_MAX;
 
@@ -22,10 +24,8 @@ class MenuItem {
         uint16_t default_bg = BLACK;
 
         bool show_header = true;
-
-        bool debug = false;
-
         bool selectable = true;
+        bool go_back_on_select = false;
 
         MenuItem set_tft(DisplayTranslator *tft) {
             this->tft = tft;
@@ -77,6 +77,8 @@ class MenuItem {
 
         virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) {
             //tft->printf("%s [s:%i o:%i]", label, (int)selected, (int)opened);
+            colours(selected);
+            tft->setTextSize(strlen(label) < max_character_width ? 2 : 1 );
             tft->println(label);
             return tft->getCursorY();
         }
@@ -125,7 +127,7 @@ class MenuItem {
 
         // default to returning true to exit out to main menu after setting (IF OPENED, otherwise button_select is not sent!)
         virtual bool button_select() {
-            return true;
+            return go_back_on_select;
         }
         
         virtual bool button_back() {
@@ -251,7 +253,9 @@ class ActionItem : public MenuItem {
 class ActionConfirmItem : public ActionItem {
     public:
 
-    ActionConfirmItem(const char *label, void (*on_open)()) : ActionItem(label, on_open) {}
+    ActionConfirmItem(const char *label, void (*on_open)()) : ActionItem(label, on_open) {
+        go_back_on_select = true;
+    }
 
     virtual int display(Coord pos, bool selected, bool opened) override {
         if (opened)
@@ -284,7 +288,7 @@ class ActionConfirmItem : public ActionItem {
         msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
         menu_set_last_message(msg,GREEN);
 
-        return true;    // return to menu
+        return go_back_on_select;    // return to menu
     }
 
 };
@@ -308,20 +312,29 @@ class SeparatorMenuItem : public MenuItem {
         virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false) {
             if (!this->show_header) return pos.y;
 
+            /*tft->drawLine(pos.x, pos.y, tft->width(), pos.y, this->default_fg);
+            tft->setCursor(pos.x, pos.y+1);
+            //colours(!selected, this->default_fg, this->default_bg);
+            colours(false, this->default_fg, this->default_bg);
+            tft->setTextSize(0);
+            tft->printf((char*)tft->get_header_format(), (char*)text);
+            int start_x = tft->characterWidth() * strlen(text);
+            //tft->drawLine(start_x, pos.y, tft->width(), pos.y, this->default_fg);
+            tft->drawLine(start_x, pos.y+3, tft->width(), pos.y+2, this->default_fg);
+            tft->drawLine(start_x, pos.y+6, tft->width(), pos.y+4, this->default_fg);
+            tft->drawLine(start_x, pos.y+8, tft->width(), pos.y+6, this->default_fg);*/
+
+            colours(false, this->default_fg, this->default_bg);
             tft->drawLine(pos.x, pos.y, tft->width(), pos.y, this->default_fg);
             tft->setCursor(pos.x, pos.y+1);
-            colours(!selected, this->default_fg, this->default_bg);
-            tft->setTextSize(0);
-            /*if (opened) {
-                //tft->print(">>>");
-                //tft->printf((char*)"%-19s",(char*)text);   // \n not needed as reaching to edge
-                tft->printf((char*)tft->get_header_open_format(), (char*)text);
-            } else if (selected) {
-                //tft->printf((char*)"%-22s",(char*)text);   // \n not needed as reaching to edge
-                tft->printf((char*)tft->get_header_selected_format(), (char*)text);
-            } else {*/
-                tft->printf((char*)tft->get_header_format(), (char*)text);
-            //}
+            int end_x = (tft->width() - (tft->characterWidth() * strlen(text))) - 2;
+            tft->drawLine(0, pos.y+2, end_x, pos.y+2, this->default_fg);
+            tft->drawLine(0, pos.y+4, end_x, pos.y+4, this->default_fg);
+            tft->drawLine(0, pos.y+6, end_x, pos.y+6, this->default_fg);
+            tft->drawLine(0, pos.y+8, end_x, pos.y+8, this->default_fg);
+            tft->setCursor(end_x+2, pos.y+1);
+            tft->printf((char*)tft->get_header_format(), (char*)text);
+
             colours(false);
             //return (tft->getTextSize()+1)*6;
             return tft->getCursorY();
