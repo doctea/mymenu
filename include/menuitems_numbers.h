@@ -73,9 +73,9 @@ class NumberControl : public NumberControlBase {
         virtual DataType get_default_step_for_type(unsigned long step) {
             return 1;
         }
-        virtual DataType get_default_step_for_type(unsigned long long step) {
+        /*virtual DataType get_default_step_for_type(unsigned long long step) {
             return 1;
-        }
+        }*/
 
         virtual void setStep(DataType step) {
             this->step = step;

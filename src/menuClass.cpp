@@ -59,7 +59,7 @@ int Menu::display() {
 
         // find number of panels to offset in order to ensure that selected panel is on screen?
         int start_panel = 0;
-        if (currently_selected>0 && panel_bottom[currently_selected] >= tft->height()) {
+        if (currently_selected>0 && panel_bottom[currently_selected] >= (0.75*tft->height())) {
             start_panel = currently_selected - 1;
             //#ifdef OLD_SCROLL_METHOD
             // count backwards to find number of panels we have to go to fit currently_selected on screen...
