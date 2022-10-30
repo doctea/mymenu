@@ -42,33 +42,28 @@ class DisplayTranslator {
     virtual void drawLine(int x0, int y0, int x1, int y1, uint16_t color) {};
     virtual void fillRect(int x, int y, int w, int h, uint16_t color) {};
     virtual void setTextSize(int size) {};
-    virtual void printf(const char *pattern) { Serial.println("WARNING: printf(char*pattern) not overridden!"); };
-    virtual void printf(const char *pattern, char *param1) { Serial.println("WARNING: printf(char*pattern, char *param1) not overridden!"); };
-    virtual void printf(const char *pattern, char *param1, char *param2) { Serial.println("WARNING: printf(char*pattern, char *param1, char *param2) not overridden!"); };
-    virtual void printf(const char *pattern, char *param1, char *param2, char *param3) { Serial.println("WARNING: printf(char*pattern, char *param1, char *param2, char *param3) not overridden!"); };
-    virtual void printf(const char *pattern, char *param1, int param2, int param3) { Serial.println("WARNING: printf(char*pattern, char *param1, char *param2, char *param3) not overridden!"); };
-    virtual void printf(const char *pattern, int param1, char* param2) { Serial.println("WARNING: printf(char *pattern, int param1, char* param2) not overridden!"); }
-    virtual void printf(const char *pattern, int param1) { Serial.println("WARNING: printf(char *pattern, int param1) not overridden!"); }
-    virtual void printf(const char *pattern, int param1, int param2) { Serial.println("WARNING: printf(char *pattern, int param1, int param2) not overridden!"); } 
-    virtual void printf(const char *pattern, int param1, int param2, int param3) { Serial.println("WARNING: printf(char *pattern, int param1, int param2, int param3) not overridden!"); } 
-    virtual void printf(const char *pattern, int param1, int param2, int param3, float param4) { Serial.println("WARNING: printf(char *pattern, int param1, int param2, int param3, float param4) not overridden!"); } 
-    virtual void printf(const char *pattern, int param1, const uint8_t *param2) { Serial.println("WARNING: printf(char *pattern, int param1, const uint8_t *param2) not overridden!"); }
-    virtual void printf(const char *pattern, char param1, int param2, char *param3) { Serial.println("WARNING: printf(char *pattern, int param1, const uint8_t *param2) not overridden!"); }
-    virtual void println() { Serial.println("WARNING: println(void) not overridden!"); };
-    virtual void println(const char *txt) {};
+    virtual void printf(const char *pattern) { Serial.println(F("WARNING: printf(char*pattern) not overridden!")); };
+    virtual void printf(const char *pattern, char *param1) { Serial.println(F("WARNING: printf(char*pattern, char *param1) not overridden!")); };
+    virtual void printf(const char *pattern, char *param1, char *param2) { Serial.println(F("WARNING: printf(char*pattern, char *param1, char *param2) not overridden!")); };
+    virtual void printf(const char *pattern, char *param1, char *param2, char *param3) { Serial.println(F("WARNING: printf(char*pattern, char *param1, char *param2, char *param3) not overridden!")); };
+    virtual void printf(const char *pattern, char *param1, int param2, int param3) { Serial.println(F("WARNING: printf(char*pattern, char *param1, char *param2, char *param3) not overridden!")); };
+    virtual void printf(const char *pattern, int param1, char* param2) { Serial.println(F("WARNING: printf(char *pattern, int param1, char* param2) not overridden!")); }
+    virtual void printf(const char *pattern, int param1) { Serial.println(F("WARNING: printf(char *pattern, int param1) not overridden!")); }
+    virtual void printf(const char *pattern, int param1, int param2) { Serial.println(F("WARNING: printf(char *pattern, int param1, int param2) not overridden!")); } 
+    virtual void printf(const char *pattern, int param1, int param2, int param3) { Serial.println(F("WARNING: printf(char *pattern, int param1, int param2, int param3) not overridden!")); } 
+    virtual void printf(const char *pattern, int param1, int param2, int param3, float param4) { Serial.println(F("WARNING: printf(char *pattern, int param1, int param2, int param3, float param4) not overridden!")); } 
+    virtual void printf(const char *pattern, int param1, const uint8_t *param2) { Serial.println(F("WARNING: printf(char *pattern, int param1, const uint8_t *param2) not overridden!")); }
+    virtual void printf(const char *pattern, char param1, int param2, char *param3) { Serial.println(F("WARNING: printf(char *pattern, int param1, const uint8_t *param2) not overridden!")); }
+    virtual void println() { Serial.println(F("WARNING: println(void) not overridden!")); };
+    virtual void println(const char *txt) { Serial.println(F("WARNING: println(const char *) not overridden!"));};
 
-    virtual void drawRoundRect(int x, int y, int w, int h, int radius, int color) {
-        Serial.println("TODO: unimplemented drawRoundRect()");
-    };
-    virtual void fillRoundRect(int x, int y, int w, int h, int radius, int color) {
-        Serial.println("TODO: unimplemented fillRoundRect()");
-    };
+    virtual void drawRoundRect(int x, int y, int w, int h, int radius, int color) { Serial.println(F("TODO: unimplemented drawRoundRect())")); };
+    virtual void fillRoundRect(int x, int y, int w, int h, int radius, int color) { Serial.println(F("TODO: unimplemented fillRoundRect())")); };
 
     virtual int width() { return 128; };
     virtual int height() { return 64; };
 
     virtual int getRowHeight() { return 1; };
-
     virtual int characterWidth() { return 1; };
 
     virtual void updateDisplay() {};

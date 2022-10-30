@@ -49,6 +49,7 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
         Serial.println("steensy setup().."); Serial.flush();
         tft->init(135, 240);           // Init ST7789 240x135
         tft->fillScreen(ST77XX_BLACK);
+        tft->setTextWrap(false);
         tft->println("DisplayTranslator init()!");
         Serial.println("did init()"); Serial.flush();
         Serial.println("did fillscreen()"); Serial.flush();
@@ -141,7 +142,7 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
     }
 
     virtual int getRowHeight() override {
-        return (tft->getTextSize()+1) * 7;
+        return (tft->getTextSize()+1) * 6;
     }
     virtual int characterWidth() override { 
         //return (tft->getTextSize()) * 6;
