@@ -173,7 +173,7 @@ class NumberControl : public NumberControlBase {
             //if (this->debug) { Serial.println("did colours"); Serial.flush(); }
 
             // render the value
-            this->renderValue(selected, opened, tft->get_c_max()/2); //, strlen(tmp)<tft->get_c_max()/2);
+            this->renderValue(selected, opened, tft->get_c_max()); //, strlen(tmp)<tft->get_c_max()/2);
 
             const char *tmp;
             tmp = this->getFormattedExtra();
@@ -190,27 +190,36 @@ class NumberControl : public NumberControlBase {
         // TODO: actually limit the output to the width (currently it just uses a smaller size if it doesn't fit in the requested number of characters)
         virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
             //if (this->debug) Serial.printf(F("\t\trenderValue() in NumberControl with max_character_width %i\n"), max_character_width);
-            const char *tmp;
+            const char *tmp = opened ? this->getFormattedInternalValue() : this->getFormattedValue();
             //if (this->debug) { Serial.println("renderValue() did setting tmp"); Serial.flush(); }
             
             //if (this->debug) { Serial.printf("NumberControl#renderValue in %s about to do getFormattedValue() ting...\n", this->label); Serial.flush(); }
-            if (opened) {
+            /*if (opened) {
                 //tft->printf("value: %*i\n", 4, internal_value);
                 tmp = this->getFormattedInternalValue();
                 //Serial.printf("NumberControl#display is opened for '%s', formatted value is '%s' (strlen %i)\n", this->label, printable_value, strlen(printable_value));
                 //Serial.printf("in opened NumberControl for %s, with internal_value %i, got formattedvalue '%s'\n", this->label, internal_value, this->getFormattedValue(internal_value));
             } else {
-                //tft->printf("value: %*i\n", 4, get_current_value()); //*target_variable); //target->transpose);
+                //tft->printf("value: %*i\n", 4, get_current_value()); // *target_variable); //target->transpose);
                 //sprintf(tmp, "%s", this->getFormattedValue()); //get_current_value());
                 tmp = this->getFormattedValue();
-            }
+            }*/
             //if (this->debug) { Serial.printf("NumberControl#renderValue in %s just did getFormattedValue() ting!\n", this->label); Serial.flush(); }
+            //tmp = opened ? this->getFormattedInternalValue() : this->getFormattedValue();
 
             // adjust size, dependent on size of formatted value and passed-in max_width
-            if (strlen(tmp)<max_character_width) 
-                tft->setTextSize(2);
-            else
+            /*if (strlen(tmp) > max_character_width/2) {
+                Serial.printf("%s\t#renderValue string is \t%s (length=%i), max_character_width is\t%i, setting text size to 0\n", this->label, tmp, strlen(tmp), max_character_width);
+                tft->setTextSize(0);
+            } else {
+                Serial.printf("%s\t#renderValue string is \t%s (length=%i), max_character_width is\t%i, setting text size to 1\n", this->label, tmp, strlen(tmp), max_character_width);
                 tft->setTextSize(1);
+            }*/
+            tft->setTextSize(0);
+            byte textSize = (strlen(tmp) > max_character_width/2) ? 1 : 2;
+            //byte textSize = (strlen(tmp) / max_character_width) + 1;
+            //Serial.printf("%s\t#renderValue string is \t%s (length=%i), max_character_width is\t%i, setting text size to\t%i\n", this->label, tmp, strlen(tmp), max_character_width, textSize);
+            tft->setTextSize(textSize);
             //tft->setTextSize(textSize);
 
             tft->println(tmp);

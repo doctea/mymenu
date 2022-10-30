@@ -144,7 +144,8 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
         return (tft->getTextSize()+1) * 7;
     }
     virtual int characterWidth() override { 
-        return (tft->getTextSize()) * 7;
+        //return (tft->getTextSize()) * 6;
+        return 6;
     };
 
     virtual void clear(bool force = false) {

@@ -209,7 +209,7 @@ class ObjectActionItem : public MenuItem {
 
     virtual int display(Coord pos, bool selected, bool opened) override {
         this->tft->setCursor(pos.x, pos.y);
-        return this->renderValue(selected, opened, MENU_C_MAX/2);
+        return this->renderValue(selected, opened, MENU_C_MAX);
     }
 
     virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
@@ -269,7 +269,7 @@ class ObjectActionConfirmItem : public ObjectActionItem<TargetClass> {
 
     virtual int display(Coord pos, bool selected, bool opened) override {
         this->tft->setCursor(pos.x, pos.y);
-        return this->renderValue(selected, opened, MENU_C_MAX/2);
+        return this->renderValue(selected, opened, MENU_C_MAX);
     }
 
     virtual int renderValue(bool selected, bool opened, uint16_t character_width_max) override {

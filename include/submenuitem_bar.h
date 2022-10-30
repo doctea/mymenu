@@ -27,7 +27,7 @@ class SubMenuItemBar : public SubMenuItem {
 
         // draw all the sub-widgets
         int width_per_item = this->tft->width() / (this->items->size() /*+1*/);
-        if (this->debug) Serial.printf("display in SubMenuItemBar got width_per_item=%i from tftwidth %i / itemsize %i\n", width_per_item, this->tft->width(), this->items->size());
+        if (this->debug) Serial.printf("display in SubMenuItemBar got width_per_item=%i\tfrom tftwidth\t%i / itemsize\t%i\n", width_per_item, this->tft->width(), this->items->size());
         for (int item_index = 0 ; item_index < this->items->size() ; item_index++) {
             int temp_y = this->small_display(
                 item_index, 
@@ -75,8 +75,10 @@ class SubMenuItemBar : public SubMenuItem {
         //Serial.printf("small_display %s\tcolour is\t%04x, bar's colour is\t%04x =>\t%04x\n", ctrl->label, ctrl->default_fg, this->default_fg, colour);
         //colours(false, colour, ctrl->default_bg);
 
-        byte display_width = min((int)(width_in_pixels/character_width_in_pixels), (int)strlen(ctrl->label));
-        sprintf(fmt, "%%-%is\n", display_width);    // becomes eg "%-6s\n"
+        uint16_t max_display_width = (int)(width_in_pixels/character_width_in_pixels);
+        uint16_t min_display_width = (int)strlen(ctrl->label);
+        //Serial.printf("(width_in_pixels %i/character_width_in_pixels %i) = %i\n", width_in_pixels, character_width_in_pixels, max_display_width);
+        sprintf(fmt, "%%-%is\n", min_display_width);    // becomes eg "%-6s\n"
         if (this->debug) Serial.printf("\tGot format '%s'\n", fmt);
 
         // print label header
@@ -95,7 +97,7 @@ class SubMenuItemBar : public SubMenuItem {
         if (this->debug) Serial.printf("\tdoing renderValue at %i,%i\n", x, y);
 
         // actually render the item
-        y = ctrl->renderValue(outer_selected || is_selected, is_opened, display_width); //width/width_in_chars);
+        y = ctrl->renderValue(outer_selected || is_selected, is_opened, max_display_width); //width/width_in_chars);
 
         if (this->debug) Serial.printf("\tend of small_display, returning y=%i\n", y);
         return y;

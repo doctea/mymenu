@@ -8,6 +8,7 @@ class SelectorControl : public MenuItem {
         int num_values;
         int selected_value_index;
         int *available_values;
+        int actual_value_index = -1;
 
         virtual void setter (int new_value) {
         }
@@ -27,6 +28,11 @@ class SelectorControl : public MenuItem {
         SelectorControl(const char *label, byte initial_selected_value_index) : 
             SelectorControl(label) {
             this->selected_value_index = initial_selected_value_index;
+        }
+
+        // used when needs to be told to update externally -- eg when ParameterInput mapping changes and need to tell its ParameterInputSelector
+        virtual void update_actual_index(int new_index) {
+            this->actual_value_index = new_index;
         }
 
         // classic fixed display version
