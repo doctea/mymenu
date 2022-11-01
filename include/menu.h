@@ -64,6 +64,10 @@ class Menu {
         };
 
         int mode = NORMAL;
+
+        bool is_opened() {
+            return this->currently_opened!=-1;
+        }
         
         // input-handling stuff
         void knob_turned(int knob_position) {
