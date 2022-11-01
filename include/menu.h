@@ -23,7 +23,7 @@ class Coord {
 #include <LinkedList.h>
 #include "menuitems.h"
 
-void setup_menu();
+FLASHMEM void setup_menu();
 
 #if defined(__arm__) && defined(CORE_TEENSY)
     extern unsigned long _heap_start;
@@ -147,24 +147,24 @@ class Menu {
                 currently_selected = currently_opened;
                 currently_opened = -1;
             } else if (currently_opened==-1) {
-                Serial.printf("back pressed but already at top level with currently_opened menuitem %i\n", currently_opened); //setting to -1\n", currently_opened);
+                Serial.printf(F("back pressed but already at top level with currently_opened menuitem %i\n"), currently_opened); //setting to -1\n", currently_opened);
                 currently_selected = 0;
             } else {
-                Serial.printf("back with currently_opened menuitem %i, handled by selected\n", currently_opened); //setting to -1\n", currently_opened);
+                Serial.printf(F("back with currently_opened menuitem %i, handled by selected\n"), currently_opened); //setting to -1\n", currently_opened);
             }
             tft->clear(true);   // TOOD: don't rely on this
             return true;
         }
         bool button_right() {
-            Serial.println("button_right()");
+            Serial.println(F("button_right()"));
             if (currently_opened!=-1) {
                 if (items->get(currently_opened)->button_right()) {
-                    Serial.printf("right with currently_opened menuitem %i subhandled!\n", currently_opened);
+                    Serial.printf(F("right with currently_opened menuitem %i subhandled!\n"), currently_opened);
                 } else {
-                    Serial.printf("right with currently_opened menuitem %i not subhandled!\n", currently_opened);
+                    Serial.printf(F("right with currently_opened menuitem %i not subhandled!\n"), currently_opened);
                 }
             } else {
-                Serial.printf("right with nothing currently_opened\n"); //setting to -1\n", currently_opened);
+                Serial.printf(F("right with nothing currently_opened\n")); //setting to -1\n", currently_opened);
             }
             return true;
         }
@@ -179,9 +179,9 @@ class Menu {
         }
 
         FLASHMEM void setup_display() {
-            Serial.println("setup_display about to do tft->setup().."); Serial.flush();
+            Serial.println(F("setup_display about to do tft->setup()..")); Serial.flush();
             tft->setup();
-            Serial.println("tft->setup() done!"); Serial.flush();
+            Serial.println(F("tft->setup() done!")); Serial.flush();
         }
         FLASHMEM void start() {
             tft->start();
@@ -199,7 +199,7 @@ class Menu {
                 m->on_add();
                 items->add(m);
             } else {
-                Serial.println("Passed nullptr to menu#add!");
+                Serial.println(F("Passed nullptr to menu#add!"));
             }
         }
         FLASHMEM void add_pinned(PinnedPanelMenuItem *m) {
@@ -294,7 +294,7 @@ class Menu {
 
             void debug_free_ram() {
                 //Serial.println(F("debug_free_ram() not implemented on Teensy"));
-                Serial.printf("debug_free_ram: %i\n", freeRam());
+                Serial.printf(F("debug_free_ram: %i\n"), freeRam());
             }
         #else
             int freeRam () {  
