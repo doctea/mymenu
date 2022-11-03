@@ -125,7 +125,7 @@ class ObjectToggleControl : public MenuItem {
             pos.y = header(label, pos, selected, opened);
             tft->setCursor(pos.x,pos.y);
 
-            colours(opened, opened ? GREEN : C_WHITE, BLACK);
+            colours(opened, opened ? GREEN : this->default_fg, BLACK);
             //tft->setTextSize(2);        // was 2 ?
             //char tmp[MENU_C_MAX] = "";
             tft->setTextSize(2);
