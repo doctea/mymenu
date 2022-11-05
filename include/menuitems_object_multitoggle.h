@@ -2,6 +2,10 @@
 
 #include "menuitems.h"
 
+// objects that present a a bunch of on/off controls in a row
+// handles splitting the labels over multiple lines to fit the available space
+// and also provides an (optional) 'toggle-all' option that will set them all to a particular state on/off
+
 class MultiToggleItemBase {
     public:
         MultiToggleItemBase(char *label) {
@@ -62,6 +66,8 @@ class ObjectMultiToggleControl : public MenuItem {
         bool all_status = false;    // current status of the 'all' toggle
         
         int initial_on_count = 0;
+        const char *label_on    = "On";
+        const char *label_off   = "Off";
         
         LinkedList<MultiToggleItemBase*> items = LinkedList<MultiToggleItemBase*>();
 
@@ -149,7 +155,6 @@ class ObjectMultiToggleControl : public MenuItem {
                 pos.y = start_y; // reset cursor position ready to draw the next item
                 tft->setCursor(x, pos.y);
             }
-
             
             return max_height_reached; //tft->getCursorY();
         }
@@ -169,14 +174,8 @@ class ObjectMultiToggleControl : public MenuItem {
             return true;
         }
         virtual bool button_select() override {
-            if (all_option && currently_selected == 0) { //items.size()) {
-                all_status = !all_status;
-                for (int i = 0 ; i < items.size() ; i++) {
-                    items.get(i)->do_setter(all_status);
-                }
-                static char tmp[40];
-                sprintf(tmp, "Toggled all to %s", all_status?"on":"off");
-                menu->set_last_message(tmp);
+            if (all_option && currently_selected == 0) { // toggle all select
+                this->toggle_all();
             } else if (currently_selected>=0) {
                 /*MultiToggleItem<TargetClass> item = items.get(currently_selected);
                 (item.target->*item.setter)( ! (item.target->*item.getter)() );*/
@@ -185,9 +184,23 @@ class ObjectMultiToggleControl : public MenuItem {
                 bool new_mode = !item->do_getter();
                 item->do_setter(new_mode);
                 static char tmp[40];
-                sprintf(tmp, "Toggled %s to %s", item->label, new_mode?"on":"off");
+                sprintf(tmp, "Toggled %s to %s", item->label, new_mode?label_on:label_off);
                 menu->set_last_message(tmp);
             }
             return go_back_on_select;
+        }
+        virtual bool switch_all(bool on = true) {
+            //all_status = !all_status;
+            all_status = on;
+            for (int i = 0 ; i < items.size() ; i++) {
+                items.get(i)->do_setter(all_status);
+            }
+            static char tmp[MENU_C_MAX];
+            sprintf(tmp, "Toggled all to %s", all_status?label_on:label_off);
+            menu->set_last_message(tmp);
+            return all_status;
+        }
+        virtual bool toggle_all() {
+            return this->switch_all(!all_status);
         }
 };
