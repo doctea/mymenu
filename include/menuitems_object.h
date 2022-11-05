@@ -113,7 +113,7 @@ class ObjectToggleControl : public MenuItem {
             TargetClass *target_object, 
             void(TargetClass::*setter)(bool), 
             bool(TargetClass::*getter)(), 
-            void (*on_change_handler)(bool last_value, bool new_value)
+            void (*on_change_handler)(bool last_value, bool new_value) = nullptr
         ) : MenuItem(label) {
             this->target_object = target_object;
             this->setter = setter;

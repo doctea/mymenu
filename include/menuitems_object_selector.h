@@ -13,11 +13,12 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
 
     public:
 
-    ObjectSelectorControl(const char* label, 
-                        TargetClass *target_object, 
-                        void(TargetClass::*setter_func)(DataType), 
-                        DataType(TargetClass::*getter_func)(), 
-                        void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr
+    ObjectSelectorControl(
+        const char* label, 
+        TargetClass *target_object, 
+        void(TargetClass::*setter_func)(DataType), 
+        DataType(TargetClass::*getter_func)(), 
+        void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr
     ) : ObjectNumberControl<TargetClass,DataType>(label, target_object, setter_func, getter_func, on_change_handler) {
         this->set_internal_value (this->get_index_for_value( (this->target_object->*this->getter)() ));
         //this->debug = true;
