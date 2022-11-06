@@ -277,12 +277,11 @@ class Menu {
                 new_knob_read = knob.read() / ENCODER_STEP_DIVISOR;///4;
                 if (new_knob_read!=last_knob_read) {
                     //Serial.printf("new_knob_read %i changed from %i\n", new_knob_read, last_knob_read);
-                    if (ENCODER_STEP_DIVISOR>1)
+                    /*if (ENCODER_STEP_DIVISOR>1)
                         last_knob_read = new_knob_read; ///4; 
                     else
-                        last_knob_read = new_knob_read; // / ENCODER_STEP_DIVISOR; ///4; 
-                    //if (last_knob_read<0) 
-                    //    last_knob_read = MAX_KNOB;
+                        last_knob_read = new_knob_read; // / ENCODER_STEP_DIVISOR; ///4; */
+                    last_knob_read = new_knob_read;
                     knob_turned(last_knob_read);
                 }
             #endif

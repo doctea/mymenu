@@ -141,7 +141,7 @@ class ObjectMultiToggleControl : public MenuItem {
 
                 // segment the label of the item up over multiple lines of `width_per_item` chars each
                 char tmp[width_per_item+1];
-                int last_length = max(1,width_per_item-1);
+                uint8_t last_length = max(1,width_per_item-1);
                 for (uint8_t segment_start = 0 ; segment_start < strlen(item->label) ; segment_start += last_length) {
                     strncpy(tmp, &item->label[segment_start], last_length);
                     last_length = min(last_length, strlen(tmp));
