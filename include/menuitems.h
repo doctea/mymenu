@@ -129,6 +129,9 @@ class MenuItem {
         virtual bool button_select() {
             return go_back_on_select;
         }
+        virtual bool button_select_released() {
+            return false;
+        }
         
         virtual bool button_back() {
             return false;

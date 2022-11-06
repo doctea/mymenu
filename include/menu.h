@@ -144,6 +144,21 @@ class Menu {
             } 
             return true;
         }
+        bool button_select_released() {
+            Serial.printf(F("Menu#button_select_released() on item %i\n"), currently_selected);
+            if (currently_opened==-1) {
+                /*Serial.printf(F("button_select_released with currently_opened menuitem -1 - opening %i\n"), currently_selected);
+                if (items->get(currently_selected)->action_opened()) {
+                    currently_opened = currently_selected;
+                    return false;
+                }*/
+            } else {
+                Serial.printf(F("Menu#button_select_released() subselecting already-opened %i (%s)\n"), currently_opened, items->get(currently_opened)->label);
+                if (items->get(currently_opened)->button_select_released()) 
+                    button_back();
+            } 
+            return true;
+        }
         bool button_back() {
             Serial.println(F("button_back()"));
             if (currently_opened!=-1 && !items->get(currently_opened)->button_back()) {
@@ -273,26 +288,32 @@ class Menu {
             #endif
             #ifdef PIN_BUTTON_A
                 if (pushButtonA.update()) {
-                    if (pushButtonA.fallingEdge()) {
+                    if (pushButtonA.fell()) {
                         button_count++;
                         button_select();
+                    } else if (pushButtonA.rose()) {
+                        button_select_released();
                     }
                 }
             #endif
             #ifdef PIN_BUTTON_B
                 if (pushButtonB.update()) {
-                    if (pushButtonB.fallingEdge()) {
+                    if (pushButtonB.fell()) {
                         button_count++;
                         button_back();
-                    }
+                    } /*else if (pushButtonB.fell()) {
+                        button_back_released();
+                    }*/
                 }
             #endif
             #ifdef PIN_BUTTON_C
                 if (pushButtonC.update()) {
-                    if (pushButtonC.fallingEdge()) {
+                    if (pushButtonC.fell()) {
                         button_count++;
                         button_right();
-                    }
+                    } /*else if (pushButtonC.fell()) {
+                        button_right_released();
+                    }*/
                 }
             #endif
         }

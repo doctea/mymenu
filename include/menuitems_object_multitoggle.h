@@ -113,7 +113,7 @@ class ObjectMultiToggleControl : public MenuItem {
 
             int effectively_selected = 0;
 
-            const char *all_label = "[ALL]";
+            const char *all_label = all_status ? "[*]" : "[-]"; //"[ALL]";
 
             if (all_option) {
                 effectively_selected = currently_selected - 1;
@@ -126,7 +126,7 @@ class ObjectMultiToggleControl : public MenuItem {
             }
 
             //int width_per_item = (tft->width() / FONT_WIDTH) / (items.size() + (all_option ? 1 : 0));    // max size to be used for each item
-            int width_per_item = ((tft->width()-x) / FONT_WIDTH) / items.size(); // max size to be used for each item after the 'all' item is taken into account
+            const int width_per_item = ((tft->width()-x) / FONT_WIDTH) / items.size(); // max size to be used for each item after the 'all' item is taken into account
 
             //Serial.printf("for tft width=%i,\tfont_width=%i,\titems.size=%i\n", tft->width(), FONT_WIDTH, items.size());
             //Serial.printf("so got width_per_item %i\n", width_per_item);
@@ -146,6 +146,7 @@ class ObjectMultiToggleControl : public MenuItem {
                     strncpy(tmp, &item->label[segment_start], last_length);
                     last_length = min(last_length, strlen(tmp));
                     tft->setCursor(x, tft->getCursorY());
+                    tmp[last_length] = '\0';
                     //Serial.printf("got '%s'\n", tmp);
                     tft->printf("%s\n", tmp);
                 }
@@ -162,10 +163,26 @@ class ObjectMultiToggleControl : public MenuItem {
             return max_height_reached; //tft->getCursorY();
         }
 
+        bool held = false;      // whether button is held
+        bool held_mode = false; // what mode we should set held ones to
+
+        virtual void update_held(int currently_selected) {
+            if (all_option && currently_selected==0) // do nothing if the selected item is the 'all' option
+                return;
+            int effectively_selected = all_option ? currently_selected-1 : currently_selected;
+            MultiToggleItemBase *item = this->items.get(effectively_selected);
+            if (item->do_getter()!=this->held_mode) {
+                Serial.printf("update_held setting %i on %i\n", this->held_mode, effectively_selected);
+                item->do_setter(this->held_mode);
+            }
+        }
+
         virtual bool knob_left() override {
             currently_selected--;
             if (currently_selected < 0) 
                 currently_selected = (this->all_option?1:0) + items.size() - 1;
+            if (this->held)
+                this->update_held(currently_selected);
             //Serial.printf("knob_right: selected %i\n", currently_selected);
             return true;
         }
@@ -173,6 +190,9 @@ class ObjectMultiToggleControl : public MenuItem {
             currently_selected++;
             if (currently_selected >= (this->all_option?1:0) + items.size())
                 currently_selected = 0;
+            if (this->held) 
+                this->update_held(currently_selected);
+
             //Serial.printf("knob_right: selected %i\n", currently_selected);
             return true;
         }
@@ -180,17 +200,23 @@ class ObjectMultiToggleControl : public MenuItem {
             if (all_option && currently_selected == 0) { // toggle all select
                 this->toggle_all();
             } else if (currently_selected>=0) {
+                this->held = true;
                 /*MultiToggleItem<TargetClass> item = items.get(currently_selected);
                 (item.target->*item.setter)( ! (item.target->*item.getter)() );*/
                 int effectively_selected = all_option ? currently_selected-1 : currently_selected;
                 MultiToggleItemBase *item = items.get(effectively_selected);
                 bool new_mode = !item->do_getter();
+                this->held_mode = new_mode;
                 item->do_setter(new_mode);
                 static char tmp[40];
                 sprintf(tmp, "Toggled %s to %s", item->label, new_mode?label_on:label_off);
                 menu->set_last_message(tmp);
             }
             return go_back_on_select;
+        }
+        virtual bool button_select_released() override {
+            this->held = false;
+            return false;
         }
         virtual bool switch_all(bool on = true) {
             //all_status = !all_status;
