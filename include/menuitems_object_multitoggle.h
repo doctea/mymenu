@@ -9,10 +9,10 @@
 // base multi-toggle sub-select item
 class MultiToggleItemBase {
     public:
-        MultiToggleItemBase(char *label) {
+        MultiToggleItemBase(const char *label) {
             this->label = label;
         }
-        char *label;
+        const char *label;
         virtual bool do_getter();
         virtual void do_setter(bool value);
 };
@@ -113,18 +113,24 @@ class ObjectMultiToggleControl : public MenuItem {
 
             int effectively_selected = 0;
 
+            const char *all_label = "[ALL]";
+
             if (all_option) {
                 effectively_selected = currently_selected - 1;
                 if (currently_selected==0) all_selected = true;
                 colours(all_selected && opened, all_status ? GREEN : RED, this->default_bg);
                 tft->setCursor(x, pos.y);
-                tft->println("[ALL] ");
-                x += (7 * FONT_WIDTH);  // 7 being the size if "[ALL] " + 1
+                tft->println(all_label);
+                x += ((strlen(all_label)+1) * FONT_WIDTH);  // 7 being the size if "[ALL] " + 1
                 tft->setCursor(x, pos.y);
             }
 
             //int width_per_item = (tft->width() / FONT_WIDTH) / (items.size() + (all_option ? 1 : 0));    // max size to be used for each item
-            const int width_per_item = ((tft->width()-x) / FONT_WIDTH) / items.size(); // max size to be used for each item after the 'all' item is taken into account
+            int width_per_item = ((tft->width()-x) / FONT_WIDTH) / items.size(); // max size to be used for each item after the 'all' item is taken into account
+
+            //Serial.printf("for tft width=%i,\tfont_width=%i,\titems.size=%i\n", tft->width(), FONT_WIDTH, items.size());
+            //Serial.printf("so got width_per_item %i\n", width_per_item);
+            //width_per_item = constrain(width_per_item, 1, tft->width()/FONT_WIDTH);
             
             for (uint8_t i = 0 ; i < items_size ; i++) {
                 MultiToggleItemBase *item = items.get(i);
@@ -134,19 +140,16 @@ class ObjectMultiToggleControl : public MenuItem {
                 colours((i==effectively_selected) && opened, item->do_getter() ? GREEN : RED, this->default_bg);
 
                 // segment the label of the item up over multiple lines of `width_per_item` chars each
-                char tmp[width_per_item];
-                for (uint8_t segment_start = 0 ; segment_start < strlen(item->label) ; segment_start += width_per_item-1) {
-                    // copy width_per_item characters or max remaining
-                    int len_to_copy = min((int)(strlen(item->label) - segment_start), (int)(width_per_item-1));
-
-                    //Serial.printf("\tcpos = %i, width_per_item = %i, len_to_copy = %i, strlen(item.label) = %i\n", segment_start, width_per_item, len_to_copy, strlen(item.label));
-                    memcpy(&tmp[0], &item->label[segment_start], len_to_copy);
-                    tmp[len_to_copy] = '\0';
-                    
-                    //Serial.printf("\tdraw tmp = '%s' at %i,%i\n", tmp, x, pos.y);
+                char tmp[width_per_item+1];
+                int last_length = max(1,width_per_item-1);
+                for (uint8_t segment_start = 0 ; segment_start < strlen(item->label) ; segment_start += last_length) {
+                    strncpy(tmp, &item->label[segment_start], last_length);
+                    last_length = min(last_length, strlen(tmp));
                     tft->setCursor(x, tft->getCursorY());
+                    //Serial.printf("got '%s'\n", tmp);
                     tft->printf("%s\n", tmp);
                 }
+ 
                 // remember how far down the screen we've drawn
                 if (tft->getCursorY()>max_height_reached)
                     max_height_reached = tft->getCursorY();
