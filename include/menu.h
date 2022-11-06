@@ -187,7 +187,10 @@ class Menu {
             tft->setup();
             Serial.println(F("tft->setup() done!")); Serial.flush();
         }
-        FLASHMEM void start() {
+        #ifndef GDB_DEBUG
+        FLASHMEM 
+        #endif
+        void start() {
             tft->start();
         }
 
@@ -197,7 +200,10 @@ class Menu {
                 this->add(items->get(i));
             }
         }
-        FLASHMEM void add(MenuItem *m) {
+        #ifndef GDB_DEBUG
+        FLASHMEM 
+        #endif
+        void add(MenuItem *m) {
             if (m!=nullptr) {
                 m->tft = this->tft;
                 m->on_add();

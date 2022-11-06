@@ -9,9 +9,9 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
         const char *label;
     };
 
-    LinkedList<option> *available_values = new LinkedList<option>();
-
     public:
+    
+    LinkedList<option> *available_values = new LinkedList<option>();
 
     ObjectSelectorControl(
         const char* label, 

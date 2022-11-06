@@ -6,6 +6,7 @@
 // handles splitting the labels over multiple lines to fit the available space
 // and also provides an (optional) 'toggle-all' option that will set them all to a particular state on/off
 
+// base multi-toggle sub-select item
 class MultiToggleItemBase {
     public:
         MultiToggleItemBase(char *label) {
@@ -16,6 +17,7 @@ class MultiToggleItemBase {
         virtual void do_setter(bool value);
 };
 
+// multi-toggle item that targts getters & setters on an object
 template<class TargetClass>
 class MultiToggleItemClass : public MultiToggleItemBase{
     public:
@@ -31,16 +33,13 @@ class MultiToggleItemClass : public MultiToggleItemBase{
 
         virtual bool do_getter() override {
             return ((*this->target).*(this->getter))();
-            //return (*this->target)*(this->getter)();
-            //(item.target->*item.setter)
-            //(item.target->*item.setter)
-            //return (this->target*)->getter();
         }
         virtual void do_setter(bool value) override {
             ((*this->target).*(this->setter))( value );
         }
 };
 
+// multi-toggle item that targets a getter & setter function
 class MultiToggleItemFunction : public MultiToggleItemBase {
     public:
         void(*setter)(bool) = nullptr;
@@ -60,6 +59,7 @@ class MultiToggleItemFunction : public MultiToggleItemBase {
         }
 };
 
+// actual menuitem that holds multi-toggle items
 class ObjectMultiToggleControl : public MenuItem {
     public:
         bool all_option = false;    // whether to add an 'all' toggle option
@@ -196,7 +196,7 @@ class ObjectMultiToggleControl : public MenuItem {
                 items.get(i)->do_setter(all_status);
             }
             static char tmp[MENU_C_MAX];
-            sprintf(tmp, "Toggled all to %s", all_status?label_on:label_off);
+            sprintf(tmp, "Toggled all %s to %s", this->label, all_status?label_on:label_off);
             menu->set_last_message(tmp);
             return all_status;
         }
