@@ -132,7 +132,7 @@ class ObjectMultiToggleControl : public MenuItem {
             //Serial.printf("so got width_per_item %i\n", width_per_item);
             //width_per_item = constrain(width_per_item, 1, tft->width()/FONT_WIDTH);
             
-            for (uint8_t i = 0 ; i < items_size ; i++) {
+            for (int i = 0 ; i < items_size ; i++) {
                 MultiToggleItemBase *item = items.get(i);
                 //Serial.printf("processing item %s\n", item->label);
 
@@ -141,8 +141,8 @@ class ObjectMultiToggleControl : public MenuItem {
 
                 // segment the label of the item up over multiple lines of `width_per_item` chars each
                 char tmp[width_per_item+1];
-                uint8_t last_length = max(1,width_per_item-1);
-                for (uint8_t segment_start = 0 ; segment_start < strlen(item->label) ; segment_start += last_length) {
+                int last_length = max(1,width_per_item-1);
+                for (uint32_t segment_start = 0 ; segment_start < strlen(item->label) ; segment_start += last_length) {
                     strncpy(tmp, &item->label[segment_start], last_length);
                     last_length = min(last_length, strlen(tmp));
                     tft->setCursor(x, tft->getCursorY());

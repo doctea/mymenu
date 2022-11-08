@@ -44,12 +44,12 @@ class NumberControl : public NumberControlBase {
             this->minimum_value = min_value;
             this->maximum_value = max_value;
         };
-        NumberControl(const char* label, DataType *target_variable, DataType start_value, DataType min_value, DataType max_value, void (*on_change_handler)(DataType last_value, DataType new_value)) 
+        NumberControl(const char* label, DataType *target_variable, DataType start_value, DataType min_value, DataType max_value, void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr) 
             : NumberControl(label, start_value, min_value, max_value) {
             this->target_variable = target_variable;
             this->on_change_handler = on_change_handler;
         };
-        NumberControl(const char* label, DataType (*getter)(), void (*setter)(DataType value), DataType min_value, DataType max_value, void (*on_change_handler)(DataType last_value, DataType new_value)) 
+        NumberControl(const char* label, DataType (*getter)(), void (*setter)(DataType value), DataType min_value, DataType max_value, void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr) 
             : NumberControl(label) {
             this->getter = getter;
             this->setter = setter;
