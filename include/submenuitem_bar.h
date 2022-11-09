@@ -1,3 +1,5 @@
+#ifndef SUBMENUTITEMBAR__INCLUDED
+#define SUBMENUTITEMBAR__INCLUDED
 #include "submenuitem.h"
 
 // originally adapted from ParameterMenuItem
@@ -107,3 +109,5 @@ class SubMenuItemBar : public SubMenuItem {
         return y;
     }
 };
+
+#endif

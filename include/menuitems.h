@@ -98,13 +98,13 @@ class MenuItem {
             }
         }
         
-        virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false) {
+        virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false, int textSize = 0) {
             if (!this->show_header) return pos.y;
 
             tft->drawLine(pos.x, pos.y, tft->width(), pos.y, this->default_fg);
             tft->setCursor(pos.x, pos.y+1);
             colours(selected, this->default_fg, this->default_bg);
-            tft->setTextSize(0);
+            tft->setTextSize(textSize);
             if (opened) {
                 //tft->print(">>>");
                 //tft->printf((char*)"%-19s",(char*)text);   // \n not needed as reaching to edge
@@ -261,13 +261,13 @@ class ActionConfirmItem : public ActionItem {
     }
 
     virtual int display(Coord pos, bool selected, bool opened) override {
-        if (opened)
-            pos.y = header("??? Sure ???", pos, selected, opened);
-        else
-            pos.y = header(button_label, pos, selected, opened);
-        tft->setCursor(pos.x,pos.y);
-        tft->setTextSize(1);
+        const char *text_to_render = opened ? "??? Sure ???" : button_label;
 
+        int textSize = ((int)strlen(text_to_render)*tft->characterWidth() < tft->width()/2 );
+        pos.y = header(text_to_render, pos, selected, opened, textSize);
+
+        //tft->setCursor(pos.x,pos.y);
+        //tft->setTextSize(textSize);
         colours(opened, opened ? GREEN : this->default_fg, this->default_bg);
 
         return tft->getCursorY();
