@@ -15,7 +15,8 @@ class ObjectNumberControl : public NumberControl<DataType> {
                         TargetClass *target_object, 
                         void(TargetClass::*setter_func)(DataType), 
                         DataType(TargetClass::*getter_func)(), 
-                        void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr
+                        void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr,
+                        bool go_back_on_select = false
                 ) : NumberControl<DataType>(label) {
         this->target_object = target_object;
         this->getter = getter_func;
@@ -23,6 +24,7 @@ class ObjectNumberControl : public NumberControl<DataType> {
         this->on_change_handler = on_change_handler;
         this->minimum_value = 0;
         this->maximum_value = 100;
+        this->go_back_on_select = go_back_on_select;
 
         if (this->target_object!=nullptr && this->getter!=nullptr) 
             this->set_internal_value( (this->target_object->*getter)() );
@@ -33,8 +35,9 @@ class ObjectNumberControl : public NumberControl<DataType> {
                         DataType(TargetClass::*getter_func)(), 
                         void (*on_change_handler)(DataType last_value, DataType new_value),
                         DataType minimum_value,
-                        DataType maximum_value
-                ) : ObjectNumberControl<TargetClass,DataType>(label, target_object, setter_func, getter_func, on_change_handler) {
+                        DataType maximum_value,
+                        bool go_back_on_select = false
+                ) : ObjectNumberControl<TargetClass,DataType>(label, target_object, setter_func, getter_func, on_change_handler, go_back_on_select) {
         this->minimum_value = minimum_value;
         this->maximum_value = maximum_value;
     }
@@ -191,7 +194,6 @@ class ObjectActionItem : public MenuItem {
             this->setter2 = setter;
         }
 
-
     ObjectActionItem(const char *label, TargetClass *target_object, setter_def setter, getter_def getter, const char *button_label_true, const char *button_label_false = nullptr) 
         : ObjectActionItem(label, target_object, setter) {
         this->getter = getter;
@@ -222,8 +224,10 @@ class ObjectActionItem : public MenuItem {
         } else {
             button_label = label;
         }
-        int y = header(button_label, Coord(this->tft->getCursorX(), this->tft->getCursorY()), selected, opened);
-
+        //int y = header(button_label, Coord(this->tft->getCursorX(), this->tft->getCursorY()), selected, opened);
+        colours(selected);
+        tft->println(button_label);
+        const int y = tft->getCursorY();
         return y;
     }
 

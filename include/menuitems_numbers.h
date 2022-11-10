@@ -238,7 +238,8 @@ class NumberControl : public NumberControlBase {
         }
 
         virtual void decrease_value() {
-            this->set_internal_value(get_internal_value() - this->step);
+            if (this->get_internal_value()!=this->minimum_value)    // so that unsigned datatypes don't wrap back around when they try to go below 0
+                this->set_internal_value(get_internal_value() - this->step);
         }
         virtual void increase_value() {
             this->set_internal_value(get_internal_value() + this->step);
