@@ -103,7 +103,7 @@ class SubMenuItemBar : public SubMenuItem {
         if (this->debug) Serial.printf("\tdoing renderValue at %i,%i\n", x, y);
 
         // actually render the item
-        y = ctrl->renderValue(outer_selected || is_selected, is_opened, max_display_width); //width/width_in_chars);
+        y = ctrl->renderValue(/*outer_selected ||*/ is_selected, is_opened, max_display_width); //width/width_in_chars);
 
         if (this->debug) Serial.printf("\tend of small_display, returning y=%i\n", y);
         return y;

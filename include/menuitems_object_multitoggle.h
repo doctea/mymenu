@@ -66,8 +66,6 @@ class ObjectMultiToggleControl : public MenuItem {
         bool all_status = false;    // current status of the 'all' toggle
         
         int initial_on_count = 0;
-        const char *label_on    = "On";
-        const char *label_off   = "Off";
         
         LinkedList<MultiToggleItemBase*> items = LinkedList<MultiToggleItemBase*>();
 
@@ -113,7 +111,8 @@ class ObjectMultiToggleControl : public MenuItem {
 
             int effectively_selected = 0;
 
-            const char *all_label = all_status ? "[*]" : "[-]"; //"[ALL]";
+            //const char *all_label = all_status ? "[*]" : "[-]"; //"[ALL]";
+            const char *all_label = all_status ? "*" : "-"; //"[ALL]";
 
             if (all_option) {
                 effectively_selected = currently_selected - 1;
@@ -143,6 +142,8 @@ class ObjectMultiToggleControl : public MenuItem {
                 char tmp[width_per_item+1];
                 int last_length = max(1,width_per_item-1);
                 for (uint32_t segment_start = 0 ; segment_start < strlen(item->label) ; segment_start += last_length) {
+                    if (item->label[segment_start]==' ' && last_length>1)   // if the first character is a space, and column is wider than 1, skip the space to improve alignment
+                        segment_start++;
                     strncpy(tmp, &item->label[segment_start], last_length);
                     last_length = min(last_length, strlen(tmp));
                     tft->setCursor(x, tft->getCursorY());

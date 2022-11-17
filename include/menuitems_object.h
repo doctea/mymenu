@@ -142,7 +142,7 @@ class ObjectToggleControl : public MenuItem {
         virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
             const char *txt = (this->target_object->*getter)() ? "On" : "Off";
             bool use_small = strlen(txt) <= (max_character_width/2);
-            byte textSize = use_small ? 2 : 1;
+            int textSize = use_small ? 2 : 1;
             //if (this->debug) Serial.printf(F("%s:\trenderValue '%s' (len %i) with max_character_width %i got textSize %i\n"), this->label, txt, strlen(txt), max_character_width/2, textSize);
             tft->setTextSize(textSize);
             tft->println(txt);
@@ -219,13 +219,19 @@ class ObjectActionItem : public MenuItem {
         if (this->getter!=nullptr && this->button_label_true[0]) {
             button_label = (this->target_object->*getter)() ? this->button_label_true : this->button_label_false;
         } else if (button_label_false[0]) {
-            Serial.printf("%s: rendering button_label_false '%s'\n", this->label, this->button_label_false);
+            //Serial.printf(F("%s: rendering button_label_false '%s'\n"), this->label, this->button_label_false);
             button_label = this->button_label_false;
         } else {
             button_label = label;
         }
         //int y = header(button_label, Coord(this->tft->getCursorX(), this->tft->getCursorY()), selected, opened);
-        colours(selected);
+        //colours(selected);
+
+        // determine size font to use
+        bool use_small = strlen(button_label) <= (max_character_width/2);
+        int textSize = use_small ? 2 : 1;
+        tft->setTextSize(textSize);
+
         tft->println(button_label);
         const int y = tft->getCursorY();
         return y;
@@ -271,24 +277,21 @@ class ObjectActionConfirmItem : public ObjectActionItem<TargetClass> {
         this->go_back_on_select = true;
     };
 
-    virtual int display(Coord pos, bool selected, bool opened) override {
-        this->tft->setCursor(pos.x, pos.y);
-        return this->renderValue(selected, opened, MENU_C_MAX);
-    }
-
-    virtual int renderValue(bool selected, bool opened, uint16_t character_width_max) override {
+    virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
         //Serial.println("ObjectActionConfirmItem#renderValue..");
-        int y = 0;
-        if (opened)
-            y = this->header("??? Sure ???", Coord(this->tft->getCursorX(),this->tft->getCursorY()), selected, opened);
-        else
-            y = this->header(this->label, Coord(this->tft->getCursorX(),this->tft->getCursorY()), selected, opened);
-        //this->tft->setCursor(pos.x,pos.y);
-        //this->tft->setTextSize(1);
-        //this->colours(opened, opened ? GREEN : C_WHITE, BLACK);
+        const char *button_label = opened ? "??? Sure ???" : this->label;
 
-        //Serial.println("ObjectActionConfirmItem#renderValue returning");
-        return y; //this->tft->getCursorY(); // + this->tft->getRowHeight();
+        //this->colours(selected);
+
+        // determine size font to use
+        bool use_small = strlen(button_label) <= (max_character_width/2);
+        int textSize = use_small ? 2 : 1;
+        this->tft->setTextSize(textSize);
+
+        this->tft->println(button_label);
+
+        const int y = this->tft->getCursorY();
+        return y;
     }
 
     virtual bool action_opened() override {

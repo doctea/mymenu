@@ -91,13 +91,7 @@ class NumberControl : public NumberControlBase {
             return fmt;
         }*/
         virtual const char *getFormattedValue(bool value) {
-            /*static char fmt[15] = "      ";
-            if (this->debug)
-                sprintf(fmt, "%s [bool]", value?"On":"Off");
-            else
-                sprintf(fmt, "%s", value?"On":"Off");
-            return fmt;*/
-            return value?"On":"Off";
+            return value ? this->label_on : this->label_off;
         }
         virtual const char *getFormattedValue(int value) {
             static char fmt[15] = "      ";
