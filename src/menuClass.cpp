@@ -86,7 +86,7 @@ int Menu::display() {
                 adj_y += panel_bottom[i];
                 Serial.printf(F("item %i accumulated height %i trying to fit into %i\n"), i, adj_y, tft->height());
                 if (target_y - adj_y < tft->height()) {
-                    Serial.println("\tyes!");
+                    Serial.println(F("\tyes!"));
                     start_panel = i;
                     break;
                 }                

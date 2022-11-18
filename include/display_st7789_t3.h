@@ -46,13 +46,13 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
     }
 
     virtual void setup() {
-        Serial.println("steensy setup().."); Serial.flush();
+        Serial.println(F("steensy setup()..")); Serial.flush();
         tft->init(135, 240);           // Init ST7789 240x135
         tft->fillScreen(ST77XX_BLACK);
         tft->setTextWrap(false);
-        tft->println("DisplayTranslator init()!");
-        Serial.println("did init()"); Serial.flush();
-        Serial.println("did fillscreen()"); Serial.flush();
+        tft->println(F("DisplayTranslator init()!"));
+        Serial.println(F("did init()")); Serial.flush();
+        Serial.println(F("did fillscreen()")); Serial.flush();
         delay(500);
         // large block of text
         //testdrawtext("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa, fringilla sed malesuada et, malesuada sit amet turpis. Sed porttitor neque ut ante pretium vitae malesuada nunc bibendum. Nullam aliquet ultrices massa eu hendrerit. Ut sed nisi lorem. In vestibulum purus a tortor imperdiet posuere. ", ST77XX_WHITE);
