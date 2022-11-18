@@ -4,14 +4,14 @@
 template<class TargetClass, class DataType>
 class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
 
+    public:
+    
     struct option {
         DataType value;
         const char *label;
     };
 
-    public:
-    
-    LinkedList<option> *available_values = new LinkedList<option>();
+    LinkedList<option> *available_values = nullptr; //new LinkedList<option>();
 
     ObjectSelectorControl(
         const char* label, 
@@ -20,7 +20,8 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
         DataType(TargetClass::*getter_func)(), 
         void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr
     ) : ObjectNumberControl<TargetClass,DataType>(label, target_object, setter_func, getter_func, on_change_handler) {
-        this->set_internal_value (this->get_index_for_value( (this->target_object->*this->getter)() ));
+        if (this->target_object!=nullptr && this->getter!=nullptr)
+            this->set_internal_value (this->get_index_for_value( (this->target_object->*this->getter)() ));
         //this->debug = true;
     }
 
@@ -30,12 +31,16 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
     }
 
     virtual void add_available_value(DataType value, const char *label) {
+        if (this->available_values == nullptr) 
+            available_values = new LinkedList<option>();
         available_values->add(option { .value = value, .label = label });
         this->minimum_value = 0;
         this->maximum_value = available_values->size() - 1;
     }
 
     virtual int get_index_for_value(DataType value) {
+        if (this->available_values == nullptr) return 0;
+
         const int size = available_values->size();
 
         for (int i = 0 ; i < size ; i++) {
@@ -47,6 +52,8 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
         return -1;
     }
     virtual const DataType get_value_for_index(int index) {
+        if (this->available_values == nullptr) return 0;
+
         if (index<0 || index>=available_values->size())
             return 0;
         //Serial.printf("get_value_for_index(%i) returning %i\n", index, available_values.get(index).value);
@@ -60,6 +67,7 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
         return this->get_label_for_index(index);
     }
     virtual const char*get_label_for_index(int index) {
+        if (this->available_values == nullptr) return 0;
         if (index<0 || index>=available_values->size())
             return "N/A";
         //Serial.printf("get_label_for_index(%i) returning '%s'\n", index, available_values.get(index).label);
