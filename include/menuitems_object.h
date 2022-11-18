@@ -98,6 +98,7 @@ class ObjectNumberControl : public NumberControl<DataType> {
         }
         //if (this->debug) { Serial.println(F("Done.")); Serial.flush(); }
     }
+
 };
 
 

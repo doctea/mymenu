@@ -17,9 +17,9 @@ class SubMenuItemBar : public SubMenuItem {
     }
 
     virtual int display(Coord pos, bool selected, bool opened) override {
-        if (this->debug) Serial.printf("Start of display in SubMenuItemBar, passed in %i,%i\n", pos.x, pos.y);
+        if (this->debug) Serial.printf(F("Start of display in SubMenuItemBar, passed in %i,%i\n"), pos.x, pos.y);
         pos.y = header(label, pos, selected, opened);
-        if (this->debug) Serial.printf("\tafter header, y=%i\n", pos.y);
+        if (this->debug) Serial.printf(F("\tafter header, y=%i\n"), pos.y);
         tft->setCursor(pos.x, pos.y);
         //tft->setTextSize(1);
         colours(opened, opened ? GREEN : this->default_fg, this->default_bg);
@@ -29,7 +29,7 @@ class SubMenuItemBar : public SubMenuItem {
 
         // draw all the sub-widgets
         int width_per_item = this->tft->width() / (this->items->size() /*+1*/);
-        if (this->debug) Serial.printf("display in SubMenuItemBar got width_per_item=%i\tfrom tftwidth\t%i / itemsize\t%i\n", width_per_item, this->tft->width(), this->items->size());
+        if (this->debug) Serial.printf(F("display in SubMenuItemBar got width_per_item=%i\tfrom tftwidth\t%i / itemsize\t%i\n"), width_per_item, this->tft->width(), this->items->size());
         for (int item_index = 0 ; item_index < this->items->size() ; item_index++) {
             int temp_y = this->small_display(
                 item_index, 
@@ -47,12 +47,12 @@ class SubMenuItemBar : public SubMenuItem {
         tft->setTextColor(this->default_fg, this->default_bg);
         tft->setTextSize(0);
 
-        if (this->debug) Serial.printf("End of display, y=%i\n--------\n", finish_y);
+        if (this->debug) Serial.printf(F("End of display, y=%i\n--------\n"), finish_y);
         return finish_y;//tft->getCursorY();
     }
 
     virtual int small_display(int index, int x, int y, int width_in_pixels, bool is_selected, bool is_opened, bool outer_selected) {
-        if (this->debug) Serial.printf("\tSubMenuItemBar: start of small_display for index %i, passed in x,y=%i,%i and width=%i\n", index, x, y, width_in_pixels);
+        if (this->debug) Serial.printf(F("\tSubMenuItemBar: start of small_display for index %i, passed in x,y=%i,%i and width=%i\n"), index, x, y, width_in_pixels);
 
         MenuItem *ctrl = items->get(index);
         int character_width_in_pixels = tft->characterWidth(); // presumed font width
@@ -82,11 +82,11 @@ class SubMenuItemBar : public SubMenuItem {
         //Serial.printf("(width_in_pixels %i/character_width_in_pixels %i) = %i\n", width_in_pixels, character_width_in_pixels, max_display_width);
         // prepare label header format
         sprintf(fmt, "%%-%is\n", max_display_width);    // becomes eg "%-6s\n"
-        if (this->debug) Serial.printf("\tGot format '%s'\n", fmt);
+        //if (this->debug) Serial.printf("\tGot format '%s'\n", fmt);
 
         // print label header
         if (this->show_sub_headers) {
-            if (this->debug) Serial.printf("\tdrawing header at %i,%i\n", x, y);
+            //if (this->debug) Serial.printf("\tdrawing header at %i,%i\n", x, y);
             tft->setCursor(x, y);
             colours(is_selected, is_opened ? GREEN : colour, ctrl->default_bg);
             tft->setTextSize(0);
@@ -95,17 +95,20 @@ class SubMenuItemBar : public SubMenuItem {
             tft->printf(fmt, ctrl->label);
             //y = tft->getCursorY();
             y += tft->getRowHeight();
-            if (this->debug) Serial.printf("\t bottom of header is %i\n", y);
+            //if (this->debug) Serial.printf("\t bottom of header is %i\n", y);
         }
 
         // get position ready for value
         tft->setCursor(x, y);   // reset cursor to underneath the label
-        if (this->debug) Serial.printf("\tdoing renderValue at %i,%i\n", x, y);
+        /*if (this->debug) {
+            Serial.printf("\tdoing renderValue at %i,%i on @%p\n", x, y, ctrl);
+            Serial.printf("\taka '%s'\n", ctrl->label);
+        }*/
 
         // actually render the item
         y = ctrl->renderValue(/*outer_selected ||*/ is_selected, is_opened, max_display_width); //width/width_in_chars);
 
-        if (this->debug) Serial.printf("\tend of small_display, returning y=%i\n", y);
+        //if (this->debug) Serial.printf("\tend of small_display, returning y=%i\n", y);
         return y;
     }
 };
