@@ -54,7 +54,13 @@ int Menu::display() {
         tft->println("");
 
     } else {
-        static int panel_bottom[MENU_MAX_PANELS];
+        static bool first_display = true;
+        static int *panel_bottom = nullptr;
+        if (first_display) {
+            panel_bottom = malloc(this->get_num_panels() * sizeof(int));
+            first_display = false;
+        }
+        //static int panel_bottom[MENU_MAX_PANELS];
         static bool bottoms_computed = false;
 
         // find number of panels to offset in order to ensure that selected panel is on screen?

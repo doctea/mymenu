@@ -13,9 +13,9 @@ class Coord {
 #include "mymenu.h"
 #include "menu_io.h"
 
-#ifndef MENU_MAX_PANELS
+/*#ifndef MENU_MAX_PANELS
     #define MENU_MAX_PANELS 50
-#endif
+#endif*/
 
 //extern Menu menu;
 //void setup_display();
@@ -38,11 +38,6 @@ class Menu {
     LinkedList<MenuItem*> *items = nullptr; //LinkedList<MenuItem*>();
 
     PinnedPanelMenuItem *pinned_panel = nullptr;
-
-    int panel_height[MENU_MAX_PANELS];/* = { 0, 0, 0, 0, 0, 
-                             0, 0, 0, 0, 0, 
-                             0, 0, 0, 0, 0,
-                             0, 0, 0, 0, 0 };*/
 
     int last_knob_position = -1;
     int button_count = 0;
@@ -186,6 +181,10 @@ class Menu {
                 Serial.printf(F("right with nothing currently_opened\n")); //setting to -1\n", currently_opened);
             }
             return true;
+        }
+
+        FLASHMEM int get_num_panels() {
+            return this->items->size();
         }
 
         char last_message[MENU_C_MAX] = "...started up...";
