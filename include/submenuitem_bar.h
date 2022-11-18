@@ -16,6 +16,10 @@ class SubMenuItemBar : public SubMenuItem {
         return false;
     }
 
+    virtual inline int get_max_pixel_width(int item_number) {
+        return this->tft->width() / (this->items->size() /*+1*/);
+    }
+
     virtual int display(Coord pos, bool selected, bool opened) override {
         if (this->debug) Serial.printf(F("Start of display in SubMenuItemBar, passed in %i,%i\n"), pos.x, pos.y);
         pos.y = header(label, pos, selected, opened);
@@ -29,17 +33,20 @@ class SubMenuItemBar : public SubMenuItem {
 
         // draw all the sub-widgets
         int width_per_item = this->tft->width() / (this->items->size() /*+1*/);
+        int start_x = 0;
         if (this->debug) Serial.printf(F("display in SubMenuItemBar got width_per_item=%i\tfrom tftwidth\t%i / itemsize\t%i\n"), width_per_item, this->tft->width(), this->items->size());
         for (int item_index = 0 ; item_index < this->items->size() ; item_index++) {
+            const int width = this->get_max_pixel_width(item_index);
             int temp_y = this->small_display(
                 item_index, 
-                item_index * width_per_item, 
+                start_x, 
                 start_y, 
-                width_per_item, 
+                width, //width_per_item, 
                 this->currently_selected==item_index, 
                 this->currently_opened==item_index,
                 !opened && selected
             );
+            start_x += width;
             if (temp_y>finish_y)
                 finish_y = temp_y;
         }
