@@ -57,7 +57,7 @@ int Menu::display() {
         static bool first_display = true;
         static int *panel_bottom = nullptr;
         if (first_display) {
-            panel_bottom = malloc(this->get_num_panels() * sizeof(int));
+            panel_bottom = (int*)malloc(this->get_num_panels() * sizeof(int));
             first_display = false;
         }
         //static int panel_bottom[MENU_MAX_PANELS];
@@ -163,13 +163,15 @@ int Menu::display() {
         bottoms_computed = true;
 
         // control debug output (knob positions / button presses)
-        tft->setCursor(0, y);
-        tft->setTextColor(C_WHITE, BLACK);
-        //tft->println();
-        tft->setTextSize(2);
-        tft->printf("K:%2i B:%2i\n", last_knob_position, button_count);
-        tft->printf("S:%2i O:%2i\n", currently_selected, currently_opened);
-        tft->printf("Mem:%i\n"), freeRam();
+        if (y < tft->height()) {
+            tft->setCursor(0, y);
+            tft->setTextColor(C_WHITE, BLACK);
+            //tft->println();
+            tft->setTextSize(2);
+            //tft->printf("K:%2i B:%2i\n", last_knob_position, button_count);
+            //tft->printf("S:%2i O:%2i\n", currently_selected, currently_opened);
+            tft->printf("Mem: %i\n"), freeRam();
+        }
         if (debug) { Serial.println(F("Done in main draw part")); Serial.flush(); }
     }
 
