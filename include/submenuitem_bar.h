@@ -37,7 +37,7 @@ class SubMenuItemBar : public SubMenuItem {
         if (this->debug) Serial.printf(F("display in SubMenuItemBar got width_per_item=%i\tfrom tftwidth\t%i / itemsize\t%i\n"), width_per_item, this->tft->width(), this->items->size());
         for (int item_index = 0 ; item_index < this->items->size() ; item_index++) {
             const int width = this->get_max_pixel_width(item_index);
-            int temp_y = this->small_display(
+            const int temp_y = this->small_display(
                 item_index, 
                 start_x, 
                 start_y, 

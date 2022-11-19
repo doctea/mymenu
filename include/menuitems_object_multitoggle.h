@@ -140,8 +140,8 @@ class ObjectMultiToggleControl : public MenuItem {
 
                 // segment the label of the item up over multiple lines of `width_per_item` chars each
                 char tmp[width_per_item+1];
-                int last_length = max(1,width_per_item-1);
-                for (uint32_t segment_start = 0 ; segment_start < strlen(item->label) ; segment_start += last_length) {
+                unsigned int last_length = max(1,width_per_item-1);
+                for (unsigned int segment_start = 0 ; segment_start < strlen(item->label) ; segment_start += last_length) {
                     if (item->label[segment_start]==' ' && last_length>1)   // if the first character is a space, and column is wider than 1, skip the space to improve alignment
                         segment_start++;
                     strncpy(tmp, &item->label[segment_start], last_length);
@@ -149,7 +149,8 @@ class ObjectMultiToggleControl : public MenuItem {
                     tft->setCursor(x, tft->getCursorY());
                     tmp[last_length] = '\0';
                     //Serial.printf("got '%s'\n", tmp);
-                    tft->printf("%s\n", tmp);
+                    //tft->printf("%s\n", tmp);
+                    tft->println(tmp);
                 }
  
                 // remember how far down the screen we've drawn
@@ -173,7 +174,7 @@ class ObjectMultiToggleControl : public MenuItem {
             int effectively_selected = all_option ? currently_selected-1 : currently_selected;
             MultiToggleItemBase *item = this->items.get(effectively_selected);
             if (item->do_getter()!=this->held_mode) {
-                Serial.printf("update_held setting %i on %i\n", this->held_mode, effectively_selected);
+                //Serial.printf("update_held setting %i on %i\n", this->held_mode, effectively_selected);
                 item->do_setter(this->held_mode);
             }
         }
