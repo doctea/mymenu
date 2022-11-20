@@ -226,7 +226,7 @@ class ObjectActionItem : public MenuItem {
             button_label = label;
         }
         //int y = header(button_label, Coord(this->tft->getCursorX(), this->tft->getCursorY()), selected, opened);
-        //colours(selected);
+        colours(selected);
 
         // determine size font to use
         bool use_small = strlen(button_label) <= (max_character_width/2);

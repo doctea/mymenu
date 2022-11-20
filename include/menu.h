@@ -211,6 +211,7 @@ class Menu {
         FLASHMEM void add(LinkedList<MenuItem *> *items, int16_t default_fg_colour = C_WHITE) {
             for (int i = 0 ; i < items->size() ; i++) {
                 items->get(i)->set_default_colours(default_fg_colour, BLACK);
+                //Serial.printf("setting default_fg_colour %04X on %s\n", default_fg_colour, items->get(i)->label);
                 this->add(items->get(i));
             }
         }
