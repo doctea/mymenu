@@ -33,11 +33,27 @@ FLASHMEM void setup_menu();
     extern char *__brkval;
 #endif
 
+#define MAX_PAGE_TITLE 10
+struct page_t {
+    const char *title = "Default"; //[MAX_PAGE_TITLE];
+    uint16_t colour = C_WHITE;
+    int currently_selected = -1;
+    int currently_opened = -1;
+    int *panel_bottom = nullptr;
+    int num_panels = 0;
+    LinkedList<MenuItem*> *items = nullptr;
+};
 
 class Menu {
-    int currently_selected  = -1;
-    int currently_opened    = -1;
-    LinkedList<MenuItem*> *items = nullptr; //LinkedList<MenuItem*>();
+    //int currently_selected  = -1;
+    //int currently_opened    = -1;
+
+    //LinkedList<MenuItem*> *items = nullptr; //LinkedList<MenuItem*>();
+
+    int opened_page_index = -1;
+    int selected_page_index = 0;
+    page_t *selected_page = nullptr;
+    LinkedList<page_t*> *pages = nullptr;
 
     PinnedPanelMenuItem *pinned_panel = nullptr;
 
@@ -63,7 +79,7 @@ class Menu {
         int mode = NORMAL;
 
         bool is_opened() {
-            return this->currently_opened!=-1;
+            return this->selected_page->currently_opened!=-1;
         }
         
         // input-handling stuff
@@ -83,101 +99,120 @@ class Menu {
         }
         bool knob_left() {
             Serial.println(F("knob_left()"));
-            if (currently_opened!=-1) { // && items->get(currently_opened)->knob_left()) {
-                Serial.printf(F("knob_left on currently_opened menuitem %i\n"), currently_opened);
-                items->get(currently_opened)->knob_left();
+            if (opened_page_index==-1) {
+                selected_page_index--;
+                if (selected_page_index<0)
+                    selected_page_index = pages->size() - 1;
+                select_page(selected_page_index);
+            } else if (selected_page->currently_opened!=-1) { // && items->get(currently_opened)->knob_left()) {
+                Serial.printf(F("knob_left on currently_opened menuitem %i\n"), selected_page->currently_opened);
+                selected_page->items->get(selected_page->currently_opened)->knob_left();
             } else {
-                currently_selected--;
-                if (currently_selected<0) 
-                    currently_selected = items->size()-1;
-                Serial.printf(F("selected %i aka %s\n"), currently_selected, items->get(currently_selected)->label);
-                if (currently_selected>=0 && currently_selected < items->size() && !items->get(currently_selected)->is_selectable()) {
+                selected_page->currently_selected--;
+                if (selected_page->currently_selected<0) 
+                    selected_page->currently_selected = selected_page->items->size()-1;
+                Serial.printf(F("selected %i aka %s\n"), selected_page->currently_selected, selected_page->items->get(selected_page->currently_selected)->label);
+                if (selected_page->currently_selected>=0 && selected_page->currently_selected < selected_page->items->size() && !selected_page->items->get(selected_page->currently_selected)->is_selectable()) {
                     //Serial.println("?? extra knob_left because isn't selectable");
                     knob_left();
                 }
             }
             if (debug) {
                 char msg[tft->get_c_max()] = "";
-                sprintf(msg, "knob_left to %i", currently_selected);
+                sprintf(msg, "knob_left to %i", selected_page->currently_selected);
                 set_last_message(msg);
             }
             return true;
         }
         bool knob_right() {
             Serial.println(F("knob_right()"));
-            if (currently_opened!=-1) { //&& items->get(currently_opened)->knob_right()) {
-                Serial.printf(F("knob_right on currently_opened menuitem %i\n"), currently_opened);
-                items->get(currently_opened)->knob_right();
+            if (opened_page_index==-1) {
+                selected_page_index++;
+                if (selected_page_index>=pages->size())
+                    selected_page_index = 0;
+                select_page(selected_page_index);
+            } else if (selected_page->currently_opened!=-1) { //&& items->get(currently_opened)->knob_right()) {
+                Serial.printf(F("knob_right on currently_opened menuitem %i\n"), selected_page->currently_opened);
+                selected_page->items->get(selected_page->currently_opened)->knob_right();
             } else {
-                currently_selected++;
-                if (currently_selected >= items->size())
-                    currently_selected = 0;
-                Serial.printf(F("selected %i aka %s\n"), currently_selected, items->get(currently_selected)->label);
-                if (currently_selected>=0 && currently_selected < items->size() && !items->get(currently_selected)->is_selectable()) {
+                selected_page->currently_selected++;
+                if (selected_page->currently_selected >= selected_page->items->size())
+                    selected_page->currently_selected = 0;
+                Serial.printf(F("selected %i aka %s\n"), selected_page->currently_selected, selected_page->items->get(selected_page->currently_selected)->label);
+                if (selected_page->currently_selected>=0 && selected_page->currently_selected < selected_page->items->size() && !selected_page->items->get(selected_page->currently_selected)->is_selectable()) {
                     //Serial.println("?? extra knob_right because isn't selectable");
                     knob_right();
                 }
             }
             if (debug) {
                 char msg[tft->get_c_max()] = "";
-                sprintf(msg, "knob_left to %i", currently_selected);
+                sprintf(msg, "knob_left to %i", selected_page->currently_selected);
                 set_last_message(msg);
             }
 
             return true;
         }
         bool button_select() {
-            Serial.printf(F("Menu#button_select() on item %i\n"), currently_selected);
-            if (currently_opened==-1) {
-                Serial.printf(F("button_select with currently_opened menuitem -1 - opening %i\n"), currently_selected);
-                if (items->get(currently_selected)->action_opened()) {
-                    currently_opened = currently_selected;
+            Serial.printf(F("Menu#button_select() on item %i\n"), selected_page->currently_selected);
+            if (opened_page_index==-1) {
+                opened_page_index = selected_page_index;
+            } else if (selected_page->currently_opened==-1) {
+                Serial.printf(F("button_select with currently_opened menuitem -1 - opening %i\n"), selected_page->currently_selected);
+                if (selected_page->items->get(selected_page->currently_selected)->action_opened()) {
+                    selected_page->currently_opened = selected_page->currently_selected;
                     return false;
                 }
             } else {
-                Serial.printf(F("Menu#button_select() subselecting already-opened %i (%s)\n"), currently_opened, items->get(currently_opened)->label);
-                if (items->get(currently_opened)->button_select()) 
+                Serial.printf(F("Menu#button_select() subselecting already-opened %i (%s)\n"), selected_page->currently_opened, selected_page->items->get(selected_page->currently_opened)->label);
+                if (selected_page->items->get(selected_page->currently_opened)->button_select()) 
                     button_back();
             } 
             return true;
         }
         bool button_select_released() {
-            Serial.printf(F("Menu#button_select_released() on item %i\n"), currently_selected);
-            if (currently_opened==-1) {
+            Serial.printf(F("Menu#button_select_released() on item %i\n"), selected_page->currently_selected);
+            if (opened_page_index==-1) {
+                // do nothing?
+            } else if (selected_page->currently_opened==-1) {
                 /*Serial.printf(F("button_select_released with currently_opened menuitem -1 - opening %i\n"), currently_selected);
                 if (items->get(currently_selected)->action_opened()) {
                     currently_opened = currently_selected;
                     return false;
                 }*/
             } else {
-                Serial.printf(F("Menu#button_select_released() subselecting already-opened %i (%s)\n"), currently_opened, items->get(currently_opened)->label);
-                if (items->get(currently_opened)->button_select_released()) 
+                Serial.printf(F("Menu#button_select_released() subselecting already-opened %i (%s)\n"), selected_page->currently_opened, selected_page->items->get(selected_page->currently_opened)->label);
+                if (selected_page->items->get(selected_page->currently_opened)->button_select_released()) 
                     button_back();
             } 
             return true;
         }
         bool button_back() {
             Serial.println(F("button_back()"));
-            if (currently_opened!=-1 && !items->get(currently_opened)->button_back()) {
-                Serial.printf(F("back with currently_opened menuitem %i and no subhandling, setting to -1\n"), currently_opened);
-                currently_selected = currently_opened;
-                currently_opened = -1;
-            } else if (currently_opened==-1) {
-                Serial.printf(F("back pressed but already at top level with currently_opened menuitem %i\n"), currently_opened); //setting to -1\n", currently_opened);
-                currently_selected = 0;
+            if (opened_page_index==-1) {
+                // do nothing?
+            } else if (selected_page->currently_opened!=-1 && !selected_page->items->get(selected_page->currently_opened)->button_back()) {
+                Serial.printf(F("back with currently_opened menuitem %i and no subhandling, setting to -1\n"), selected_page->currently_opened);
+                selected_page->currently_selected = selected_page->currently_opened;
+                selected_page->currently_opened = -1;
+            } else if (selected_page->currently_opened==-1) {
+                Serial.printf(F("back pressed but already at top level with currently_opened menuitem %i\n"), selected_page->currently_opened); //setting to -1\n", currently_opened);
+                selected_page->currently_selected = -1;
+                opened_page_index = -1;
             } else {
-                Serial.printf(F("back with currently_opened menuitem %i, handled by selected\n"), currently_opened); //setting to -1\n", currently_opened);
+                Serial.printf(F("back with currently_opened menuitem %i, handled by selected\n"), selected_page->currently_opened); //setting to -1\n", currently_opened);
             }
             tft->clear(true);   // TOOD: don't rely on this
             return true;
         }
         bool button_right() {
             Serial.println(F("button_right()"));
-            if (currently_opened!=-1) {
-                if (items->get(currently_opened)->button_right()) {
-                    Serial.printf(F("right with currently_opened menuitem %i subhandled!\n"), currently_opened);
+            if (opened_page_index==-1) {
+                opened_page_index = selected_page_index;
+            } else if (selected_page->currently_opened!=-1) {
+                if (selected_page->items->get(selected_page->currently_opened)->button_right()) {
+                    Serial.printf(F("right with currently_opened menuitem %i subhandled!\n"), selected_page->currently_opened);
                 } else {
-                    Serial.printf(F("right with currently_opened menuitem %i not subhandled!\n"), currently_opened);
+                    Serial.printf(F("right with currently_opened menuitem %i not subhandled!\n"), selected_page->currently_opened);
                 }
             } else {
                 Serial.printf(F("right with nothing currently_opened\n")); //setting to -1\n", currently_opened);
@@ -186,7 +221,7 @@ class Menu {
         }
 
         FLASHMEM int get_num_panels() {
-            return this->items->size();
+            return this->selected_page->items->size();
         }
 
         char last_message[MENU_C_MAX] = "...started up...";
@@ -195,7 +230,21 @@ class Menu {
 
         Menu(DisplayTranslator *dt) {
             this->tft = dt;
-            this->items = new LinkedList<MenuItem*>();
+            //this->items = new LinkedList<MenuItem*>();
+            this->pages = new LinkedList<page_t*>();
+            this->select_page(this->add_page("Main"));
+        }
+
+        //FLASHMEM 
+        int add_page(const char *title, uint16_t colour = C_WHITE) {
+            this->pages->add(new page_t {
+                .title = (new String(title))->c_str(),
+                .colour = C_WHITE
+            });
+            int index = this->pages->size()-1;
+            this->select_page(index);
+            selected_page->items = new LinkedList<MenuItem*>();
+            return index;
         }
 
         FLASHMEM void setup_display() {
@@ -210,6 +259,13 @@ class Menu {
             tft->start();
         }
 
+        void select_page(int p) {
+            this->selected_page_index = p;
+            if (selected_page_index >= pages->size())
+                this->selected_page_index = 0;
+            selected_page = pages->get(selected_page_index);
+        }
+
         FLASHMEM void add(LinkedList<MenuItem *> *items, int16_t default_fg_colour = C_WHITE) {
             for (int i = 0 ; i < items->size() ; i++) {
                 items->get(i)->set_default_colours(default_fg_colour, BLACK);
@@ -217,14 +273,15 @@ class Menu {
                 this->add(items->get(i));
             }
         }
-        #ifndef GDB_DEBUG
+        /*#ifndef GDB_DEBUG
         FLASHMEM 
-        #endif
+        #endif*/
         void add(MenuItem *m) {
+            Serial.printf("Menu page %i, adding item %i: %s\n", selected_page_index, selected_page->items->size(), m->label);
             if (m!=nullptr) {
                 m->tft = this->tft;
                 m->on_add();
-                items->add(m);
+                selected_page->items->add(m);
             } else {
                 Serial.println(F("Passed nullptr to menu#add!"));
             }
@@ -266,8 +323,9 @@ class Menu {
             if (pinned_panel!=nullptr)
                 pinned_panel->update_ticks(ticks);
 
-            for (int i = 0 ; i < this->items->size() ; i++) {
-                this->items->get(i)->update_ticks(ticks);
+            // todo: process all pages?
+            for (int i = 0 ; i < this->selected_page->items->size() ; i++) {
+                this->selected_page->items->get(i)->update_ticks(ticks);
             }
         }
 

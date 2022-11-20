@@ -1,6 +1,8 @@
 #include "menu.h"
 #include "menuitems.h"
 
+#include <LinkedList.h>
+
 #define MAX_KNOB 1024
 
 /*void tft_print(const char *text) {
@@ -15,6 +17,10 @@ int Menu::display() {
     
     if (debug) { Serial.println(F("display()=> about to setTextColor()")); Serial_flush(); }
     tft->setTextColor(C_WHITE, BLACK);
+
+    int currently_opened = selected_page->currently_opened;
+    int currently_selected = selected_page->currently_selected;
+    LinkedList<MenuItem*> *items = selected_page->items;
 
     // now draw the menu
     if (currently_opened>=0 && items->get(currently_opened)->allow_takeover()) {
@@ -55,13 +61,20 @@ int Menu::display() {
 
     } else {
         static bool first_display = true;
-        static int *panel_bottom = nullptr;
-        if (first_display) {
+        //static int *panel_bottom = nullptr;
+        bool bottoms_computed = false;
+        if (selected_page->panel_bottom == nullptr) {
+            selected_page->panel_bottom = (int*)malloc(this->get_num_panels() * sizeof(int));
+        } else {
+            bottoms_computed = true;
+        }
+        int *panel_bottom = selected_page->panel_bottom;
+        /*if (first_display) {
             panel_bottom = (int*)malloc(this->get_num_panels() * sizeof(int));
             first_display = false;
-        }
+        }*/
         //static int panel_bottom[MENU_MAX_PANELS];
-        static bool bottoms_computed = false;
+        //static bool bottoms_computed = false;
 
         // find number of panels to offset in order to ensure that selected panel is on screen?
         int start_panel = 0;
@@ -125,6 +138,28 @@ int Menu::display() {
         if (debug) { Serial.println(F("display()=> about to draw_message()")); Serial_flush(); }
         y = draw_message();
 
+        // draw tabs for pages
+        for (int i = selected_page_index ; i < pages->size() + selected_page_index ; i++) {
+            int ci = i;
+            if (ci >= pages->size()) 
+                ci = ci % pages->size();
+            //int size = pages->size();
+            //if (ci>size) ci = size - selected_page;
+            if (tft->getCursorX() + (tft->characterWidth() * (strlen(pages->get(ci)->title)+1)) >= tft->width()) 
+                break;
+
+            if (i==selected_page_index)
+                tft->setTextColor(BLACK, pages->get(ci)->colour);
+            else
+                tft->setTextColor(pages->get(ci)->colour, BLACK);
+            tft->print(pages->get(ci)->title);
+            tft->setTextColor(tft->rgb(196,196,196), BLACK);
+            tft->print("|");
+            tft->setTextColor(C_WHITE, BLACK);
+        }
+        tft->println();
+        y = tft->getCursorY();
+
         // draw each menu item's panel
         //int start_y = 0;
         for (int i = start_panel ; i < items->size() ; i++) {
@@ -163,7 +198,7 @@ int Menu::display() {
         bottoms_computed = true;
 
         // control debug output (knob positions / button presses)
-        if (y < tft->height()) {
+        /*if (y < tft->height()) {
             tft->setCursor(0, y);
             tft->setTextColor(C_WHITE, BLACK);
             //tft->println();
@@ -171,7 +206,7 @@ int Menu::display() {
             //tft->printf("K:%2i B:%2i\n", last_knob_position, button_count);
             //tft->printf("S:%2i O:%2i\n", currently_selected, currently_opened);
             tft->printf("Mem: %i\n"), freeRam();
-        }
+        }*/
         if (debug) { Serial.println(F("Done in main draw part")); Serial_flush(); }
     }
 
