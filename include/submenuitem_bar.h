@@ -62,9 +62,9 @@ class SubMenuItemBar : public SubMenuItem {
         if (this->debug) Serial.printf(F("\tSubMenuItemBar: start of small_display for index %i, passed in x,y=%i,%i and width=%i\n"), index, x, y, width_in_pixels);
 
         MenuItem *ctrl = items->get(index);
-        int character_width_in_pixels = tft->characterWidth(); // presumed font width
-        char fmt[10];
-
+        const int character_width_in_pixels = tft->characterWidth(); // presumed font width
+        const uint16_t max_display_width = (int)(width_in_pixels/character_width_in_pixels);
+        //Serial.printf("(width_in_pixels %i/character_width_in_pixels %i) = %i\n", width_in_pixels, character_width_in_pixels, max_display_width);
         /*Serial.printf("small_display in %s, item %i (%s), got colour %4x!\n", 
             this->label, 
             index, 
@@ -72,22 +72,10 @@ class SubMenuItemBar : public SubMenuItem {
             ctrl->default_fg
         );*/
 
-        /*uint16_t colour = C_WHITE;
-        if (ctrl->default_fg != colour) {
-            //Serial.printf("ctrl's default_fg of\t%04x doesn't match default white of\t%04x - taking ctrl\n", ctrl->default_fg, colour);
-            colour = ctrl->default_fg;
-        } else {
-            //Serial.printf("ctrl's default_fg of\t%04x matches default white of\t%04x - taking bar\n", ctrl->default_fg, colour);
-            colour = this->default_fg;
-        }*/
         const uint16_t colour = (ctrl->default_fg != C_WHITE) ? ctrl->default_fg : this->default_fg;
-        //Serial.printf("small_display %s\tcolour is\t%04x, bar's colour is\t%04x =>\t%04x\n", ctrl->label, ctrl->default_fg, this->default_fg, colour);
-        //colours(false, colour, ctrl->default_bg);
 
-        const uint16_t max_display_width = (int)(width_in_pixels/character_width_in_pixels);
-        //uint16_t min_display_width = (int)strlen(ctrl->label);
-        //Serial.printf("(width_in_pixels %i/character_width_in_pixels %i) = %i\n", width_in_pixels, character_width_in_pixels, max_display_width);
         // prepare label header format
+        char fmt[10];
         sprintf(fmt, "%%-%is\n", max_display_width);    // becomes eg "%-6s\n"
         //if (this->debug) Serial.printf("\tGot format '%s'\n", fmt);
 
@@ -113,7 +101,7 @@ class SubMenuItemBar : public SubMenuItem {
         }*/
 
         // actually render the item
-        y = ctrl->renderValue(/*outer_selected ||*/ is_selected, is_opened, max_display_width); //width/width_in_chars);
+        y = ctrl->renderValue((!this->show_sub_headers && outer_selected) || is_selected, is_opened, max_display_width); //width/width_in_chars);
 
         //if (this->debug) Serial.printf("\tend of small_display, returning y=%i\n", y);
         return y;
