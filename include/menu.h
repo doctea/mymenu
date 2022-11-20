@@ -10,6 +10,8 @@ class Coord {
         }
 };
 
+#include "debug.h"
+
 #include "mymenu.h"
 #include "menu_io.h"
 
@@ -197,9 +199,9 @@ class Menu {
         }
 
         FLASHMEM void setup_display() {
-            Serial.println(F("setup_display about to do tft->setup()..")); Serial.flush();
+            Serial.println(F("setup_display about to do tft->setup()..")); Serial_flush();
             tft->setup();
-            Serial.println(F("tft->setup() done!")); Serial.flush();
+            Serial.println(F("tft->setup() done!")); Serial_flush();
         }
         #ifndef GDB_DEBUG
         FLASHMEM 

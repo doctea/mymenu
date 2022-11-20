@@ -2,10 +2,10 @@
 
 void tft_print (char *text) {
     Serial.print(text);
-    Serial.flush();
+    Serial_flush();
     menu->tft->print(text);
     Serial.printf("just did tft print '%s'\n", text); 
-    Serial.flush();
+    Serial_flush();
 }
 void tft_clear() {
     menu->tft->clear();

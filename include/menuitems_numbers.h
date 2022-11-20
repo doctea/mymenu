@@ -153,18 +153,18 @@ class NumberControl : public NumberControlBase {
 
         virtual int display(Coord pos, bool selected, bool opened) override {
             /*if (this->debug) {
-                Serial.println(F("NumberControl#display starting!")); Serial.flush();
-                Serial.printf(F("NumberControl#display in %s starting\n"), this->label); Serial.flush();
+                Serial.println(F("NumberControl#display starting!")); Serial_flush();
+                Serial.printf(F("NumberControl#display in %s starting\n"), this->label); Serial_flush();
             }*/
             pos.y = header(label, pos, selected, opened);
-            //if (this->debug) { Serial.println(F("did header")); Serial.flush(); }
+            //if (this->debug) { Serial.println(F("did header")); Serial_flush(); }
             tft->setCursor(pos.x,pos.y);
-            //if (this->debug) { Serial.println(F("did setcursor")); Serial.flush(); }
+            //if (this->debug) { Serial.println(F("did setcursor")); Serial_flush(); }
 
-            //if (this->debug) { Serial.printf(F("NumberControl#display in %s about to do colours...\n"), this->label); Serial.flush(); }
+            //if (this->debug) { Serial.printf(F("NumberControl#display in %s about to do colours...\n"), this->label); Serial_flush(); }
             //colours(opened, opened ? GREEN : C_WHITE, BLACK);
             colours(opened, opened ? GREEN : this->default_fg, this->default_bg);
-            //if (this->debug) { Serial.println("did colours"); Serial.flush(); }
+            //if (this->debug) { Serial.println("did colours"); Serial_flush(); }
 
             // render the value
             this->renderValue(selected, opened, tft->get_c_max()); //, strlen(tmp)<tft->get_c_max()/2);
@@ -185,9 +185,9 @@ class NumberControl : public NumberControlBase {
         virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
             //if (this->debug) Serial.printf(F("\t\trenderValue() in NumberControl with max_character_width %i\n"), max_character_width);
             const char *tmp = opened ? this->getFormattedInternalValue() : this->getFormattedValue();
-            //if (this->debug) { Serial.println("renderValue() did setting tmp"); Serial.flush(); }
+            //if (this->debug) { Serial.println("renderValue() did setting tmp"); Serial_flush(); }
             
-            //if (this->debug) { Serial.printf("NumberControl#renderValue in %s about to do getFormattedValue() ting...\n", this->label); Serial.flush(); }
+            //if (this->debug) { Serial.printf("NumberControl#renderValue in %s about to do getFormattedValue() ting...\n", this->label); Serial_flush(); }
             /*if (opened) {
                 //tft->printf("value: %*i\n", 4, internal_value);
                 tmp = this->getFormattedInternalValue();
@@ -198,7 +198,7 @@ class NumberControl : public NumberControlBase {
                 //sprintf(tmp, "%s", this->getFormattedValue()); //get_current_value());
                 tmp = this->getFormattedValue();
             }*/
-            //if (this->debug) { Serial.printf("NumberControl#renderValue in %s just did getFormattedValue() ting!\n", this->label); Serial.flush(); }
+            //if (this->debug) { Serial.printf("NumberControl#renderValue in %s just did getFormattedValue() ting!\n", this->label); Serial_flush(); }
             //tmp = opened ? this->getFormattedInternalValue() : this->getFormattedValue();
 
             // adjust size, dependent on size of formatted value and passed-in max_width
@@ -258,9 +258,9 @@ class NumberControl : public NumberControlBase {
             this->set_current_value(new_value);
             //Serial.printf("NumberControl#change_value(%f) after set_current_value(%f) get_current_value got %f\n", (double)new_value, (double)new_value, this->get_current_value());
             if (on_change_handler!=nullptr) {
-                //if (this->debug)  { Serial.println(F("NumberControl calling on_change_handler")); Serial.flush(); }
+                //if (this->debug)  { Serial.println(F("NumberControl calling on_change_handler")); Serial_flush(); }
                 on_change_handler(last_value, this->get_internal_value());
-                //if (this->debug)  { Serial.println(F("NumberControl after on_change_handler")); Serial.flush(); }
+                //if (this->debug)  { Serial.println(F("NumberControl after on_change_handler")); Serial_flush(); }
             }
         }
 
@@ -278,12 +278,12 @@ class NumberControl : public NumberControlBase {
 
         // override in subclass if need to do something special eg getter/setter
         virtual DataType get_current_value() {
-            //if (this->debug)  { Serial.printf("About to get_current_value in %s\n", this->label); Serial.flush(); }
+            //if (this->debug)  { Serial.printf("About to get_current_value in %s\n", this->label); Serial_flush(); }
             if (this->target_variable!=nullptr)
                 return *this->target_variable;
             if (this->getter!=nullptr)
                 return this->getter();
-            //if (this->debug) { Serial.printf("Did get_current_value in %s\n", this->label); Serial.flush(); }
+            //if (this->debug) { Serial.printf("Did get_current_value in %s\n", this->label); Serial_flush(); }
 
             return 0;
         }
