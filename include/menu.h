@@ -239,7 +239,7 @@ class Menu {
         int add_page(const char *title, uint16_t colour = C_WHITE) {
             this->pages->add(new page_t {
                 .title = (new String(title))->c_str(),
-                .colour = C_WHITE
+                .colour = colour
             });
             int index = this->pages->size()-1;
             this->select_page(index);
