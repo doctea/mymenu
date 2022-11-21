@@ -60,7 +60,7 @@ int Menu::display() {
         tft->println("");
 
     } else {
-        static bool first_display = true;
+        //static bool first_display = true;
         //static int *panel_bottom = nullptr;
         bool bottoms_computed = false;
         if (selected_page->panel_bottom == nullptr) {

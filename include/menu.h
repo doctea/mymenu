@@ -81,6 +81,12 @@ class Menu {
         bool is_opened() {
             return this->selected_page->currently_opened!=-1;
         }
+
+        void open_page(int page_index) {
+            opened_page_index = page_index;
+            if (selected_page->currently_selected==-1)
+                selected_page->currently_selected = 0;
+        }
         
         // input-handling stuff
         void knob_turned(int knob_position) {
@@ -155,7 +161,7 @@ class Menu {
         bool button_select() {
             Serial.printf(F("Menu#button_select() on item %i\n"), selected_page->currently_selected);
             if (opened_page_index==-1) {
-                opened_page_index = selected_page_index;
+                open_page(selected_page_index);
             } else if (selected_page->currently_opened==-1) {
                 Serial.printf(F("button_select with currently_opened menuitem -1 - opening %i\n"), selected_page->currently_selected);
                 if (selected_page->items->get(selected_page->currently_selected)->action_opened()) {
@@ -207,7 +213,7 @@ class Menu {
         bool button_right() {
             Serial.println(F("button_right()"));
             if (opened_page_index==-1) {
-                opened_page_index = selected_page_index;
+                open_page(selected_page_index);
             } else if (selected_page->currently_opened!=-1) {
                 if (selected_page->items->get(selected_page->currently_opened)->button_right()) {
                     Serial.printf(F("right with currently_opened menuitem %i subhandled!\n"), selected_page->currently_opened);
@@ -224,7 +230,7 @@ class Menu {
             return this->selected_page->items->size();
         }
 
-        char last_message[MENU_C_MAX] = "...started up...";
+        char last_message[MENU_C_MAX] = ""; //...started up...";
         uint32_t message_colour = C_WHITE;
         DisplayTranslator *tft;
 
@@ -323,10 +329,17 @@ class Menu {
             if (pinned_panel!=nullptr)
                 pinned_panel->update_ticks(ticks);
 
-            // todo: process all pages?
-            for (int i = 0 ; i < this->selected_page->items->size() ; i++) {
-                this->selected_page->items->get(i)->update_ticks(ticks);
+            //Serial.printf("update_ticks %i...\n", ticks);
+            const int pages_count = this->pages->size();
+            for (int p = 0 ; p < pages_count ; p++) {
+                //Serial.printf("\tupdate_ticks for page %i...\n", p);
+                const int items_count = this->pages->get(p)->items->size();
+                for (int i = 0 ; i < items_count ; i++) {
+                    //Serial.printf("\t\tupdate_ticks for item %i...\n", i);
+                    this->pages->get(p)->items->get(i)->update_ticks(ticks);
+                }
             }
+            //Serial.printf("updated_ticks %i\n", ticks);
         }
 
         void update_inputs() {
