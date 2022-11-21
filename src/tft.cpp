@@ -4,7 +4,7 @@ void tft_print (char *text) {
     Serial.print(text);
     Serial_flush();
     menu->tft->print(text);
-    Serial.printf("just did tft print '%s'\n", text); 
+    Debug_printf("just did tft print '%s'\n", text); 
     Serial_flush();
 }
 void tft_clear() {

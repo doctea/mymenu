@@ -240,7 +240,7 @@ class ActionItem : public MenuItem {
     }
 
     virtual bool action_opened() override {
-        Serial.println(F("ActionItem#action_opened"));
+        Debug_println(F("ActionItem#action_opened"));
         this->on_open();
 
         char msg[255];
@@ -277,13 +277,13 @@ class ActionConfirmItem : public ActionItem {
     }
 
     virtual bool action_opened() override {
-        Serial.println(F("ActionConfirmItem#action_opened"));
+        Debug_println(F("ActionConfirmItem#action_opened"));
         //this->on_open();
         return true; 
     }
 
     virtual bool button_select() override {
-        Serial.println(F("ActionConfirmItem#button_select"));
+        Debug_println(F("ActionConfirmItem#button_select"));
 
         this->on_open();
 

@@ -15,7 +15,7 @@ int Menu::display() {
     //Serial.printf("display !");
     int y = 0;
     
-    if (debug) { Serial.println(F("display()=> about to setTextColor()")); Serial_flush(); }
+    if (debug) { Debug_println(F("display()=> about to setTextColor()")); Serial_flush(); }
     tft->setTextColor(C_WHITE, BLACK);
 
     int currently_opened = selected_page->currently_opened;
@@ -39,14 +39,14 @@ int Menu::display() {
         tft->setCursor(0, 0);
 
         if (pinned_panel!=nullptr) {
-            if (debug) { Serial.println(F("display()=> about to pinned_panel->display()")); Serial_flush(); }
+            Debug_println(F("display()=> about to pinned_panel->display()"));
             y = pinned_panel->display(Coord(0,0), false, false);
-            if (debug) { Serial.println(F("display()=> did pinned_panel->display()!")); Serial_flush(); }
+            Debug_println(F("display()=> did pinned_panel->display()!")); 
         }
 
         tft->setCursor(0, y);
         
-        if (debug) { Serial.println(F("display()=> about to draw_message()")); Serial_flush(); }
+        if (debug) { Debug_println(F("display()=> about to draw_message()")); Serial_flush(); }
         y = draw_message();
 
         if (currently_selected>=0 && currently_selected < items->size()) {
@@ -97,7 +97,7 @@ int Menu::display() {
             int adj_y = 0;
             for (int i = 0 ; i < items.size() ; i++) {
                 adj_y += panel_bottom[i];
-                Serial.printf(F("item %i accumulated height %i trying to fit into %i\n"), i, adj_y, tft->height());
+                Debug_printf(F("item %i accumulated height %i trying to fit into %i\n"), i, adj_y, tft->height());
                 if (target_y - adj_y < tft->height()) {
                     Serial.println(F("\tyes!"));
                     start_panel = i;
@@ -128,14 +128,14 @@ int Menu::display() {
         tft->setCursor(0,0);
 
         if (pinned_panel!=nullptr) {
-            if (debug) { Serial.println(F("display()=> about to pinned_panel->display()")); Serial_flush(); }
+            //if (debug) { Debug_println(F("display()=> about to pinned_panel->display()")); Serial_flush(); }
             y = pinned_panel->display(Coord(0,0), false, false);
-            if (debug) { Serial.println(F("display()=> did pinned_panel->display()!")); Serial_flush(); }
+            //if (debug) { Debug_println(F("display()=> did pinned_panel->display()!")); Serial_flush(); }
         }
 
         tft->setCursor(0, y);
         
-        if (debug) { Serial.println(F("display()=> about to draw_message()")); Serial_flush(); }
+        //if (debug) { Debug_println(F("display()=> about to draw_message()")); Serial_flush(); }
         y = draw_message();
 
         // draw tabs for pages
@@ -170,13 +170,13 @@ int Menu::display() {
             //int time = millis();
             //Serial.printf("Menu rendering item %i [selected #%i, opened #%i]\n", i, currently_selected, currently_opened);
             Coord pos = Coord(0,y);
-            if (debug) { Serial.printf(F("display()=> about to display() item %i aka %s\n"), i, item->label); Serial_flush(); }
+            if (debug) { Debug_printf(F("display()=> about to display() item %i aka %s\n"), i, item->label); Serial_flush(); }
 
             unsigned long time_micros = 0;
             if (this->debug_times) time_micros = micros();
             y = item->display(pos, i==currently_selected, i==currently_opened) + 1;
             //Serial.printf("after rendering MenuItem %i, return y is %i, cursor coords are (%i,%i)\n", y, tft->getCursorX(), tft->getCursorY());
-            if (debug) { Serial.printf(F("display()=> just did display() item %i aka %s\n"), i, item->label); Serial_flush(); }
+            if (debug) { Debug_printf(F("display()=> just did display() item %i aka %s\n"), i, item->label); Serial_flush(); }
 
             if (this->debug_times) {
                 tft->setTextSize(1);
@@ -207,11 +207,11 @@ int Menu::display() {
             //tft->printf("S:%2i O:%2i\n", currently_selected, currently_opened);
             tft->printf("Mem: %i\n"), freeRam();
         }*/
-        if (debug) { Serial.println(F("Done in main draw part")); Serial_flush(); }
+        if (debug) { Debug_println(F("Done in main draw part")); Serial_flush(); }
     }
 
     //tft->updateScreenAsync(false);
-    if (debug) { Serial.println(F("display()=> about to tft->updateDisplay()")); Serial_flush(); }
+    if (debug) { Debug_println(F("display()=> about to tft->updateDisplay()")); Serial_flush(); }
     tft->updateDisplay();
 
     return y;

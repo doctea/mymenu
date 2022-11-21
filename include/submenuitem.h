@@ -28,12 +28,14 @@ class SubMenuItem : public MenuItem {
             return this->always_show==false;
         }
         virtual bool action_opened() override {
+            Serial.println("submenuitem#action_opened"); Serial.flush();
             //if (this->allow_takeover())
             //    tft->clear();
             this->currently_selected = 0;
             if (!always_show) 
                 this->needs_redraw = true;
                 //this->tft->clear();
+            Serial.println("calling MenuItem::action_opened"); Serial.flush();
             return MenuItem::action_opened();
         }
 
@@ -69,6 +71,7 @@ class SubMenuItem : public MenuItem {
         bool needs_redraw = true;
         int previously_selected = -2;
         virtual int display(Coord pos, bool selected, bool opened) override {
+            Serial.printf("submenuitem#display currently_selected=%i, previously_selected=%i\n", currently_selected, previously_selected); Serial.flush();            
             //static int previously_opened = -2;
             //static bool previously_opened = false;
 
@@ -98,20 +101,22 @@ class SubMenuItem : public MenuItem {
             if (opened || this->always_show) {
                 //tft->clear();
                 //colours(false, C_WHITE, BLACK);
+                //Serial.println("submenuitem#display opened or always_show"); Serial.flush();            
+
                 for (int i = start_item ; i < this->items->size() ; i++) {
-                    //tft->println("wtf1?");
+                    //Serial.printf("submenuitem#display rendering item %i..\n", i); Serial.flush();            
                     y = tft->getCursorY();
 
                     tft->setTextColor(this->default_fg, this->default_bg);
-                    //Serial.printf("fg is %0x, bg is %0x\n")
-                    //Serial.printf("SubMenuItem#display():\ttft@%p\n", this->tft);
-                    //tft->println("wtf2?");
                     pos.x = 0; pos.y = tft->getCursorY();
-                    y = this->items->get(i)->display(
+                    MenuItem *item = items->get(i);
+                    //Serial.printf("got item %i: %s\n", i, item->label); Serial.flush();
+                    //Serial.printf("submenuitem#display about to call display on item %i..\n", i); Serial.flush();            
+                    y = item->display(
                         pos, i==this->currently_selected, i==this->currently_opened
                     );
+                    //Serial.printf("submenuitem#display finished display on item %i\n", i); Serial.flush();            
                     tft->setTextColor(this->default_fg, this->default_bg);
-                    //tft->println("wtf3?");
                     y = this->tft->getCursorY();
 
                     if (y>=this->tft->height()) 

@@ -21,9 +21,9 @@ class SubMenuItemBar : public SubMenuItem {
     }
 
     virtual int display(Coord pos, bool selected, bool opened) override {
-        if (this->debug) Serial.printf(F("Start of display in SubMenuItemBar, passed in %i,%i\n"), pos.x, pos.y);
+        Debug_printf(F("Start of display in SubMenuItemBar, passed in %i,%i\n"), pos.x, pos.y);
         pos.y = header(label, pos, selected, opened);
-        if (this->debug) Serial.printf(F("\tafter header, y=%i\n"), pos.y);
+        Debug_printf(F("\tafter header, y=%i\n"), pos.y);
         tft->setCursor(pos.x, pos.y);
         //tft->setTextSize(1);
         colours(opened, opened ? GREEN : this->default_fg, this->default_bg);
@@ -32,9 +32,9 @@ class SubMenuItemBar : public SubMenuItem {
         int finish_y = pos.y;       // highest y that we finished drawing at
 
         // draw all the sub-widgets
-        int width_per_item = this->tft->width() / (this->items->size() /*+1*/);
+        //int width_per_item = this->tft->width() / (this->items->size() /*+1*/);
         int start_x = 0;
-        if (this->debug) Serial.printf(F("display in SubMenuItemBar got width_per_item=%i\tfrom tftwidth\t%i / itemsize\t%i\n"), width_per_item, this->tft->width(), this->items->size());
+        Debug_printf(F("display in SubMenuItemBar got width_per_item=%i\tfrom tftwidth\t%i / itemsize\t%i\n"), width_per_item, this->tft->width(), this->items->size());
         for (int item_index = 0 ; item_index < this->items->size() ; item_index++) {
             const int width = this->get_max_pixel_width(item_index);
             const int temp_y = this->small_display(
@@ -54,12 +54,12 @@ class SubMenuItemBar : public SubMenuItem {
         tft->setTextColor(this->default_fg, this->default_bg);
         tft->setTextSize(0);
 
-        if (this->debug) Serial.printf(F("End of display, y=%i\n--------\n"), finish_y);
+        Debug_printf(F("End of display, y=%i\n--------\n"), finish_y);
         return finish_y;//tft->getCursorY();
     }
 
     virtual int small_display(int index, int x, int y, int width_in_pixels, bool is_selected, bool is_opened, bool outer_selected) {
-        if (this->debug) Serial.printf(F("\tSubMenuItemBar: start of small_display for index %i, passed in x,y=%i,%i and width=%i\n"), index, x, y, width_in_pixels);
+        Debug_printf(F("\tSubMenuItemBar: start of small_display for index %i, passed in x,y=%i,%i and width=%i\n"), index, x, y, width_in_pixels);
 
         MenuItem *ctrl = items->get(index);
         const int character_width_in_pixels = tft->characterWidth(); // presumed font width

@@ -7,6 +7,8 @@
 
 #include "display_abstract.h"
 
+#include "debug.h"
+
 #include "menu.h"
 
 #include <Adafruit_GFX.h>
@@ -46,13 +48,13 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
     }
 
     virtual void setup() {
-        Serial.println(F("steensy setup()..")); Serial_flush();
+        Debug_println(F("steensy setup()..")); Serial_flush();
         tft->init(135, 240);           // Init ST7789 240x135
         tft->fillScreen(ST77XX_BLACK);
         tft->setTextWrap(false);
         tft->println(F("DisplayTranslator init()!"));
-        Serial.println(F("did init()")); Serial_flush();
-        Serial.println(F("did fillscreen()")); Serial_flush();
+        Debug_println(F("did init()")); Serial_flush();
+        Debug_println(F("did fillscreen()")); Serial_flush();
         delay(500);
         // large block of text
         //testdrawtext("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa, fringilla sed malesuada et, malesuada sit amet turpis. Sed porttitor neque ut ante pretium vitae malesuada nunc bibendum. Nullam aliquet ultrices massa eu hendrerit. Ut sed nisi lorem. In vestibulum purus a tortor imperdiet posuere. ", ST77XX_WHITE);
@@ -156,10 +158,10 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
     }
 
     virtual void start() {
-        Serial.println("Display start.."); Serial_flush();
+        Debug_println("Display start.."); Serial_flush();
         //tft->updateScreenAsync(false);
         tft->useFrameBuffer(true);
-        Serial.println("did useframebuffer()"); Serial_flush();
+        Debug_println("did useframebuffer()"); Serial_flush();
     }
 
     virtual void updateDisplay() {
