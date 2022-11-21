@@ -71,7 +71,7 @@ class SubMenuItem : public MenuItem {
         bool needs_redraw = true;
         int previously_selected = -2;
         virtual int display(Coord pos, bool selected, bool opened) override {
-            Serial.printf("submenuitem#display currently_selected=%i, previously_selected=%i\n", currently_selected, previously_selected); Serial.flush();            
+            //Serial.printf("submenuitem#display currently_selected=%i, previously_selected=%i\n", currently_selected, previously_selected); Serial.flush();            
             //static int previously_opened = -2;
             //static bool previously_opened = false;
 
