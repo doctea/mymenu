@@ -141,12 +141,11 @@ int Menu::display() {
         // draw tabs for pages
         for (int i = selected_page_index ; i < pages->size() + selected_page_index ; i++) {
             int ci = i;
-            if (ci >= pages->size()) 
+            if (ci >= pages->size())        // wrap around to start of list if we get to the end
                 ci = ci % pages->size();
-            //int size = pages->size();
-            //if (ci>size) ci = size - selected_page;
-            if (tft->getCursorX() + (tft->characterWidth() * (strlen(pages->get(ci)->title)+1)) >= tft->width()) 
-                break;
+
+            if (tft->getCursorX() + (tft->characterWidth() * (strlen(pages->get(ci)->title)+1)) >= tft->width())
+                break;  // break if we'd go off the screen rendering this item TODO: draw the available characters
 
             if (i==selected_page_index)
                 tft->setTextColor(BLACK, pages->get(ci)->colour);
