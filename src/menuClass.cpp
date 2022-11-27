@@ -144,13 +144,28 @@ int Menu::display() {
             if (ci >= pages->size())        // wrap around to start of list if we get to the end
                 ci = ci % pages->size();
 
-            if (tft->getCursorX() + (tft->characterWidth() * (strlen(pages->get(ci)->title)+1)) >= tft->width())
-                break;  // break if we'd go off the screen rendering this item TODO: draw the available characters
+            //if (tft->getCursorX() + (tft->characterWidth() * (strlen(pages->get(ci)->title)+1)) >= tft->width())
+            //    break;  // break if we'd go off the screen rendering this item TODO: draw the available characters
 
             if (i==selected_page_index)
                 tft->setTextColor(BLACK, pages->get(ci)->colour);
             else
                 tft->setTextColor(pages->get(ci)->colour, BLACK);
+
+            int characters_left = ((tft->width() - tft->getCursorX()) / tft->characterWidth()) - 1; // + (tft->characterWidth() * (strlen(pages->get(ci)->title)+1)));
+            if (characters_left<2) {
+                break;
+            } else if (characters_left < strlen(pages->get(ci)->title)+1) {
+                char title[MENU_C_MAX];
+                strncpy(title, pages->get(ci)->title, characters_left);
+                title[characters_left] = '\0';
+                title[characters_left-2] = '.';
+                title[characters_left-1] = '.';
+                //title[characters_left] = '\0';
+                tft->print(title);
+                break;  // break if we'd go off the screen rendering this item TODO: draw the available characters
+            }
+
             tft->print(pages->get(ci)->title);
             tft->setTextColor(tft->rgb(196,196,196), BLACK);
             tft->print("|");
