@@ -135,6 +135,9 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
     virtual void println() {
         tft->println();
     }
+    virtual void print(const char c) override {
+        tft->print(c);
+    }
 
     virtual int width() {
         return tft->width();

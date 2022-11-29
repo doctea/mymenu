@@ -28,14 +28,14 @@ class SubMenuItem : public MenuItem {
             return this->always_show==false;
         }
         virtual bool action_opened() override {
-            Serial.println("submenuitem#action_opened"); Serial.flush();
+            Debug_println("submenuitem#action_opened"); Serial_flush();
             //if (this->allow_takeover())
             //    tft->clear();
             this->currently_selected = 0;
             if (!always_show) 
                 this->needs_redraw = true;
                 //this->tft->clear();
-            Serial.println("calling MenuItem::action_opened"); Serial.flush();
+            Debug_println("calling MenuItem::action_opened"); Serial_flush();
             return MenuItem::action_opened();
         }
 

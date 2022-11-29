@@ -55,6 +55,7 @@ class DisplayTranslator {
     virtual void printf(const char *pattern, int param1, const uint8_t *param2) { Serial.println(F("WARNING: printf(char *pattern, int param1, const uint8_t *param2) not overridden!")); }
     virtual void printf(const char *pattern, char param1, int param2, char *param3) { Serial.println(F("WARNING: printf(char *pattern, int param1, const uint8_t *param2) not overridden!")); }
     virtual void println() { Serial.println(F("WARNING: println(void) not overridden!")); };
+    virtual void print(const char) { Serial.println(F("WARNING: print(char) not overridden!")); }
     virtual void println(const char *txt) { Serial.println(F("WARNING: println(const char *) not overridden!"));};
 
     virtual void drawRoundRect(int x, int y, int w, int h, int radius, int color) { Serial.println(F("TODO: unimplemented drawRoundRect())")); };
