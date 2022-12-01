@@ -39,38 +39,44 @@ class NumberControl : public NumberControlBase {
             this->step = this->get_default_step_for_type((DataType)0);    // setup default step based on our template DataType
         }
         NumberControl(const char* label, DataType start_value, DataType min_value, DataType max_value) 
-            : NumberControl(label) {
+            : NumberControl(label) 
+            //: internal_value(start_value), minimum_value(min_value), maximum_value(max_value) 
+            {
             this->internal_value = start_value;
             this->minimum_value = min_value;
             this->maximum_value = max_value;
         };
-        NumberControl(const char* label, DataType *target_variable, DataType start_value, DataType min_value, DataType max_value, void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr) 
-            : NumberControl(label, start_value, min_value, max_value) {
+        NumberControl(const char* label, DataType *target_variable_, DataType start_value, DataType min_value, DataType max_value, void (*on_change_handler_)(DataType last_value, DataType new_value) = nullptr) 
+            // : target_variable(target_variable_), on_change_handler(on_change_handler_) 
+            : NumberControl(label, start_value, min_value, max_value)
+            {
             this->target_variable = target_variable;
-            this->on_change_handler = on_change_handler;
+            this->on_change_handler = on_change_handler_;
         };
-        NumberControl(const char* label, DataType (*getter)(), void (*setter)(DataType value), DataType min_value, DataType max_value, void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr) 
-            : NumberControl(label) {
-            this->getter = getter;
-            this->setter = setter;
+        NumberControl(const char* label, DataType (*getter_)(), void (*setter_)(DataType value), DataType min_value, DataType max_value, void (*on_change_handler_)(DataType last_value, DataType new_value) = nullptr) 
+            : NumberControl(label) 
+            //: getter(getter_), setter(setter_), minimum_value(min_value), maximum_value(max_value), on_change_handler(on_change_handler_)
+            {
+            this->getter = getter_;
+            this->setter = setter_;
 
             this->internal_value = getter();
             this->minimum_value = min_value;
             this->maximum_value = max_value;
-            this->on_change_handler = on_change_handler;
+            this->on_change_handler = on_change_handler_;
         };
 
         // step value passed here doesn't matter -- we're just using the datatype overload to set the default
-        virtual DataType get_default_step_for_type(double step) {
+        virtual constexpr DataType get_default_step_for_type(double step) {
             return 0.05;
         }
-        virtual DataType get_default_step_for_type(int step) {
+        virtual constexpr DataType get_default_step_for_type(int step) {
             return 1;
         }
-        virtual DataType get_default_step_for_type(long step) {
+        virtual constexpr DataType get_default_step_for_type(long step) {
             return 1;
         }
-        virtual DataType get_default_step_for_type(unsigned long step) {
+        virtual constexpr DataType get_default_step_for_type(unsigned long step) {
             return 1;
         }
         /*virtual DataType get_default_step_for_type(unsigned long long step) {
@@ -209,7 +215,7 @@ class NumberControl : public NumberControlBase {
                 Serial.printf("%s\t#renderValue string is \t%s (length=%i), max_character_width is\t%i, setting text size to 1\n", this->label, tmp, strlen(tmp), max_character_width);
                 tft->setTextSize(1);
             }*/
-            tft->setTextSize(0);
+            //tft->setTextSize(0);
             byte textSize = (strlen(tmp) > max_character_width/2) ? 1 : 2;
             //byte textSize = (strlen(tmp) / max_character_width) + 1;
             //Serial.printf("%s\t#renderValue string is \t%s (length=%i), max_character_width is\t%i, setting text size to\t%i\n", this->label, tmp, strlen(tmp), max_character_width, textSize);

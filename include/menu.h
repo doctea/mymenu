@@ -237,12 +237,23 @@ class Menu {
 
         //FLASHMEM 
         int add_page(const char *title, uint16_t colour = C_WHITE) {
-            this->pages->add(new page_t {
+            return insert_page(title, this->pages->size()>0 ? this->pages->size()-1 : 0, colour);
+        }
+        FLASHMEM
+        int insert_page(const char *title, int position, uint16_t colour = C_WHITE) {
+            if (position > this->pages->size()) position = this->pages->size();
+            this->pages->add(position, new page_t {
                 .title = (new String(title))->c_str(),
                 .colour = colour
             });
-            int index = this->pages->size()-1;
-            this->select_page(index);
+            int index = position; //this->pages->size()-1;
+            
+            /*this->pages->add(new page_t {
+                .title = (new String(title))->c_str(),
+                .colour = colour
+            });
+            int index = this->pages->size()-1;*/
+            this->select_page(position);
             selected_page->items = new LinkedList<MenuItem*>();
             return index;
         }

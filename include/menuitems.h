@@ -39,12 +39,12 @@ class MenuItem {
             strcpy(label, in_label);
         }
         virtual void on_add() {
-            if (this->debug) Serial.printf(F("MenuItem#on_add in %s\n"), this->label);
+            Debug_printf(F("MenuItem#on_add in %s\n"), this->label);
             menu_c_max = tft->get_c_max();
         }    // called when this menuitem is added to menu
 
         virtual void update_label(char *new_label) {
-            Serial.printf("%s#update_label('%s')\n", this->label, new_label);
+            Debug_printf("%s#update_label('%s')\n", this->label, new_label);
             strcpy(this->label, new_label);
         }
 
