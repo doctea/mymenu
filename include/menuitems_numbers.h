@@ -50,7 +50,7 @@ class NumberControl : public NumberControlBase {
             // : target_variable(target_variable_), on_change_handler(on_change_handler_) 
             : NumberControl(label, start_value, min_value, max_value)
             {
-            this->target_variable = target_variable;
+            this->target_variable = target_variable_;
             this->on_change_handler = on_change_handler_;
         };
         NumberControl(const char* label, DataType (*getter_)(), void (*setter_)(DataType value), DataType min_value, DataType max_value, void (*on_change_handler_)(DataType last_value, DataType new_value) = nullptr) 
@@ -67,16 +67,16 @@ class NumberControl : public NumberControlBase {
         };
 
         // step value passed here doesn't matter -- we're just using the datatype overload to set the default
-        virtual constexpr DataType get_default_step_for_type(double step) {
+        constexpr DataType get_default_step_for_type(double step) {
             return 0.05;
         }
-        virtual constexpr DataType get_default_step_for_type(int step) {
+        constexpr DataType get_default_step_for_type(int step) {
             return 1;
         }
-        virtual constexpr DataType get_default_step_for_type(long step) {
+        constexpr DataType get_default_step_for_type(long step) {
             return 1;
         }
-        virtual constexpr DataType get_default_step_for_type(unsigned long step) {
+        constexpr DataType get_default_step_for_type(unsigned long step) {
             return 1;
         }
         /*virtual DataType get_default_step_for_type(unsigned long long step) {
