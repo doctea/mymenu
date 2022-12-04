@@ -35,26 +35,27 @@ class NumberControl : public NumberControlBase {
 
         bool readOnly = false;
 
-        NumberControl(const char* label) : NumberControlBase(label) {
+        NumberControl(const char* label, bool go_back_on_select = false) : NumberControlBase(label) {
             this->step = this->get_default_step_for_type((DataType)0);    // setup default step based on our template DataType
+            this->go_back_on_select = go_back_on_select;
         }
-        NumberControl(const char* label, DataType start_value, DataType min_value, DataType max_value) 
-            : NumberControl(label) 
-            //: internal_value(start_value), minimum_value(min_value), maximum_value(max_value) 
+        NumberControl(const char* label, DataType start_value, DataType min_value, DataType max_value, bool go_back_on_select = false) 
+            : NumberControl(label, go_back_on_select) 
+            //: internal_value(start_value), minimum_value(min_value), maximum_value(max_value)
             {
             this->internal_value = start_value;
             this->minimum_value = min_value;
             this->maximum_value = max_value;
         };
-        NumberControl(const char* label, DataType *target_variable_, DataType start_value, DataType min_value, DataType max_value, void (*on_change_handler_)(DataType last_value, DataType new_value) = nullptr) 
+        NumberControl(const char* label, DataType *target_variable_, DataType start_value, DataType min_value, DataType max_value, bool go_back_on_select = false, void (*on_change_handler_)(DataType last_value, DataType new_value) = nullptr) 
             // : target_variable(target_variable_), on_change_handler(on_change_handler_) 
-            : NumberControl(label, start_value, min_value, max_value)
+            : NumberControl(label, start_value, min_value, max_value, go_back_on_select)
             {
             this->target_variable = target_variable_;
             this->on_change_handler = on_change_handler_;
         };
-        NumberControl(const char* label, DataType (*getter_)(), void (*setter_)(DataType value), DataType min_value, DataType max_value, void (*on_change_handler_)(DataType last_value, DataType new_value) = nullptr) 
-            : NumberControl(label) 
+        NumberControl(const char* label, DataType (*getter_)(), void (*setter_)(DataType value), DataType min_value, DataType max_value, bool go_back_on_select = false, void (*on_change_handler_)(DataType last_value, DataType new_value) = nullptr) 
+            : NumberControl(label, go_back_on_select) 
             //: getter(getter_), setter(setter_), minimum_value(min_value), maximum_value(max_value), on_change_handler(on_change_handler_)
             {
             this->getter = getter_;

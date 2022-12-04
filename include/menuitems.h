@@ -43,7 +43,7 @@ class MenuItem {
             menu_c_max = tft->get_c_max();
         }    // called when this menuitem is added to menu
 
-        virtual void update_label(char *new_label) {
+        virtual void update_label(const char *new_label) {
             Debug_printf("%s#update_label('%s')\n", this->label, new_label);
             strcpy(this->label, new_label);
         }

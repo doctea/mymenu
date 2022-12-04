@@ -230,29 +230,26 @@ class Menu {
 
         Menu(DisplayTranslator *dt) {
             this->tft = dt;
-            //this->items = new LinkedList<MenuItem*>();
             this->pages = new LinkedList<page_t*>();
             this->select_page(this->add_page("Main"));
         }
 
         //FLASHMEM 
         int add_page(const char *title, uint16_t colour = C_WHITE) {
-            return insert_page(title, this->pages->size()>0 ? this->pages->size()-1 : 0, colour);
+            //Serial.printf("add_page(%s) has current size of %i\n", title, this->pages->size());
+            return insert_page(title, this->pages->size()>0 ? this->pages->size() : 0, colour);
         }
         FLASHMEM
         int insert_page(const char *title, int position, uint16_t colour = C_WHITE) {
-            if (position > this->pages->size()) position = this->pages->size();
+            //Serial.printf("insert_page() passed position %i\n", position);
+            if (position > this->pages->size()) 
+                position = this->pages->size();
+
             this->pages->add(position, new page_t {
                 .title = (new String(title))->c_str(),
                 .colour = colour
             });
-            int index = position; //this->pages->size()-1;
-            
-            /*this->pages->add(new page_t {
-                .title = (new String(title))->c_str(),
-                .colour = colour
-            });
-            int index = this->pages->size()-1;*/
+
             this->select_page(position);
             selected_page->items = new LinkedList<MenuItem*>();
             return index;
@@ -275,12 +272,13 @@ class Menu {
             if (selected_page_index >= pages->size())
                 this->selected_page_index = 0;
             selected_page = pages->get(selected_page_index);
+            //Serial.printf("Selected page %i\n", selected_page_index);
         }
         void open_page(int page_index) {
             opened_page_index = page_index;
             //Serial.printf("opening page %i, currently_selected is %i\n", page_index, selected_page->currently_selected);
             if (selected_page!=nullptr && selected_page->currently_selected==-1) {
-                this->knob_right(); // select first 
+                this->knob_right(); // select first selectable item 
             }
             //Serial.printf("=> currently_selected is now %i\n", selected_page->currently_selected);
         }       
