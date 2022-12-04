@@ -252,7 +252,7 @@ class Menu {
 
             this->select_page(position);
             selected_page->items = new LinkedList<MenuItem*>();
-            return index;
+            return position;
         }
 
         FLASHMEM void setup_display() {
