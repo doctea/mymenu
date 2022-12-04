@@ -25,7 +25,7 @@ class MultiToggleItemClass : public MultiToggleItemBase{
         void(TargetClass::*setter)(bool);
         bool(TargetClass::*getter)();
 
-        MultiToggleItemClass(char *label, TargetClass *target, void(TargetClass::*setter)(bool), bool(TargetClass::*getter)()) : MultiToggleItemBase(label) {
+        MultiToggleItemClass(const char *label, TargetClass *target, void(TargetClass::*setter)(bool), bool(TargetClass::*getter)()) : MultiToggleItemBase(label) {
             this->target = target;
             this->setter = setter;
             this->getter = getter;

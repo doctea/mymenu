@@ -30,13 +30,6 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
         return ObjectNumberControl<TargetClass,DataType>::action_opened();
     }
 
-    virtual void add_available_value(DataType value, const char *label) {
-        if (this->available_values == nullptr) 
-            this->setup_available_values();
-        available_values->add(option { .value = value, .label = label });
-        this->minimum_value = 0;
-        this->maximum_value = available_values->size() - 1;
-    }
 
     virtual int get_index_for_value(DataType value) {
         if (this->available_values == nullptr) return 0;
@@ -140,6 +133,14 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
         if (this->available_values==nullptr)
             this->available_values = new LinkedList<option>();
         return this->available_values;
+    }
+
+    virtual void add_available_value(DataType value, const char *label) {
+        if (this->available_values == nullptr) 
+            this->setup_available_values();
+        available_values->add(option { .value = value, .label = label });
+        this->minimum_value = 0;
+        this->maximum_value = available_values->size() - 1;
     }
 
     virtual LinkedList<option> *get_available_values() {

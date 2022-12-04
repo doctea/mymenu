@@ -302,10 +302,10 @@ class ActionConfirmItem : public ActionItem {
 class SeparatorMenuItem : public MenuItem {
     public:
         //int16_t colour = C_WHITE;
-        SeparatorMenuItem(char *label) : MenuItem(label) {
+        SeparatorMenuItem(const char *label) : MenuItem(label) {
             this->selectable = false;
         }
-        SeparatorMenuItem(char *label, uint16_t default_fg) : SeparatorMenuItem(label) {
+        SeparatorMenuItem(const char *label, uint16_t default_fg) : SeparatorMenuItem(label) {
             this->default_fg = default_fg;
         }
 
