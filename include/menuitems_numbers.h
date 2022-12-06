@@ -243,7 +243,9 @@ class NumberControl : public NumberControlBase {
                 this->set_internal_value(get_internal_value() - this->step);
         }
         virtual void increase_value() {
-            this->set_internal_value(get_internal_value() + this->step);
+            //Serial.printf("%s#increase_value with internal value %i and step %i makes %i\n", this->label, get_internal_value(), this->step, get_internal_value()+this->step);
+            if (this->get_internal_value()!=this->maximum_value)
+                this->set_internal_value(get_internal_value() + this->step);
         }
 
         virtual bool knob_left() {
