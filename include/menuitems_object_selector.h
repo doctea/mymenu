@@ -118,7 +118,7 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
             //Serial.printf(F("\tConverted to value_for_index %i\n"), value); Serial_flush(); 
             (this->target_object->*this->setter)(value);
 
-            char msg[255];
+            char msg[MENU_MESSAGE_MAX];
             //Serial.printf("about to build msg string...\n");
             // todo: fix compiler warning / type of value, may need to override or just only print FormattedValue to the message and not the real value
             sprintf(msg, "Set %8s to %s (%i)", this->label, get_label_for_value(value), value);

@@ -155,7 +155,7 @@ int Menu::display() {
             int characters_left = ((tft->width() - tft->getCursorX()) / tft->characterWidth()) - 1; // + (tft->characterWidth() * (strlen(pages->get(ci)->title)+1)));
             if (characters_left<2) {
                 break;
-            } else if (characters_left < strlen(pages->get(ci)->title)+1) {
+            } else if (characters_left < (int)strlen(pages->get(ci)->title)+1) {
                 char title[MENU_C_MAX];
                 strncpy(title, pages->get(ci)->title, characters_left);
                 title[characters_left] = '\0';

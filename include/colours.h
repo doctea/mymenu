@@ -35,6 +35,7 @@
     
     #undef MENU_C_MAX
     #define MENU_C_MAX  20
+    #define MENU_MESSAGE_MAX MENU_C_MAX
 #endif
 
 #ifdef TFT_ST7789_T3
@@ -56,6 +57,7 @@
     #else
         #define MENU_C_MAX  20
     #endif
+    #define MENU_MESSAGE_MAX MENU_C_MAX
 #endif
 
 //#endif

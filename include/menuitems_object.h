@@ -89,7 +89,7 @@ class ObjectNumberControl : public NumberControl<DataType> {
         if (this->target_object!=nullptr && this->setter!=nullptr) {
             (this->target_object->*setter)(value);
 
-            char msg[255];
+            char msg[MENU_MESSAGE_MAX];
             //Serial.printf("about to build msg string...\n");
             sprintf(msg, "Set %8s to %s", this->label, this->getFormattedValue(value)); //(int)value);
             //Serial.printf("about to set_last_message!");
@@ -249,7 +249,7 @@ class ObjectActionItem : public MenuItem {
         //Serial.println(F("ObjectActionItem#action_opened"));
         this->on_open();
 
-        char msg[255];
+        char msg[MENU_MESSAGE_MAX];
         //Serial.printf("about to build msg string...\n");
         sprintf(msg, "Fired %8s", label);
         //Serial.printf("about to set_last_message!");
@@ -310,7 +310,7 @@ class ObjectActionConfirmItem : public ObjectActionItem<TargetClass> {
 
         this->on_open();
 
-        char msg[255];
+        char msg[MENU_MESSAGE_MAX];
         //Serial.printf("about to build msg string...\n");
         sprintf(msg, "Fired %8s", this->label);
         //Serial.printf("about to set_last_message!");
