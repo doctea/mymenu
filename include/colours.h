@@ -57,7 +57,7 @@
     #else
         #define MENU_C_MAX  20
     #endif
-    #define MENU_MESSAGE_MAX MENU_C_MAX
+    #define MENU_MESSAGE_MAX (MENU_C_MAX*2)
 #endif
 
 //#endif
