@@ -35,7 +35,7 @@ class DisplayTranslator {
     virtual void clear(bool force = false) {};
 
     virtual void setCursor(int x, int y) {};
-    virtual void print(char *text) {};
+    virtual void print(const char *text) {};
     virtual int getCursorX() { return 0; };
     virtual int getCursorY() { return 0; };
     virtual void setTextColor(uint16_t fg, uint16_t bg) {};

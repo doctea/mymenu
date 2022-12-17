@@ -79,7 +79,7 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
         this->y = y;
         oledSetCursor(tft, x, y);
     }
-    virtual void print(char *text) override {
+    virtual void print(const char *text) override {
         oledWriteString(tft, 0, x, y, text, textSize, bInvert, 1);
         x = tft->iCursorX;
         y = tft->iCursorY;

@@ -65,7 +65,7 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
     virtual void setCursor(int x, int y) override {
         tft->setCursor(x,y);
     }
-    virtual void print(char *text) override {
+    virtual void print(const char *text) override {
         tft->print(text);
     }
     virtual int getCursorX() override {

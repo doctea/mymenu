@@ -88,8 +88,11 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
     void decrease_value() override {
         ///int idx = this->get_index_for_value(this->get_internal_value());
         int idx = this->get_internal_value();
+        if (idx==this->minimum_value)   // for protection against unsigned values wrapping around
+            return;
         idx--;
-        if ((DataType)idx<0) idx = 0;
+        if ((DataType)idx<this->minimum_value) 
+            idx = this->minimum_value;
         //Serial.printf("%s: decrease_value got new idx %i (corresponding to value %s)\n", this->label, idx, this->get_label_for_index(idx));
         this->set_internal_value(idx);
     }
