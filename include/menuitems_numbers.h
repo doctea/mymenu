@@ -31,6 +31,7 @@ class NumberControl : public NumberControlBase {
         DataType step = this->get_default_step_for_type(internal_value);
 
         float float_mult = 100.0;
+        char int_unit = '\0';
         char float_unit = '%';
 
         bool readOnly = false;
@@ -105,7 +106,7 @@ class NumberControl : public NumberControlBase {
             if (this->debug)
                 sprintf(fmt, "%-5i [int]", value);
             else
-                sprintf(fmt, "%-5i", value);
+                sprintf(fmt, "%-5i%c", value, this->int_unit);
             return fmt;
         }
         virtual const char *getFormattedValue(uint32_t value) {
@@ -113,7 +114,7 @@ class NumberControl : public NumberControlBase {
             if (this->debug)
                 sprintf(fmt, "%-5u [ulong]", (unsigned int) value);
             else
-                sprintf(fmt, "%-5u", (unsigned int) value);
+                sprintf(fmt, "%-5u%c", (unsigned int) value, this->int_unit);
             return fmt;
         }
         /*virtual const char *getFormattedValue(unsigned long long value) {
@@ -129,7 +130,7 @@ class NumberControl : public NumberControlBase {
             if (this->debug)
                 sprintf(fmt, "%-5i [long]", (int)value);
             else
-                sprintf(fmt, "%-5i", (int)value);
+                sprintf(fmt, "%-5i%c", (int)value, this->int_unit);
             return fmt;
         }
         virtual const char *getFormattedValue(double value) {
@@ -137,7 +138,7 @@ class NumberControl : public NumberControlBase {
             if (this->debug)
                 sprintf(fmt, "%-3.2f [double]", value);
             else {
-                if (this->float_unit != ' ')
+                if (this->float_unit != '\0')
                     sprintf(fmt, "%-3.0f%c", value*this->float_mult, this->float_unit);
                 else
                     sprintf(fmt, "%-3.0f", value*this->float_mult);
