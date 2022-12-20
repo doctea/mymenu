@@ -1,3 +1,6 @@
+#ifndef OBJECT_MULTITOGGLED__INCLUDED
+#define OBJECT_MULTITOGGLED__INCLUDED
+
 #include <LinkedList.h>
 
 #include "menuitems.h"
@@ -235,3 +238,5 @@ class ObjectMultiToggleControl : public MenuItem {
             return this->switch_all(!all_status);
         }
 };
+
+#endif
