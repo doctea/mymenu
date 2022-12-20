@@ -353,4 +353,6 @@ class SeparatorMenuItem : public MenuItem {
 
 #include "menuitems_object.h"
 
+#include "menuitems_fileviewer.h"
+
 #endif
