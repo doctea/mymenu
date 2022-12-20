@@ -38,6 +38,7 @@ class FileViewerMenuItem : public MenuItem {
         while (String line = f.readStringUntil('\n')) {
             file_contents->add(line);
         }
+        f.close();
         Serial.println("finished readFile()!");
     }
 
