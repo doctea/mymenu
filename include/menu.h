@@ -267,18 +267,34 @@ class Menu {
             tft->start();
         }
 
+        void select_next_page() {
+            this->opened_page_index = -1;
+            Serial.printf("select_next_page currently on %i\n", this->selected_page_index);
+            this->select_page(++this->selected_page_index);
+        }
+        void select_previous_page() {
+            this->opened_page_index = -1;
+            Serial.printf("select_previous_page currently on %i\n", this->selected_page_index);
+            this->select_page(--this->selected_page_index);
+        }
+
         void select_page(int p) {
             this->selected_page_index = p;
             if (selected_page_index >= pages->size())
                 this->selected_page_index = 0;
+            else if (selected_page_index < 0 )
+                this->selected_page_index = pages->size() - 1;
             selected_page = pages->get(selected_page_index);
             //Serial.printf("Selected page %i\n", selected_page_index);
         }
         void open_page(int page_index) {
+            page_index = constrain(page_index, 0, pages->size() - 1);
             opened_page_index = page_index;
             //Serial.printf("opening page %i, currently_selected is %i\n", page_index, selected_page->currently_selected);
+
+            // select first selectable item 
             if (selected_page!=nullptr && selected_page->currently_selected==-1) {
-                this->knob_right(); // select first selectable item 
+                this->knob_right(); 
             }
             //Serial.printf("=> currently_selected is now %i\n", selected_page->currently_selected);
         }       
