@@ -77,7 +77,7 @@ int Menu::display() {
         //static bool bottoms_computed = false;
 
         // find number of panels to offset in order to ensure that selected panel is on screen?
-        unsigned int start_panel = 0;
+        int start_panel = 0;
         if (currently_selected>0 && panel_bottom[currently_selected] >= (0.75*tft->height())) {
             start_panel = currently_selected - 1;
             //#ifdef OLD_SCROLL_METHOD
@@ -109,7 +109,7 @@ int Menu::display() {
             //tft.fillWindow(ST77XX_BLACK);
             tft->clear();
             //tft->fillRect(0, 0, tft->width(), tft->height(), BLACK);
-            start_panel = constrain(start_panel, (unsigned int)0, items->size()-1);
+            start_panel = constrain(start_panel, 0, (int)items->size()-1);
         } else {
             start_panel = 0;
             tft->clear();
@@ -117,9 +117,9 @@ int Menu::display() {
         }
         //if (panel_bottom[currently_selected] >= tft->height()/2)
         //    start_panel = currently_selected - 1;
-        start_panel = constrain(start_panel-2, (unsigned int)0, items->size()-1);
+        start_panel = constrain(start_panel-2, 0, (int)items->size()-1);
 
-        static unsigned int last_start_panel = -1;
+        static int last_start_panel = -1;
         if (last_start_panel!=start_panel) {
             tft->clear(true);
         }
@@ -139,9 +139,9 @@ int Menu::display() {
         y = draw_message();
 
         // draw tabs for pages
-        for (unsigned int i = selected_page_index ; i < pages->size() + (int)selected_page_index ; i++) {
-            unsigned int ci = i;
-            if (ci >= pages->size())        // wrap around to start of list if we get to the end
+        for (unsigned int i = selected_page_index ; i < pages->size() + selected_page_index ; i++) {
+            int ci = i;
+            if (ci >= (int)pages->size())        // wrap around to start of list if we get to the end
                 ci = ci % pages->size();
 
             //if (tft->getCursorX() + (tft->characterWidth() * (strlen(pages->get(ci)->title)+1)) >= tft->width())
@@ -211,7 +211,7 @@ int Menu::display() {
         }
         bottoms_computed = true;
 
-        // debug output for controls  (knob positions / button presses)
+        // control debug output (knob positions / button presses)
         /*if (y < tft->height()) {
             tft->setCursor(0, y);
             tft->setTextColor(C_WHITE, BLACK);
