@@ -113,7 +113,7 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
         int ucColor = 0xFF;
         oledRectangle(tft, x1, y1, w-x1, h-y1, ucColor, true);
     }
-    virtual void setTextSize(int size) override {
+    virtual void setTextSize(unsigned int size) override {
         textSize = size;
     }
     virtual void printf(const char *text) override {

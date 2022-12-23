@@ -83,7 +83,7 @@ int Menu::display() {
             //#ifdef OLD_SCROLL_METHOD
             // count backwards to find number of panels we have to go to fit currently_selected on screen...
             int count_y = panel_bottom[currently_selected];
-            for (int i = currently_selected ; i > 0 ; i--) {
+            for (unsigned int i = currently_selected ; i > 0 ; i--) {
                 count_y -= panel_bottom[i];
                 if (count_y + panel_bottom[currently_selected] < tft->height() / 2) {
                     start_panel = i;
@@ -95,7 +95,7 @@ int Menu::display() {
             // count forward until we find the first item we can start on that will include the item on screen
             int target_y = panel_bottom[currently_selected];
             int adj_y = 0;
-            for (int i = 0 ; i < items.size() ; i++) {
+            for (unsigned int i = 0 ; i < items.size() ; i++) {
                 adj_y += panel_bottom[i];
                 Debug_printf(F("item %i accumulated height %i trying to fit into %i\n"), i, adj_y, tft->height());
                 if (target_y - adj_y < tft->height()) {
@@ -139,7 +139,7 @@ int Menu::display() {
         y = draw_message();
 
         // draw tabs for pages
-        for (int i = selected_page_index ; i < pages->size() + selected_page_index ; i++) {
+        for (unsigned int i = selected_page_index ; i < pages->size() + selected_page_index ; i++) {
             int ci = i;
             if (ci >= pages->size())        // wrap around to start of list if we get to the end
                 ci = ci % pages->size();
@@ -176,7 +176,7 @@ int Menu::display() {
 
         // draw each menu item's panel
         //int start_y = 0;
-        for (int i = start_panel ; i < items->size() ; i++) {
+        for (unsigned int i = start_panel ; i < items->size() ; i++) {
             MenuItem *item = items->get(i);
             /*if(item->label[0]=='T')
                 delay(5000);*/

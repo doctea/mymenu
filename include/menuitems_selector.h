@@ -5,7 +5,7 @@
 // TODO: keep currently selected option centred in display and scroll through the rest
 class SelectorControl : public MenuItem {
     public:
-        int num_values;
+        unsigned int num_values;
         int selected_value_index;
         int *available_values;
         int actual_value_index = -1;
@@ -42,7 +42,7 @@ class SelectorControl : public MenuItem {
 
             int current_value = this->getter();
 
-            for (int i = 0 ; i < num_values ; i++) {
+            for (unsigned int i = 0 ; i < num_values ; i++) {
                 //bool is_current_value_selected = selected_value_index==i; //available_values[i]==currentValue;
                 bool is_current_value_selected = available_values[i]==current_value; //getter();
                 int col = is_current_value_selected ? GREEN : C_WHITE;
@@ -80,7 +80,7 @@ class SelectorControl : public MenuItem {
 
             int currentValue = this->getter();
 
-            for (int i = start_item ; i < selected_value_index ; i++) {
+            for (unsigned int i = start_item ; i < selected_value_index ; i++) {
                 int actual_item = i;
                 if (i<0) actual_item = num_values - i;
                 if (i>=num_values) actual_item = selected_value_index + (num_values - i);

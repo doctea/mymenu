@@ -70,14 +70,14 @@ class LoopMarkerPanel : public PinnedPanelMenuItem {
             static int tft_width = tft->width();
 
             static int step_size_beats = tft_width / (beats_per_bar*bars_per_phrase);  // safe to make static so long as beats_per_bar/bars_per_phrase is not configurable!
-            for (int i = 0 ; i < tft_width ; i += step_size_beats) {
+            for (unsigned int i = 0 ; i < tft_width ; i += step_size_beats) {
                 tft->drawLine(i, y, i, y+2, C_WHITE);
                 //if (i%BEATS_PER_BAR==0)
                     //tft.drawLine(i, y, i, y+4, ST7735_CYAN);
             }
 
             static int step_size_bars = tft_width / bars_per_phrase;
-            for (int i = 0 ; i < tft_width ; i += step_size_bars) {
+            for (unsigned int i = 0 ; i < tft_width ; i += step_size_bars) {
                 //tft.drawLine(i, y, i, y+4, ST7735_WHITE);
                 tft->fillRect(i, y+1, 2, 5, C_WHITE);
             }

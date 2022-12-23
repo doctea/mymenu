@@ -134,7 +134,7 @@ class ObjectMultiToggleControl : public MenuItem {
             //Serial.printf("so got width_per_item %i\n", width_per_item);
             //width_per_item = constrain(width_per_item, 1, tft->width()/FONT_WIDTH);
             
-            for (int i = 0 ; i < items_size ; i++) {
+            for (unsigned int i = 0 ; i < items_size ; i++) {
                 MultiToggleItemBase *item = items.get(i);
                 //Serial.printf("processing item %s\n", item->label);
 
@@ -226,7 +226,7 @@ class ObjectMultiToggleControl : public MenuItem {
         virtual bool switch_all(bool on = true) {
             //all_status = !all_status;
             all_status = on;
-            for (int i = 0 ; i < items.size() ; i++) {
+            for (unsigned int i = 0 ; i < items.size() ; i++) {
                 items.get(i)->do_setter(all_status);
             }
             static char tmp[MENU_C_MAX];

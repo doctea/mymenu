@@ -84,7 +84,7 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
     virtual void fillRect(int x, int y, int w, int h, uint16_t color) override {
         tft->fillRect(x, y, w, h, color);
     }
-    virtual void setTextSize(int size) override {
+    virtual void setTextSize(unsigned int size) override {
         tft->setTextSize(size);
     }
     virtual void printf(const char *pattern) override {

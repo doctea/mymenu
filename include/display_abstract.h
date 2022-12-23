@@ -41,7 +41,7 @@ class DisplayTranslator {
     virtual void setTextColor(uint16_t fg, uint16_t bg) {};
     virtual void drawLine(int x0, int y0, int x1, int y1, uint16_t color) {};
     virtual void fillRect(int x, int y, int w, int h, uint16_t color) {};
-    virtual void setTextSize(int size) {};
+    virtual void setTextSize(unsigned int size) {};
     virtual void printf(const char *pattern) { Serial.println(F("WARNING: printf(char*pattern) not overridden!")); };
     virtual void printf(const char *pattern, char *param1)  { Serial.println(F("WARNING: printf(char*pattern, char *param1) not overridden!")); };
     virtual void printf(const char *pattern, char *param1, char *param2) { Serial.println(F("WARNING: printf(char*pattern, char *param1, char *param2) not overridden!")); };

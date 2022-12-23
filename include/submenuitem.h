@@ -49,13 +49,13 @@ class SubMenuItem : public MenuItem {
             }
         }
         virtual void add(LinkedList<MenuItem*> *items) {
-            for (int i = 0 ; i < items->size() ; i++) {
+            for (unsigned int i = 0 ; i < items->size() ; i++) {
                 this->add(items->get(i));
             }
         }
 
         virtual void on_add() override {
-            for (int i = 0 ; i < this->items->size() ; i++) {
+            for (unsigned int i = 0 ; i < this->items->size() ; i++) {
                 this->items->get(i)->set_tft(this->tft);
                 this->items->get(i)->on_add();
                 this->items->get(i)->set_default_colours(this->default_fg, this->default_bg); // inherit colours .. but breaks when we set custom colours eg in ParameterMenuItem..
@@ -63,7 +63,7 @@ class SubMenuItem : public MenuItem {
         }
 
         virtual void update_ticks(unsigned long ticks) override {
-            for (int i = 0 ; i < items->size() ; i++) {
+            for (unsigned int i = 0 ; i < items->size() ; i++) {
                 items->get(i)->update_ticks(ticks);
             }
         }
@@ -103,7 +103,7 @@ class SubMenuItem : public MenuItem {
                 //colours(false, C_WHITE, BLACK);
                 //Serial.println("submenuitem#display opened or always_show"); Serial.flush();            
 
-                for (int i = start_item ; i < this->items->size() ; i++) {
+                for (unsigned int i = start_item ; i < this->items->size() ; i++) {
                     //Serial.printf("submenuitem#display rendering item %i..\n", i); Serial.flush();            
                     y = tft->getCursorY();
 
@@ -125,7 +125,7 @@ class SubMenuItem : public MenuItem {
                 // blank to bottom of screen
                 if (!always_show && y < tft->height()) {
                     while (y < tft->height()) {
-                        for (int i = 0 ; i < tft->get_c_max() ; i++)
+                        for (unsigned int i = 0 ; i < tft->get_c_max() ; i++)
                             tft->print((char*)" ");
                         y = tft->getCursorY();
                     }
@@ -276,7 +276,7 @@ class DualMenuItem : public SubMenuItem {
                 //tft->clear();
                 //colours(false, C_WHITE, BLACK);
                 int count = 0;
-                for (int i = start_item ; i < this->items->size() ; i++) {
+                for (unsigned int i = start_item ; i < this->items->size() ; i++) {
                     //tft->println("wtf1?");
                     //y = tft->getCursorY();
 
@@ -300,7 +300,7 @@ class DualMenuItem : public SubMenuItem {
 
                     //if (this->debug) Serial.printf("%i: Drawing %s\tat\t%i,%i\t selected=%s\t and opened=%s\n", count, items->get(i)->label, pos.x, pos.y, i==this->currently_selected?"true":"false", i==this->currently_opened?"true":"false");
                     y = this->items->get(i)->display(
-                        pos, i==this->currently_selected, i==this->currently_opened
+                        pos, ((int)i)==this->currently_selected, ((int)i)==this->currently_opened
                     );
                     if (y>highest_y) {
                         //if (this->debug) Serial.printf("count %i: Subitem %s\t%i has x,y of\t%i,%i, higher than previous record\t%i (with is %i)\n", count, this->items->get(i)->label, i, pos.x, y, highest_y, width_per_item);
@@ -317,7 +317,7 @@ class DualMenuItem : public SubMenuItem {
                 // blank to bottom of screen
                 if (!always_show && y < tft->height()) {
                     while (y < tft->height()) {
-                        for (int i = 0 ; i < tft->get_c_max() ; i++)
+                        for (unsigned int i = 0 ; i < tft->get_c_max() ; i++)
                             tft->print((char*)" ");
                         y = tft->getCursorY();
                     }

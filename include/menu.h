@@ -304,7 +304,7 @@ class Menu {
         }       
 
         FLASHMEM void add(LinkedList<MenuItem *> *items, int16_t default_fg_colour = C_WHITE) {
-            for (int i = 0 ; i < items->size() ; i++) {
+            for (unsigned int i = 0 ; i < items->size() ; i++) {
                 items->get(i)->set_default_colours(default_fg_colour, BLACK);
                 //Serial.printf("setting default_fg_colour %04X on %s\n", default_fg_colour, items->get(i)->label);
                 this->add(items->get(i));
@@ -365,7 +365,7 @@ class Menu {
             for (int p = 0 ; p < pages_count ; p++) {
                 //Serial.printf("\tupdate_ticks for page %i...\n", p);
                 const int items_count = this->pages->get(p)->items->size();
-                for (int i = 0 ; i < items_count ; i++) {
+                for (unsigned int i = 0 ; i < items_count ; i++) {
                     //Serial.printf("\t\tupdate_ticks for item %i...\n", i);
                     this->pages->get(p)->items->get(i)->update_ticks(ticks);
                 }
