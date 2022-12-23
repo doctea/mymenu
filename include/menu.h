@@ -112,7 +112,7 @@ class Menu {
                 if (selected_page->currently_selected<0) 
                     selected_page->currently_selected = selected_page->items->size()-1;
                 //Serial.printf(F("selected %i aka %s\n"), selected_page->currently_selected, selected_page->items->get(selected_page->currently_selected)->label);
-                if (selected_page->currently_selected>=0 && selected_page->currently_selected < selected_page->items->size() && !selected_page->items->get(selected_page->currently_selected)->is_selectable()) {
+                if (selected_page->currently_selected>=0 && selected_page->currently_selected < (int)selected_page->items->size() && !selected_page->items->get(selected_page->currently_selected)->is_selectable()) {
                     //Serial.println("?? extra knob_left because isn't selectable");
                     knob_left();
                 }
@@ -128,7 +128,7 @@ class Menu {
             Debug_println(F("knob_right()"));
             if (opened_page_index==-1) {
                 selected_page_index++;
-                if (selected_page_index>=pages->size())
+                if (selected_page_index>=(int)pages->size())
                     selected_page_index = 0;
                 select_page(selected_page_index);
             } else if (selected_page->currently_opened!=-1) { //&& items->get(currently_opened)->knob_right()) {
@@ -136,10 +136,10 @@ class Menu {
                 selected_page->items->get(selected_page->currently_opened)->knob_right();
             } else {
                 selected_page->currently_selected++;
-                if (selected_page->currently_selected >= selected_page->items->size())
+                if (selected_page->currently_selected >= (int)selected_page->items->size())
                     selected_page->currently_selected = 0;
                 //Serial.printf(F("selected %i aka %s\n"), selected_page->currently_selected, selected_page->items->get(selected_page->currently_selected)->label);
-                if (selected_page->currently_selected>=0 && selected_page->currently_selected < selected_page->items->size() && !selected_page->items->get(selected_page->currently_selected)->is_selectable()) {
+                if (selected_page->currently_selected>=0 && selected_page->currently_selected < (int)selected_page->items->size() && !selected_page->items->get(selected_page->currently_selected)->is_selectable()) {
                     //Serial.println("?? extra knob_right because isn't selectable");
                     knob_right();
                 }
@@ -240,7 +240,7 @@ class Menu {
             return insert_page(title, this->pages->size()>0 ? this->pages->size() : 0, colour);
         }
         FLASHMEM
-        int insert_page(const char *title, int position, uint16_t colour = C_WHITE) {
+        int insert_page(const char *title, unsigned int position, uint16_t colour = C_WHITE) {
             //Serial.printf("insert_page() passed position %i\n", position);
             if (position > this->pages->size()) 
                 position = this->pages->size();
@@ -282,17 +282,17 @@ class Menu {
             this->select_page(--this->selected_page_index);
         }
 
-        void select_page(int p) {
+        void select_page(unsigned int p) {
             this->selected_page_index = p;
-            if (selected_page_index >= pages->size())
+            if (selected_page_index >= (int)pages->size())
                 this->selected_page_index = 0;
             else if (selected_page_index < 0 )
                 this->selected_page_index = pages->size() - 1;
             selected_page = pages->get(selected_page_index);
             //Serial.printf("Selected page %i\n", selected_page_index);
         }
-        void open_page(int page_index) {
-            page_index = constrain(page_index, 0, pages->size() - 1);
+        void open_page(unsigned int page_index) {
+            page_index = constrain(page_index, (unsigned int)0, pages->size() - 1);
             opened_page_index = page_index;
             //Serial.printf("opening page %i, currently_selected is %i\n", page_index, selected_page->currently_selected);
 
@@ -303,7 +303,7 @@ class Menu {
             //Serial.printf("=> currently_selected is now %i\n", selected_page->currently_selected);
         }       
 
-        FLASHMEM void add(LinkedList<MenuItem *> *items, int16_t default_fg_colour = C_WHITE) {
+        FLASHMEM void add(LinkedList<MenuItem *> *items, uint16_t default_fg_colour = C_WHITE) {
             for (unsigned int i = 0 ; i < items->size() ; i++) {
                 items->get(i)->set_default_colours(default_fg_colour, BLACK);
                 //Serial.printf("setting default_fg_colour %04X on %s\n", default_fg_colour, items->get(i)->label);
@@ -364,7 +364,7 @@ class Menu {
             const int pages_count = this->pages->size();
             for (int p = 0 ; p < pages_count ; p++) {
                 //Serial.printf("\tupdate_ticks for page %i...\n", p);
-                const int items_count = this->pages->get(p)->items->size();
+                const unsigned int items_count = this->pages->get(p)->items->size();
                 for (unsigned int i = 0 ; i < items_count ; i++) {
                     //Serial.printf("\t\tupdate_ticks for item %i...\n", i);
                     this->pages->get(p)->items->get(i)->update_ticks(ticks);

@@ -42,8 +42,8 @@ class SubMenuItemBar : public SubMenuItem {
                 start_x, 
                 start_y, 
                 width, //width_per_item, 
-                this->currently_selected==item_index, 
-                this->currently_opened==item_index,
+                this->currently_selected==(int)item_index, 
+                this->currently_opened==(int)item_index,
                 !opened && selected
             );
             start_x += width;

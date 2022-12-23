@@ -46,7 +46,7 @@ class SelectorControl : public MenuItem {
                 //bool is_current_value_selected = selected_value_index==i; //available_values[i]==currentValue;
                 bool is_current_value_selected = available_values[i]==current_value; //getter();
                 int col = is_current_value_selected ? GREEN : C_WHITE;
-                colours(opened && selected_value_index==i, col, BLACK);
+                colours(opened && selected_value_index==(int)i, col, BLACK);
 
                 tft->printf("%s", (char*)get_label_for_value(available_values[i]));
 
@@ -110,7 +110,7 @@ class SelectorControl : public MenuItem {
 
         virtual bool knob_right() override {
             selected_value_index++;
-            if (selected_value_index >= num_values)
+            if (selected_value_index >= (int)num_values)
                 selected_value_index = 0;
             return true;
         }

@@ -39,15 +39,15 @@ class LoopMarkerPanel : public PinnedPanelMenuItem {
             tft->setTextColor(this->default_fg, this->default_bg);
             //tft.setCursor(pos.x,pos.y);
             //int LOOP_LENGTH = PPQN * BEATS_PER_BAR * BARS_PER_PHRASE;
-            int y = pos.y; //0;
+            unsigned int y = pos.y; //0;
             //y+=2;
             static unsigned long last_serviced_tick;
-            static int last_position_width;
+            static unsigned int last_position_width;
 
             // save some float maths by only recalculating if tick is different from last time
             if (last_serviced_tick != ticks) {
                 float percent = float(ticks % loop_length) / (float)loop_length;
-                int new_position_width = (percent*(float)tft->width());
+                unsigned int new_position_width = (percent*(float)tft->width());
                 //Serial.printf("ticks %i: ticks%loop_length = %i: ", ticks, ticks%loop_length);
                 //if (ticks%loop_length==0)   // if we're at the start of loop then blank out the display 
                 if (new_position_width < last_position_width){
@@ -67,16 +67,16 @@ class LoopMarkerPanel : public PinnedPanelMenuItem {
             int loop_position = ticks % loop_length;
             tft->fillRect(0, y, px_per_pos * loop_position, 6, RED);*/
 
-            static int tft_width = tft->width();
+            static unsigned int tft_width = tft->width();
 
-            static int step_size_beats = tft_width / (beats_per_bar*bars_per_phrase);  // safe to make static so long as beats_per_bar/bars_per_phrase is not configurable!
+            static unsigned int step_size_beats = tft_width / (beats_per_bar*bars_per_phrase);  // safe to make static so long as beats_per_bar/bars_per_phrase is not configurable!
             for (unsigned int i = 0 ; i < tft_width ; i += step_size_beats) {
                 tft->drawLine(i, y, i, y+2, C_WHITE);
                 //if (i%BEATS_PER_BAR==0)
                     //tft.drawLine(i, y, i, y+4, ST7735_CYAN);
             }
 
-            static int step_size_bars = tft_width / bars_per_phrase;
+            static unsigned int step_size_bars = tft_width / bars_per_phrase;
             for (unsigned int i = 0 ; i < tft_width ; i += step_size_bars) {
                 //tft.drawLine(i, y, i, y+4, ST7735_WHITE);
                 tft->fillRect(i, y+1, 2, 5, C_WHITE);

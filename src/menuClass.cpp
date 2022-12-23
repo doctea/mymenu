@@ -49,7 +49,7 @@ int Menu::display() {
         if (debug) { Debug_println(F("display()=> about to draw_message()")); Serial_flush(); }
         y = draw_message();
 
-        if (currently_selected>=0 && currently_selected < items->size()) {
+        if (currently_selected>=0 && currently_selected < (int)items->size()) {
             items->get(currently_selected)->display(Coord(0,y), true, currently_opened==currently_selected);
             last_displayed = currently_selected;
         }
@@ -64,7 +64,7 @@ int Menu::display() {
         //static int *panel_bottom = nullptr;
         bool bottoms_computed = false;
         if (selected_page->panel_bottom == nullptr) {
-            selected_page->panel_bottom = (int*)malloc(this->get_num_panels() * sizeof(int));
+            selected_page->panel_bottom = (int*)calloc(this->get_num_panels(), sizeof(int));
         } else {
             bottoms_computed = true;
         }
@@ -77,7 +77,7 @@ int Menu::display() {
         //static bool bottoms_computed = false;
 
         // find number of panels to offset in order to ensure that selected panel is on screen?
-        int start_panel = 0;
+        unsigned int start_panel = 0;
         if (currently_selected>0 && panel_bottom[currently_selected] >= (0.75*tft->height())) {
             start_panel = currently_selected - 1;
             //#ifdef OLD_SCROLL_METHOD
@@ -109,7 +109,7 @@ int Menu::display() {
             //tft.fillWindow(ST77XX_BLACK);
             tft->clear();
             //tft->fillRect(0, 0, tft->width(), tft->height(), BLACK);
-            start_panel = constrain(start_panel, 0, items->size()-1);
+            start_panel = constrain(start_panel, (unsigned int)0, items->size()-1);
         } else {
             start_panel = 0;
             tft->clear();
@@ -117,9 +117,9 @@ int Menu::display() {
         }
         //if (panel_bottom[currently_selected] >= tft->height()/2)
         //    start_panel = currently_selected - 1;
-        start_panel = constrain(start_panel-2, 0, items->size()-1);
+        start_panel = constrain(start_panel-2, (unsigned int)0, items->size()-1);
 
-        static int last_start_panel = -1;
+        static unsigned int last_start_panel = -1;
         if (last_start_panel!=start_panel) {
             tft->clear(true);
         }
@@ -139,15 +139,15 @@ int Menu::display() {
         y = draw_message();
 
         // draw tabs for pages
-        for (unsigned int i = selected_page_index ; i < pages->size() + selected_page_index ; i++) {
-            int ci = i;
+        for (unsigned int i = selected_page_index ; i < pages->size() + (int)selected_page_index ; i++) {
+            unsigned int ci = i;
             if (ci >= pages->size())        // wrap around to start of list if we get to the end
                 ci = ci % pages->size();
 
             //if (tft->getCursorX() + (tft->characterWidth() * (strlen(pages->get(ci)->title)+1)) >= tft->width())
             //    break;  // break if we'd go off the screen rendering this item TODO: draw the available characters
 
-            if (i==selected_page_index)
+            if ((int)i==selected_page_index)
                 tft->setTextColor(BLACK, pages->get(ci)->colour);
             else
                 tft->setTextColor(pages->get(ci)->colour, BLACK);
@@ -188,7 +188,7 @@ int Menu::display() {
 
             unsigned long time_micros = 0;
             if (this->debug_times) time_micros = micros();
-            y = item->display(pos, i==currently_selected, i==currently_opened) + 1;
+            y = item->display(pos, (int)i==currently_selected, (int)i==currently_opened) + 1;
             //Serial.printf("after rendering MenuItem %i, return y is %i, cursor coords are (%i,%i)\n", y, tft->getCursorX(), tft->getCursorY());
             if (debug) { Debug_printf(F("display()=> just did display() item %i aka %s\n"), i, item->label); Serial_flush(); }
 
@@ -211,7 +211,7 @@ int Menu::display() {
         }
         bottoms_computed = true;
 
-        // control debug output (knob positions / button presses)
+        // debug output for controls  (knob positions / button presses)
         /*if (y < tft->height()) {
             tft->setCursor(0, y);
             tft->setTextColor(C_WHITE, BLACK);

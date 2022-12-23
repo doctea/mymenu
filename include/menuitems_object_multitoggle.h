@@ -86,7 +86,7 @@ class ObjectMultiToggleControl : public MenuItem {
                 if (item->do_getter()) {
                     initial_on_count++;
                 }
-                all_status = initial_on_count > this->items.size()/2;
+                all_status = initial_on_count > ((int)this->items.size())/2;
             }
         }
 
@@ -134,7 +134,7 @@ class ObjectMultiToggleControl : public MenuItem {
             //Serial.printf("so got width_per_item %i\n", width_per_item);
             //width_per_item = constrain(width_per_item, 1, tft->width()/FONT_WIDTH);
             
-            for (unsigned int i = 0 ; i < items_size ; i++) {
+            for (int i = 0 ; i < (int)items_size ; i++) {
                 MultiToggleItemBase *item = items.get(i);
                 //Serial.printf("processing item %s\n", item->label);
 
@@ -185,7 +185,7 @@ class ObjectMultiToggleControl : public MenuItem {
         virtual bool knob_left() override {
             currently_selected--;
             if (currently_selected < 0) 
-                currently_selected = (this->all_option?1:0) + items.size() - 1;
+                currently_selected = (this->all_option?1:0) + (int)items.size() - 1;
             if (this->held)
                 this->update_held(currently_selected);
             //Serial.printf("knob_right: selected %i\n", currently_selected);
@@ -193,7 +193,7 @@ class ObjectMultiToggleControl : public MenuItem {
         }
         virtual bool knob_right() override {
             currently_selected++;
-            if (currently_selected >= (this->all_option?1:0) + items.size())
+            if (currently_selected >= (this->all_option?1:0) + (int)items.size())
                 currently_selected = 0;
             if (this->held) 
                 this->update_held(currently_selected);

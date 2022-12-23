@@ -10,8 +10,8 @@
 
 class FileViewerMenuItem : public MenuItem {
     String filename = "";
-    int height_lines = 0;
-    int start_line = 0;
+    unsigned int height_lines = 0;
+    unsigned int start_line = 0;
 
     LinkedList<String> *file_contents = new LinkedList<String>();
 
@@ -52,7 +52,7 @@ class FileViewerMenuItem : public MenuItem {
             tft->printf("Filename: %s\n", (char*)filename.c_str());
             tft->printf("Lines: %i\n", file_contents->size());
 
-            int i = 0;
+            unsigned int i = 0;
             for (i = start_line ; i < start_line + height_lines && i < file_contents->size() ; i++) {
                 /*char buffer[MENU_C_MAX] = "";
                 sprintf(buffer, "%-3i: %s", i, file_contents->get(i).c_str());
@@ -70,9 +70,10 @@ class FileViewerMenuItem : public MenuItem {
     }
 
     virtual bool knob_left() override {
-        start_line--;
-        if (start_line < 0)
+        if (start_line == 0)
             start_line = file_contents->size() - 1;
+        else 
+            start_line--;
         return true;
     }
 

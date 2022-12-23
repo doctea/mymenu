@@ -47,7 +47,7 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
     virtual const DataType get_value_for_index(int index) {
         if (this->available_values == nullptr) return 0;
 
-        if (index<0 || index>=available_values->size())
+        if (index<0 || index>=(int)available_values->size())
             return 0;
         //Serial.printf("get_value_for_index(%i) returning %i\n", index, available_values.get(index).value);
         return available_values->get(index).value;
@@ -61,7 +61,7 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
     }
     virtual const char*get_label_for_index(int index) {
         if (this->available_values == nullptr) return 0;
-        if (index<0 || index>=available_values->size())
+        if (index<0 || index>=(int)available_values->size())
             return "N/A";
         //Serial.printf("get_label_for_index(%i) returning '%s'\n", index, available_values.get(index).label);
         return available_values->get(index).label;
