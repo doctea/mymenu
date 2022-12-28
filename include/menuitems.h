@@ -226,7 +226,7 @@ class ActionItem : public MenuItem {
 
     ActionItem(const char *label, void (*on_open)()) : MenuItem(label) {
         this->on_open = on_open;
-        sprintf(button_label,">> %s <<", label);
+        snprintf(button_label, 20, ">> %s <<", label);
     }
 
     virtual int display(Coord pos, bool selected, bool opened) override {
@@ -243,11 +243,11 @@ class ActionItem : public MenuItem {
         Debug_println(F("ActionItem#action_opened"));
         this->on_open();
 
-        char msg[255];
+        char msg[MENU_MESSAGE_MAX];
         //Serial.printf("about to build msg string...\n");
-        sprintf(msg, "Fired %8s", label);
+        snprintf(msg, MENU_MESSAGE_MAX, "Fired %8s", label);
         //Serial.printf("about to set_last_message!");
-        msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
+        //msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
         menu_set_last_message(msg,GREEN);
 
         return false;   // don't 'open'
@@ -287,9 +287,9 @@ class ActionConfirmItem : public ActionItem {
 
         this->on_open();
 
-        char msg[255];
+        char msg[MENU_MESSAGE_MAX];
         //Serial.printf("about to build msg string...\n");
-        sprintf(msg, "Fired %8s", label);
+        snprintf(msg, MENU_MESSAGE_MAX, "Fired %8s", label);
         //Serial.printf("about to set_last_message!");
         msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
         menu_set_last_message(msg,GREEN);

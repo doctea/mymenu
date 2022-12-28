@@ -104,17 +104,17 @@ class NumberControl : public NumberControlBase {
         virtual const char *getFormattedValue(int value) {
             static char fmt[15] = "      ";
             if (this->debug)
-                sprintf(fmt, "%-5i [int]", value);
+                snprintf(fmt, 15, "%-5i [int]", value);
             else
-                sprintf(fmt, "%-5i%c", value, this->int_unit);
+                snprintf(fmt, 15, "%-5i%c", value, this->int_unit);
             return fmt;
         }
         virtual const char *getFormattedValue(uint32_t value) {
             static char fmt[15] = "      ";
             if (this->debug)
-                sprintf(fmt, "%-5u [ulong]", (unsigned int) value);
+                snprintf(fmt, 15, "%-5u [ulong]", (unsigned int) value);
             else
-                sprintf(fmt, "%-5u%c", (unsigned int) value, this->int_unit);
+                snprintf(fmt, 15, "%-5u%c", (unsigned int) value, this->int_unit);
             return fmt;
         }
         /*virtual const char *getFormattedValue(unsigned long long value) {
@@ -128,20 +128,20 @@ class NumberControl : public NumberControlBase {
         virtual const char *getFormattedValue(int32_t value) {
             static char fmt[15] = "      ";
             if (this->debug)
-                sprintf(fmt, "%-5i [long]", (int)value);
+                snprintf(fmt, 15, "%-5i [long]", (int)value);
             else
-                sprintf(fmt, "%-5i%c", (int)value, this->int_unit);
+                snprintf(fmt, 15, "%-5i%c", (int)value, this->int_unit);
             return fmt;
         }
         virtual const char *getFormattedValue(double value) {
             static char fmt[20] = "      ";
             if (this->debug)
-                sprintf(fmt, "%-3.2f [double]", value);
+                snprintf(fmt, 20, "%-3.2f [double]", value);
             else {
                 if (this->float_unit != '\0')
-                    sprintf(fmt, "%-3.0f%c", value*this->float_mult, this->float_unit);
+                    snprintf(fmt, 20, "%-3.0f%c", value*this->float_mult, this->float_unit);
                 else
-                    sprintf(fmt, "%-3.0f", value*this->float_mult);
+                    snprintf(fmt, 20, "%-3.0f", value*this->float_mult);
             }
             return fmt;
         }
@@ -151,7 +151,7 @@ class NumberControl : public NumberControlBase {
         }
         virtual const char *getFormattedInternalValue() {
             static char tmp[MAX_LABEL_LENGTH];
-            sprintf(tmp, "%s", this->getFormattedValue((DataType)this->get_internal_value()));
+            snprintf(tmp, MAX_LABEL_LENGTH, "%s", this->getFormattedValue((DataType)this->get_internal_value()));
             return tmp;
         }
 

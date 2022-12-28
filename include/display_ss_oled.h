@@ -124,13 +124,13 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
         //Serial.printf("ss_oled->printf(\"%s\")\n", pattern);
         char newtext[30] = "                       ";
         char tmp[100] = "                                 ";
-        sprintf(newtext, "%s", text);
+        snprintf(newtext, 20, "%s", text);
 
         // todo: fix newline character display issue...
         bool newline = newtext[strlen(newtext)-1]=='\n';
         if (newline) newtext[strlen(newtext)-1] = '\0';
         
-        sprintf(tmp,"%-21s", newtext);   // limit to width and ensure space at end of string is blanked out?
+        snprintf(tmp, 100, "%-21s", newtext);   // limit to width and ensure space at end of string is blanked out?
         oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
         if (newline && tft->iCursorX>0) { //}) { //tmp[strlen(tmp)-1] == '\n') { //} || tft->iCursorX>ssoled.oled_x) {
         //if (tmp[strlen(tmp)-1] == '\n') { //} || tft->iCursorX>ssoled.oled_x) {
@@ -140,21 +140,21 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
     }
     virtual void printf(const char *pattern, char *param1) override {
         char tmp[255];
-        sprintf(tmp, pattern, param1);
+        snprintf(tmp, 255, pattern, param1);
         //tft.printf(pattern, param1);
         printf(tmp);
         //oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
     }
     virtual void printf(const char *pattern, char *param1, char *param2) override {
         char tmp[255];
-        sprintf(tmp, pattern, param1, param2);
+        snprintf(tmp, 255, pattern, param1, param2);
         //tft.printf(pattern, param1);
         printf(tmp);
         //oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
     }
     virtual void printf(const char *pattern, char *param1, char *param2, char *param3) override {
         char tmp[255];
-        sprintf(tmp, pattern, param1, param2, param3);
+        snprintf(tmp, 255, pattern, param1, param2, param3);
         //tft.printf(pattern, param1);
         printf(tmp);
         //oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
@@ -162,46 +162,46 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
 
     virtual void printf(const char *pattern, int param1) override {
         char tmp[255];
-        sprintf(tmp, pattern, param1);
+        snprintf(tmp, 255, pattern, param1);
         printf(tmp);
         //oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
     }
     virtual void printf(const char *pattern, int param1, int param2) override {
         char tmp[255];
-        sprintf(tmp, pattern, param1, param2);
+        snprintf(tmp, 255, pattern, param1, param2);
         printf(tmp);
         //oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
     }
     virtual void printf(const char *pattern, int param1, int param2, int param3) override {
         char tmp[255];
-        sprintf(tmp, pattern, param1, param2, param3);
+        snprintf(tmp, 255, pattern, param1, param2, param3);
         printf(tmp);
         //oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
     }
     virtual void printf(const char *pattern, int param1, int param2, int param3, float param4) override {
         char tmp[255];
-        sprintf(tmp, pattern, param1, param2, param3, param4);
+        snprintf(tmp, 255, pattern, param1, param2, param3, param4);
         printf(tmp);
         //oledWriteString(&ssoled, 0, tft->iCursorX, tft->iCursorY, tmp, textSize, bInvert, 1);
     }
     virtual void printf(const char *pattern, int param1, char* param2) override {
         char tmp[255];
-        sprintf(tmp, pattern, param1);
+        snprintf(tmp, 255, pattern, param1);
         printf(tmp);
     }
     virtual void printf(const char *pattern, int param1, const uint8_t *param2) override {
         char tmp[255];
-        sprintf(tmp, pattern, param1);
+        snprintf(tmp, 255, pattern, param1);
         printf(tmp);
     }
     virtual void printf(const char *pattern, char *param1, int param2, int param3) {
         char tmp[255];
-        sprintf(tmp, pattern, param1, param2, param3);
+        snprintf(tmp, 255, pattern, param1, param2, param3);
         printf(tmp);
     }
     virtual void printf(const char *pattern, char param1, int param2, char *param3) {
         char tmp[255];
-        sprintf(tmp, pattern, param1, param2, param3);
+        snprintf(tmp, 255, pattern, param1, param2, param3);
         printf(tmp);
     }
 

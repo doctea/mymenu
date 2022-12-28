@@ -5,10 +5,6 @@
 
 #define MAX_KNOB 1024
 
-/*void tft_print(const char *text) {
-    menu->tft->print(text);
-}*/
-
 // draw the menu display
 int Menu::display() {
     bool debug = this->debug;

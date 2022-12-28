@@ -20,7 +20,7 @@ class SelectorControl : public MenuItem {
         }*/
         virtual const char*get_label_for_value(int value) {
             static char value_label[MENU_C_MAX];
-            sprintf(value_label, "%i", value);
+            snprintf(value_label, MENU_C_MAX, "%i", value);
             return value_label;
         }
 
@@ -120,9 +120,9 @@ class SelectorControl : public MenuItem {
             //Serial.printf("that is available_values[%i] of %i\n", selected_value_index, available_values[selected_value_index]);
             this->setter(available_values[selected_value_index]);
 
-            char msg[255];
+            char msg[MENU_MESSAGE_MAX];
             //Serial.printf("about to build msg string...\n");
-            sprintf(msg, "Set %s to %s (%i)", label, get_label_for_value(available_values[selected_value_index]), available_values[selected_value_index]);
+            snprintf(msg, MENU_MESSAGE_MAX, "Set %s to %s (%i)", label, get_label_for_value(available_values[selected_value_index]), available_values[selected_value_index]);
             //Serial.printf("about to set_last_message!");
             msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
             menu_set_last_message(msg,GREEN);

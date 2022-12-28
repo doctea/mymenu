@@ -214,7 +214,7 @@ class ObjectMultiToggleControl : public MenuItem {
                 this->held_mode = new_mode;
                 item->do_setter(new_mode);
                 static char tmp[40];
-                sprintf(tmp, "Toggled %s to %s", item->label, new_mode?label_on:label_off);
+                snprintf(tmp, 40, "Toggled %s to %s", item->label, new_mode?label_on:label_off);
                 menu->set_last_message(tmp);
             }
             return go_back_on_select;
@@ -230,7 +230,7 @@ class ObjectMultiToggleControl : public MenuItem {
                 items.get(i)->do_setter(all_status);
             }
             static char tmp[MENU_C_MAX];
-            sprintf(tmp, "Toggled all %s to %s", this->label, all_status?label_on:label_off);
+            snprintf(tmp, MENU_C_MAX, "Toggled all %s to %s", this->label, all_status?label_on:label_off);
             menu->set_last_message(tmp);
             return all_status;
         }

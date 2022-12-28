@@ -76,7 +76,7 @@ class SubMenuItemBar : public SubMenuItem {
 
         // prepare label header format
         char fmt[10];
-        sprintf(fmt, "%%-%is\n", max_display_width);    // becomes eg "%-6s\n"
+        snprintf(fmt, 10, "%%-%is\n", max_display_width);    // becomes eg "%-6s\n"
         //if (this->debug) Serial.printf("\tGot format '%s'\n", fmt);
 
         // print label header

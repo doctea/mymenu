@@ -124,7 +124,7 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
             char msg[MENU_MESSAGE_MAX];
             //Serial.printf("about to build msg string...\n");
             // todo: fix compiler warning / type of value, may need to override or just only print FormattedValue to the message and not the real value
-            sprintf(msg, "Set %8s to %s (%i)", this->label, get_label_for_value(value), value);
+            snprintf(msg, MENU_MESSAGE_MAX, "Set %8s to %s (%i)", this->label, get_label_for_value(value), value);
             //Serial.printf("about to set_last_message!");
             msg[this->tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
             menu_set_last_message(msg,GREEN);

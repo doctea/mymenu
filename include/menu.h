@@ -337,7 +337,7 @@ class Menu {
         }
         // set the message to display at top of display
         void set_last_message(const char *msg) {
-            strcpy(last_message, msg);
+            strncpy(last_message, msg, MENU_C_MAX);
         }
 
         virtual int draw_message() {

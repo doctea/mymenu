@@ -91,7 +91,7 @@ class ObjectNumberControl : public NumberControl<DataType> {
 
             char msg[MENU_MESSAGE_MAX];
             //Serial.printf("about to build msg string...\n");
-            sprintf(msg, "Set %8s to %s", this->label, this->getFormattedValue(value)); //(int)value);
+            snprintf(msg, MENU_MESSAGE_MAX, "Set %8s to %s", this->label, this->getFormattedValue(value)); //(int)value);
             //Serial.printf("about to set_last_message!");
             msg[this->tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
             menu_set_last_message(msg,GREEN);
@@ -200,14 +200,14 @@ class ObjectActionItem : public MenuItem {
         this->getter = getter;
 
         if (button_label_true!=nullptr) {
-            strcpy(this->button_label_true, button_label_true);
+            strncpy(this->button_label_true, button_label_true, MAX_LABEL_LENGTH);
         } else
-            sprintf(this->button_label_true, "<< %s >>", label);
+            snprintf(this->button_label_true, MAX_LABEL_LENGTH, "<< %s >>", label);
 
         if (button_label_false!=nullptr)
-            sprintf(this->button_label_false, ">> %s <<", button_label_false);
+            snprintf(this->button_label_false, MAX_LABEL_LENGTH, ">> %s <<", button_label_false);
         else
-            sprintf(this->button_label_false, ">> %s <<", label);
+            snprintf(this->button_label_false, MAX_LABEL_LENGTH, ">> %s <<", label);
     };
 
     virtual int display(Coord pos, bool selected, bool opened) override {
@@ -251,7 +251,7 @@ class ObjectActionItem : public MenuItem {
 
         char msg[MENU_MESSAGE_MAX];
         //Serial.printf("about to build msg string...\n");
-        sprintf(msg, "Fired %8s", label);
+        snprintf(msg, MAX_LABEL_LENGTH, "Fired %8s", label);
         //Serial.printf("about to set_last_message!");
         msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
         menu_set_last_message(msg,GREEN);
@@ -312,7 +312,7 @@ class ObjectActionConfirmItem : public ObjectActionItem<TargetClass> {
 
         char msg[MENU_MESSAGE_MAX];
         //Serial.printf("about to build msg string...\n");
-        sprintf(msg, "Fired %8s", this->label);
+        snprintf(msg, MAX_LABEL_LENGTH, "Fired %8s", this->label);
         //Serial.printf("about to set_last_message!");
         msg[this->tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
         menu_set_last_message(msg,GREEN);
