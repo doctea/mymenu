@@ -291,7 +291,7 @@ class ActionConfirmItem : public ActionItem {
         //Serial.printf("about to build msg string...\n");
         snprintf(msg, MENU_MESSAGE_MAX, "Fired %8s", label);
         //Serial.printf("about to set_last_message!");
-        msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
+        //msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
         menu_set_last_message(msg,GREEN);
 
         return go_back_on_select;    // return to menu

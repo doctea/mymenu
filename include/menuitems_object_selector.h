@@ -126,7 +126,7 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
             // todo: fix compiler warning / type of value, may need to override or just only print FormattedValue to the message and not the real value
             snprintf(msg, MENU_MESSAGE_MAX, "Set %8s to %s (%i)", this->label, get_label_for_value(value), value);
             //Serial.printf("about to set_last_message!");
-            msg[this->tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
+            //msg[this->tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
             menu_set_last_message(msg,GREEN);
         }
         if (this->debug) { Serial.println(F("Done.")); Serial_flush(); }

@@ -93,7 +93,7 @@ class ObjectNumberControl : public NumberControl<DataType> {
             //Serial.printf("about to build msg string...\n");
             snprintf(msg, MENU_MESSAGE_MAX, "Set %8s to %s", this->label, this->getFormattedValue(value)); //(int)value);
             //Serial.printf("about to set_last_message!");
-            msg[this->tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
+            //msg[this->tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
             menu_set_last_message(msg,GREEN);
         }
         //if (this->debug) { Serial.println(F("Done.")); Serial_flush(); }
@@ -251,9 +251,9 @@ class ObjectActionItem : public MenuItem {
 
         char msg[MENU_MESSAGE_MAX];
         //Serial.printf("about to build msg string...\n");
-        snprintf(msg, MAX_LABEL_LENGTH, "Fired %8s", label);
+        snprintf(msg, MENU_MESSAGE_MAX, "Fired %8s", label);
         //Serial.printf("about to set_last_message!");
-        msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
+        //msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
         menu_set_last_message(msg,GREEN);
 
         return false;   // don't 'open'
@@ -312,9 +312,9 @@ class ObjectActionConfirmItem : public ObjectActionItem<TargetClass> {
 
         char msg[MENU_MESSAGE_MAX];
         //Serial.printf("about to build msg string...\n");
-        snprintf(msg, MAX_LABEL_LENGTH, "Fired %8s", this->label);
+        snprintf(msg, MENU_MESSAGE_MAX, "Fired %8s", this->label);
         //Serial.printf("about to set_last_message!");
-        msg[this->tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
+        //msg[this->tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
         menu_set_last_message(msg,GREEN);
 
         return this->go_back_on_select;    // return to menu
