@@ -144,6 +144,9 @@ class ObjectMultiToggleControl : public MenuItem {
                 // segment the label of the item up over multiple lines of `width_per_item` chars each
                 char tmp[width_per_item+1];
                 unsigned int last_length = max(1,width_per_item-1);
+                if (last_length>1 && i+1==items_size)    // cheeky little mod to use all the remaining space if we get to the end
+                    last_length = ((tft->width() - tft->getCursorX()) / FONT_WIDTH) - 1;
+
                 for (unsigned int segment_start = 0 ; segment_start < strlen(item->label) ; segment_start += last_length) {
                     if (item->label[segment_start]==' ' && last_length>1)   // if the first character is a space, and column is wider than 1, skip the space to improve alignment
                         segment_start++;
