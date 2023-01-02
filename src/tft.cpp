@@ -1,6 +1,6 @@
 #include "menu.h"
 
-void tft_print (char *text) {
+void tft_print (const char *text) {
     Serial.print(text);
     Serial_flush();
     menu->tft->print(text);
