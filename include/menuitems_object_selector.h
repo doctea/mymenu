@@ -74,7 +74,7 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
         return this->get_label_for_value(this->get_current_value());
     }
 
-    void increase_value() override {
+    virtual void increase_value() override {
         //Serial.printf("%s: increase_value current internal_value is %i\n", this->label, this->get_internal_value());
         /*int idx = this->get_index_for_value(this->get_internal_value());
         if (idx==-1) 
@@ -85,7 +85,7 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
         //Serial.printf("%s: increase_value got new idx %i (corresponding to value %s)\n", this->label, idx, this->get_label_for_index(idx));
         this->set_internal_value(idx);
     }
-    void decrease_value() override {
+    virtual void decrease_value() override {
         ///int idx = this->get_index_for_value(this->get_internal_value());
         int idx = this->get_internal_value();
         if (idx==this->minimum_value)   // for protection against unsigned values wrapping around
