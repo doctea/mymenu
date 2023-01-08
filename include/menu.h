@@ -345,7 +345,7 @@ class Menu {
             // draw the last status message
             tft->setTextColor(message_colour,ST77XX_BLACK);
             tft->setTextSize(0);
-            tft->printf((char*)tft->get_message_format(), last_message);
+            tft->printf(tft->get_message_format(), last_message);
             return tft->getCursorY();
         }
 

@@ -14,7 +14,7 @@ class DisplayTranslator {
 
     public:
 
-    virtual const char *get_message_format() { return "[%-20s]"; }
+    virtual const char *get_message_format() { return "[%-20.20s]"; }
     virtual const char *get_header_format() { return "%-22s"; }
     virtual const char *get_header_open_format() { return ">>>%-19s"; }
     virtual const char *get_header_selected_format() { return "%-22s"; }

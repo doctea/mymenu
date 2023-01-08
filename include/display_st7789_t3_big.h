@@ -14,7 +14,7 @@ class DisplayTranslator_STeensy_Big : public DisplayTranslator_STeensy {
     public:
     ST7789_t3 actual = ST7789_t3(TFT_CS, TFT_DC, TFT_RST);
 
-    virtual const char *get_message_format() { return "[%-38s]"; }
+    virtual const char *get_message_format() { return "[%-38.38s]"; }
     virtual const char *get_header_format() { return "%-40s"; }
     virtual const char *get_header_open_format() { return ">>>%-37s"; }
     virtual const char *get_header_selected_format() { return "%-40s"; }
