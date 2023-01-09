@@ -23,6 +23,9 @@
     #ifdef YELLOW
         #undef YELLOW
     #endif
+    #ifdef GREY
+        #undef GREY
+    #endif
 #endif
 
 #ifdef TFT_SSOLED
@@ -32,6 +35,7 @@
     #define GREEN       0xAF
     #define BLUE        0x00
     #define YELLOW      0xF0
+    #define GREY        0x80
     
     #undef MENU_C_MAX
     #define MENU_C_MAX  20
@@ -50,12 +54,13 @@
     #define YELLOW  ST77XX_YELLOW
     #define ORANGE  ST77XX_ORANGE
     #define PURPLE  ST77XX_MAGENTA
+    #define GREY    (C_WHITE / 2)
 
     #undef MENU_C_MAX
     #ifdef TFT_ST7789_T3_BIG
         #define MENU_C_MAX  40
     #else
-        #define MENU_C_MAX  20
+        #define MENU_C_MAX  20-
     #endif
     #define MENU_MESSAGE_MAX (MENU_C_MAX*2)
 #endif

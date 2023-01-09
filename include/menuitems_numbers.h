@@ -35,6 +35,7 @@ class NumberControl : public NumberControlBase {
         char float_unit = '%';
 
         bool readOnly = false;
+        bool wrap = false;
 
         NumberControl(const char* label, bool go_back_on_select = false) : NumberControlBase(label) {
             this->step = this->get_default_step_for_type((DataType)0);    // setup default step based on our template DataType
@@ -242,11 +243,15 @@ class NumberControl : public NumberControlBase {
         virtual void decrease_value() {
             if (this->get_internal_value()!=this->minimum_value)    // so that unsigned datatypes don't wrap back around when they try to go below 0
                 this->set_internal_value(get_internal_value() - this->step);
+            else if (wrap)
+                this->set_internal_value(this->maximum_value);
         }
         virtual void increase_value() {
             //Serial.printf("%s#increase_value with internal value %i and step %i makes %i\n", this->label, get_internal_value(), this->step, get_internal_value()+this->step);
             if (this->get_internal_value()!=this->maximum_value)
                 this->set_internal_value(get_internal_value() + this->step);
+            else if (wrap) 
+                this->set_internal_value(this->minimum_value);
         }
 
         virtual bool knob_left() {

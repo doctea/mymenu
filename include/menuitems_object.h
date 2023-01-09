@@ -10,6 +10,7 @@ class ObjectNumberControl : public NumberControl<DataType> {
     DataType(TargetClass::*getter)() = nullptr;
     //void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr;
     TargetClass *target_object = nullptr;
+    bool direct = false;
 
     ObjectNumberControl(const char* label, 
                         TargetClass *target_object, 
@@ -36,16 +37,30 @@ class ObjectNumberControl : public NumberControl<DataType> {
                         void (*on_change_handler)(DataType last_value, DataType new_value),
                         DataType minimum_value,
                         DataType maximum_value,
-                        bool go_back_on_select = false
+                        bool go_back_on_select = false,
+                        bool direct = false
                 ) : ObjectNumberControl<TargetClass,DataType>(label, target_object, setter_func, getter_func, on_change_handler, go_back_on_select) {
         this->minimum_value = minimum_value;
         this->maximum_value = maximum_value;
+        this->direct = direct;
     }
 
     virtual void on_add() override {
         NumberControl<DataType>::on_add();
         if (this->target_object!=nullptr && this->getter!=nullptr) 
             this->set_internal_value( (this->target_object->*getter)() );
+    }
+
+    virtual void increase_value() override {
+        NumberControl<DataType>::increase_value();
+        if (direct)
+            this->change_value(this->internal_value);
+    }
+
+    virtual void decrease_value() override {
+        NumberControl<DataType>::decrease_value();
+        if (direct)
+            this->change_value(this->internal_value);
     }
 
     /*virtual DataType get_internal_value() override {
