@@ -15,7 +15,7 @@ class MenuItem {
     public:
         bool debug = false;
 
-        DisplayTranslator *tft;
+        DisplayTranslator *tft = nullptr;
         int menu_c_max = MENU_C_MAX;
 
         char label[MAX_LABEL_LENGTH];
