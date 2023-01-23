@@ -15,6 +15,8 @@ class Coord {
 #include "mymenu.h"
 #include "menu_io.h"
 
+#define MAX_MESSAGE_LOG 20
+
 /*#ifndef MENU_MAX_PANELS
     #define MENU_MAX_PANELS 50
 #endif*/
@@ -56,6 +58,8 @@ class Menu {
     LinkedList<page_t*> *pages = nullptr;
 
     PinnedPanelMenuItem *pinned_panel = nullptr;
+
+    LinkedList<String> *messages_log = nullptr;
 
     int last_knob_position = -1;
     int button_count = 0;
@@ -331,6 +335,18 @@ class Menu {
             pinned_panel = m;
         }
 
+        FLASHMEM void set_messages_log(LinkedList<String> *messages_log) {
+            this->messages_log = messages_log;
+        }
+
+        void add_message(const char *msg) {
+            if (this->messages_log!=nullptr) {
+                this->messages_log->add(String(msg));
+                if (this->messages_log->size() > MAX_MESSAGE_LOG)
+                    this->messages_log->remove(0);
+            }
+        }        
+
         // set the colour of the message (ie red / green for error / success)
         void set_message_colour(uint32_t colour) {
             message_colour = colour;
@@ -338,6 +354,7 @@ class Menu {
         // set the message to display at top of display
         void set_last_message(const char *msg) {
             strncpy(last_message, msg, MENU_C_MAX);
+            this->add_message(msg);
         }
 
         virtual int draw_message() {
