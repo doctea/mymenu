@@ -48,7 +48,7 @@ class ListViewerMenuItem : public MenuItem {
                 tft->printf("%-3i: ", i+1);
                 tft->println(list_contents->get(i).c_str());
             }
-            if (i < height_lines)
+            if (i < height_lines && list_contents->size() > height_lines)
                 tft->println("...more...");
         } else {
             tft->println("(Nothing to show)");
