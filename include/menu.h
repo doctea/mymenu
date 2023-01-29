@@ -344,8 +344,9 @@ class Menu {
         void add_message(const char *msg) {
             if (this->messages_log!=nullptr) {
                 this->messages_log->add(String(msg));
-                if (this->messages_log->size() > MAX_MESSAGE_LOG)
-                    this->messages_log->remove(0);
+                if (this->messages_log->size() > MAX_MESSAGE_LOG) {
+                    messages_log->unlink(0);
+                }
             }
         }        
 
