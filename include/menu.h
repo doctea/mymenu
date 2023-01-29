@@ -310,9 +310,9 @@ class Menu {
         // add a linkedlist of menuitems; delete the object when finished!
         FLASHMEM void add(LinkedList<MenuItem *> *items, uint16_t default_fg_colour = C_WHITE) {
             for (unsigned int i = 0 ; i < items->size() ; i++) {
-                items->get(i)->set_default_colours(default_fg_colour, BLACK);
+                //items->get(i)->set_default_colours(default_fg_colour, BLACK);
                 //Serial.printf("setting default_fg_colour %04X on %s\n", default_fg_colour, items->get(i)->label);
-                this->add(items->get(i));
+                this->add(items->get(i), default_fg_colour);
             }
             delete items;
         }
@@ -322,7 +322,8 @@ class Menu {
         void add(MenuItem *m, uint16_t default_fg_colour = C_WHITE) {
             //Serial.printf("Menu page %i, adding item %i: %s\n", selected_page_index, selected_page->items->size(), m->label);
             if (m!=nullptr) {
-                m->set_default_colours(default_fg_colour, BLACK);
+                if (m->default_fg==C_WHITE)
+                    m->set_default_colours(default_fg_colour, BLACK);
                 m->tft = this->tft;
                 m->on_add();
                 selected_page->items->add(m);

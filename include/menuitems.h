@@ -48,9 +48,10 @@ class MenuItem {
             strcpy(this->label, new_label);
         }
 
-        void set_default_colours(uint16_t fg, uint16_t bg = BLACK) {
+        MenuItem *set_default_colours(uint16_t fg, uint16_t bg = BLACK) {
             this->default_fg = fg;
             this->default_bg = bg;
+            return this;
         }
 
         // called every tick, in case anything needs doing
