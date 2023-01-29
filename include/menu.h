@@ -319,9 +319,10 @@ class Menu {
         /*#ifndef GDB_DEBUG
         FLASHMEM 
         #endif*/
-        void add(MenuItem *m) {
+        void add(MenuItem *m, uint16_t default_fg_colour = C_WHITE) {
             //Serial.printf("Menu page %i, adding item %i: %s\n", selected_page_index, selected_page->items->size(), m->label);
             if (m!=nullptr) {
+                m->set_default_colours(default_fg_colour, BLACK);
                 m->tft = this->tft;
                 m->on_add();
                 selected_page->items->add(m);
