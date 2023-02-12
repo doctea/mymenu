@@ -21,6 +21,10 @@
     #include "display_st7789.h"
 #endif
 
+#ifdef TFT_BODMER
+    #include "display_bodmer.h"
+#endif
+
 #ifndef ST77XX_WHITE
     #define ST77XX_WHITE    0xFF
     #define ST77XX_BLACK    0x00

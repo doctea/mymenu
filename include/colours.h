@@ -4,7 +4,7 @@
 #undef MENU_C_MAX
 #define MENU_C_MAX 20
 
-#if defined(TFT_SSOLED) or defined(TFT_ST7789_T3) or defined(TFT_ST7789)
+#if defined(TFT_SSOLED) or defined(TFT_ST7789_T3) or defined(TFT_ST7789) or defined(TFT_BODMER)
     #ifdef C_WHITE
         #undef C_WHITE
     #endif
@@ -54,6 +54,28 @@
     #define YELLOW  ST77XX_YELLOW
     #define ORANGE  ST77XX_ORANGE
     #define PURPLE  ST77XX_MAGENTA
+    #define GREY    (C_WHITE / 2)
+
+    #undef MENU_C_MAX
+    #ifdef TFT_ST7789_T3_BIG
+        #define MENU_C_MAX  40
+    #else
+        #define MENU_C_MAX  20
+    #endif
+    #define MENU_MESSAGE_MAX (MENU_C_MAX*2)
+#endif
+
+#if defined(TFT_BODMER)
+    #include <TFT_eSPI.h>
+
+    #define C_WHITE TFT_WHITE
+    #define BLACK   TFT_BLACK
+    #define RED     TFT_RED
+    #define GREEN   TFT_GREEN
+    #define BLUE    TFT_CYAN
+    #define YELLOW  TFT_YELLOW
+    #define ORANGE  TFT_ORANGE
+    #define PURPLE  TFT_MAGENTA
     #define GREY    (C_WHITE / 2)
 
     #undef MENU_C_MAX

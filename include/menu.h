@@ -373,7 +373,7 @@ class Menu {
         virtual int draw_message() {
             //tft.setCursor(0,0);
             // draw the last status message
-            tft->setTextColor(message_colour,ST77XX_BLACK);
+            tft->setTextColor(message_colour,BLACK);
             tft->setTextSize(0);
             tft->printf(tft->get_message_format(), last_message);
             return tft->getCursorY();
