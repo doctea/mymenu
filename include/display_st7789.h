@@ -62,7 +62,8 @@ class DisplayTranslator_ST7789 : public DisplayTranslator {
         //this->setup();
     }
 
-    virtual void init() {
+    // for this translator (Adafruit GFX + GFX_Buffer), we seem to need to initialise dynamically instead of statically
+    virtual void init() override {
         this->setup();
     }
 

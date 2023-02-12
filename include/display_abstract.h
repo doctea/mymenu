@@ -14,6 +14,9 @@ class DisplayTranslator {
 
     public:
 
+    // seems like some tft devices need to be inited dynamically instead of statically, so allow for that
+    virtual void init() {}; 
+
     virtual const char *get_message_format() { return "[%-20.20s]"; }
     virtual const char *get_header_format() { return "%-22s"; }
     virtual const char *get_header_open_format() { return ">>>%-19s"; }
