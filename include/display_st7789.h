@@ -32,6 +32,16 @@
     #define TFT_DC         D0
 #endif
 
+#ifndef SCREEN_WIDTH
+    #define SCREEN_WIDTH 135
+#endif
+#ifndef SCREEN_HEIGHT
+    #define SCREEN_HEIGHT 240
+#endif
+#ifndef SCREEN_ROTATION
+    #define SCREEN_ROTATION 0
+#endif
+
 //Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 
 /*#define C_WHITE ST77XX_WHITE
@@ -47,7 +57,7 @@ class DisplayTranslator_ST7789 : public DisplayTranslator {
     //Adafruit_GFX_Buffer<Adafruit_ST7789> actual = Adafruit_GFX_Buffer<Adafruit_ST7789>(135, 240, actual_tft);
 
     Adafruit_ST7789 tft_direct = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
-    Adafruit_GFX_Buffer<Adafruit_ST7789> *tft = new Adafruit_GFX_Buffer<Adafruit_ST7789>(135, 240, tft_direct); //Adafruit_ST77(TFT_CS, TFT_DC, TFT_RST));
+    Adafruit_GFX_Buffer<Adafruit_ST7789> *tft = new Adafruit_GFX_Buffer<Adafruit_ST7789>(SCREEN_WIDTH, SCREEN_HEIGHT, tft_direct); //Adafruit_ST77(TFT_CS, TFT_DC, TFT_RST));
     //Adafruit_GFX_Buffer<Adafruit_ST7789> *tft = nullptr;
    
     virtual const char *get_message_format() { return "[%-20.20s]"; }
@@ -69,7 +79,8 @@ class DisplayTranslator_ST7789 : public DisplayTranslator {
 
     virtual void setup() {
         Debug_println(F("st7789 setup()..")); Serial_flush();
-        tft->init(135, 240);           // Init ST7789 240x135
+        tft->init(SCREEN_WIDTH, SCREEN_HEIGHT);           // Init ST7789 240x135
+        tft->setRotation(SCREEN_ROTATION);
         tft->fillScreen(ST77XX_BLACK);
         tft->setTextWrap(false);
         tft->println(F("DisplayTranslator init()!"));
