@@ -1,6 +1,8 @@
 #ifndef MENUITEMS_FILEVIEWER__INCLUDED
 #define MENUITEMS_FILEVIEWER__INCLUDED
 
+#ifdef ENABLE_SD
+
 #include <Arduino.h>
 
 #include "LinkedList.h"
@@ -51,5 +53,7 @@ class FileViewerMenuItem : public ListViewerMenuItem {
     }
 
 };
+
+#endif
 
 #endif

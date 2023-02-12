@@ -1,7 +1,7 @@
 #ifndef MENUITEMS_OBJECT__INCLUDED
 #define MENUITEMS_OBJECT__INCLUDED
 
-//#include "menuitems.h"
+#include "menuitems.h"
 
 template<class TargetClass, class DataType>
 class ObjectNumberControl : public NumberControl<DataType> {

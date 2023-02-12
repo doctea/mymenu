@@ -10,6 +10,14 @@ class Coord {
         }
 };
 
+#define MENU_MESSAGE_MAX (MENU_C_MAX*2)
+
+#ifndef FLASHMEM
+    // if no FLASHMEM then we're probably not running on Teensy platform, so define it empty
+    #define FLASHMEM
+    //#define F(x) { x }
+#endif
+
 #include "debug.h"
 
 #include "mymenu.h"
@@ -402,7 +410,7 @@ class Menu {
                 static int last_knob_read = 0, new_knob_read;
                 new_knob_read = knob.read() / ENCODER_STEP_DIVISOR;///4;
                 if (new_knob_read!=last_knob_read) {
-                    //Serial.printf("new_knob_read %i changed from %i\n", new_knob_read, last_knob_read);
+                    Serial.printf("new_knob_read %i changed from %i\n", new_knob_read, last_knob_read);
                     /*if (ENCODER_STEP_DIVISOR>1)
                         last_knob_read = new_knob_read; ///4; 
                     else

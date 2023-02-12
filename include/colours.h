@@ -4,7 +4,7 @@
 #undef MENU_C_MAX
 #define MENU_C_MAX 20
 
-#if defined(TFT_SSOLED) or defined(TFT_ST7789_T3)
+#if defined(TFT_SSOLED) or defined(TFT_ST7789_T3) or defined(TFT_ST7789)
     #ifdef C_WHITE
         #undef C_WHITE
     #endif
@@ -42,9 +42,9 @@
     #define MENU_MESSAGE_MAX MENU_C_MAX
 #endif
 
-#ifdef TFT_ST7789_T3
+#if defined(TFT_ST7789_T3) || defined(TFT_ST7789)
     #include "Adafruit_GFX.h"
-    #include "ST7789_t3.h"
+    //#include "ST7789_t3.h"
 
     #define C_WHITE ST77XX_WHITE
     #define BLACK   ST77XX_BLACK
@@ -60,7 +60,7 @@
     #ifdef TFT_ST7789_T3_BIG
         #define MENU_C_MAX  40
     #else
-        #define MENU_C_MAX  20-
+        #define MENU_C_MAX  20
     #endif
     #define MENU_MESSAGE_MAX (MENU_C_MAX*2)
 #endif

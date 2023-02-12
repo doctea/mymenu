@@ -1,3 +1,8 @@
+#ifndef FLASHMEM
+    // if no FLASHMEM then we're probably not running on Teensy platform, so define it empty
+    #define FLASHMEM
+    #define F(x) { x }
+#endif
 
 #ifndef Serial_flush
     #ifdef SERIAL_FLUSH_REALLY

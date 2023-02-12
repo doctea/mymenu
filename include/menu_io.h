@@ -1,8 +1,8 @@
 #ifndef MENU_IO__INCLUDED
 #define MENU_IO__INCLUDED
 
-#include "Encoder.h"
-#include "Bounce2.h"
+#include <Encoder.h>
+#include <Bounce2.h>
 
 #ifdef ENCODER_KNOB_L
     //Encoder knob(ENCODER_KNOB_L, ENCODER_KNOB_R);
