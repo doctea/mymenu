@@ -288,6 +288,9 @@ class NumberControl : public NumberControlBase {
         }
 
         virtual bool action_opened() override {
+            if (!readOnly) {
+                this->set_internal_value(this->get_current_value());
+            }
             return !readOnly;
         }
 
