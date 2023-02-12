@@ -12,7 +12,7 @@ class Coord {
 
 #define MENU_MESSAGE_MAX (MENU_C_MAX*2)
 
-#ifndef FLASHMEM
+#ifndef CORE_TEENSY
     // if no FLASHMEM then we're probably not running on Teensy platform, so define it empty
     #define FLASHMEM
     //#define F(x) { x }
@@ -301,6 +301,8 @@ class Menu {
             else if (selected_page_index < 0 )
                 this->selected_page_index = pages->size() - 1;
             selected_page = pages->get(selected_page_index);
+            //if (pages->size()==1)
+            //    this->open_page(0);
             //Serial.printf("Selected page %i\n", selected_page_index);
         }
         void open_page(unsigned int page_index) {

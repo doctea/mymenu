@@ -5,7 +5,7 @@
 
 #define MAX_KNOB 1024
 
-#ifndef FLASHMEM
+#ifndef CORE_TEENSY
     // if no FLASHMEM then we're probably not running on Teensy platform, so define it empty
     #define FLASHMEM
     #define F(x) { x }
@@ -172,6 +172,10 @@ int Menu::display() {
             tft->setTextColor(tft->rgb(196,196,196), BLACK);
             tft->print("|");
             tft->setTextColor(C_WHITE, BLACK);
+        }
+        if (y == tft->getCursorY()) {
+            // we havent had enough panels to move down a line, so force one
+            tft->println();
         }
         tft->println();
         y = tft->getCursorY();

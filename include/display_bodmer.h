@@ -203,8 +203,9 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
     };
 
     virtual void clear(bool force = false) {
-        tft->fillScreen(BLACK);
-        tft->setTextColor(C_WHITE);
+        if (force)
+            tft->fillScreen(BLACK);
+        tft->setTextColor(C_WHITE, BLACK);
         //tft->fillRect(0, 0, tft->width(), tft->height(), BLACK);
     }
 

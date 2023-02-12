@@ -1,4 +1,4 @@
-#ifndef FLASHMEM
+#ifndef CORE_TEENSY
     // if no FLASHMEM then we're probably not running on Teensy platform, so define it empty
     #define FLASHMEM
     #define F(x) { x }

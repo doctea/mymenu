@@ -43,8 +43,11 @@
 #endif
 
 #if defined(TFT_ST7789_T3) || defined(TFT_ST7789)
-    #include "Adafruit_GFX.h"
+    #include <Adafruit_GFX.h>
     //#include "ST7789_t3.h"
+    #if defined(TFT_ST7789)
+        #include <Adafruit_ST77xx.h>
+    #endif
 
     #define C_WHITE ST77XX_WHITE
     #define BLACK   ST77XX_BLACK
@@ -66,8 +69,10 @@
 #endif
 
 #if defined(TFT_BODMER)
-    #include <TFT_eSPI.h>
-
+    //#ifndef _TFT_eSPIH_
+        #include <TFT_eSPI.h>
+    //#endif
+    
     #define C_WHITE TFT_WHITE
     #define BLACK   TFT_BLACK
     #define RED     TFT_RED
