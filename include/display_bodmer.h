@@ -58,6 +58,8 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
     //Adafruit_ST7789 actual_tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
     //Adafruit_GFX_Buffer<Adafruit_ST7789> actual = Adafruit_GFX_Buffer<Adafruit_ST7789>(135, 240, actual_tft);
 
+    //#define MAX_CHARACTER_WIDTH (SCREEN_WIDTH/MAX_CHARACTER_WIDTH)
+
     TFT_eSPI    actual = TFT_eSPI();
     TFT_eSPI *tft = &actual;
 
@@ -65,10 +67,14 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
     //Adafruit_GFX_Buffer<Adafruit_ST7789> *tft = new Adafruit_GFX_Buffer<Adafruit_ST7789>(SCREEN_WIDTH, SCREEN_HEIGHT, tft_direct); //Adafruit_ST77(TFT_CS, TFT_DC, TFT_RST));
     //Adafruit_GFX_Buffer<Adafruit_ST7789> *tft = nullptr;
    
-    virtual const char *get_message_format() { return "[%-20.20s]"; }
+    /*virtual const char *get_message_format() { return "[%-20.20s]"; }
     virtual const char *get_header_format() { return "%-22s"; }
     virtual const char *get_header_open_format() { return ">>>%-19s"; }
-    virtual const char *get_header_selected_format() { return "%-22s"; }
+    virtual const char *get_header_selected_format() { return "%-22s"; }*/
+    virtual const char *get_message_format() { return "[%-38.38s]"; }
+    virtual const char *get_header_format() { return "%-40s"; }
+    virtual const char *get_header_open_format() { return ">>>%-37s"; }
+    virtual const char *get_header_selected_format() { return "%-40s"; }
 
     unsigned int size = 0;
 
