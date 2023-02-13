@@ -47,7 +47,7 @@ FLASHMEM void setup_menu();
 struct page_t {
     const char *title = "Default"; //[MAX_PAGE_TITLE];
     uint16_t colour = C_WHITE;
-    int currently_selected = -1;
+    volatile int currently_selected = -1;
     int currently_opened = -1;
     int *panel_bottom = nullptr;
     int num_panels = 0;

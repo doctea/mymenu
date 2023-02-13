@@ -84,11 +84,7 @@
     #define GREY    (C_WHITE / 2)
 
     #undef MENU_C_MAX
-    #ifdef TFT_ST7789_T3_BIG
-        #define MENU_C_MAX  40
-    #else
-        #define MENU_C_MAX  20
-    #endif
+    #define MENU_C_MAX 41
     #define MENU_MESSAGE_MAX (MENU_C_MAX*2)
 #endif
 
