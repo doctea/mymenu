@@ -413,7 +413,7 @@ class Menu {
                 static int last_knob_read = 0, new_knob_read;
                 new_knob_read = knob.read() / ENCODER_STEP_DIVISOR;///4;
                 if (new_knob_read!=last_knob_read) {
-                    Serial.printf("new_knob_read %i changed from %i\n", new_knob_read, last_knob_read);
+                    Debug_printf("new_knob_read %i changed from %i\n", new_knob_read, last_knob_read);
                     /*if (ENCODER_STEP_DIVISOR>1)
                         last_knob_read = new_knob_read; ///4; 
                     else
