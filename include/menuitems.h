@@ -116,6 +116,7 @@ class MenuItem {
             } else if (selected) {
                 //tft->printf((char*)"%-22s",(char*)text);   // \n not needed as reaching to edge
                 tft->printf((char*)tft->get_header_selected_format(), (char*)text);
+                //tft->println();
             } else {
                 tft->printf((char*)tft->get_header_format(), (char*)text);
             }

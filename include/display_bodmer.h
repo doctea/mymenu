@@ -11,9 +11,11 @@
 
 #include "menu.h"
 
-/*#include <Adafruit_GFX_Buffer.h>
-#include <Adafruit_GFX.h>
-#include <SPI.h>
+#ifdef BODMER_BUFFERED
+    #include <Adafruit_GFX_Buffer.h>
+    #include <Adafruit_GFX.h>
+#endif
+/*#include <SPI.h>
 //#include "ST7789_t3.h"
 #include <Adafruit_ST7789.h>
 */
@@ -59,9 +61,13 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
     //Adafruit_GFX_Buffer<Adafruit_ST7789> actual = Adafruit_GFX_Buffer<Adafruit_ST7789>(135, 240, actual_tft);
 
     //#define MAX_CHARACTER_WIDTH (SCREEN_WIDTH/MAX_CHARACTER_WIDTH)
-
-    TFT_eSPI    actual = TFT_eSPI();
-    TFT_eSPI *tft = &actual;
+    #ifndef BODMER_BUFFERED
+        TFT_eSPI    actual = TFT_eSPI();
+        TFT_eSPI *tft = &actual;
+    #else
+        TFT_eSPI    actual = TFT_eSPI();
+        Adafruit_GFX_Buffer<TFT_eSPI> *tft = new Adafruit_GFX_Buffer<TFT_eSPI>(240, 135, actual);
+    #endif
 
     //Adafruit_ST7789 tft_direct = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
     //Adafruit_GFX_Buffer<Adafruit_ST7789> *tft = new Adafruit_GFX_Buffer<Adafruit_ST7789>(SCREEN_WIDTH, SCREEN_HEIGHT, tft_direct); //Adafruit_ST77(TFT_CS, TFT_DC, TFT_RST));
@@ -91,13 +97,23 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
     virtual void setup() {
         Debug_println(F("DisplayTranslator_Bodmer setup()..")); Serial_flush();
         tft->init(); //SCREEN_WIDTH, SCREEN_HEIGHT);           // Init ST7789 240x135
-        tft->initDMA();
-        tft->setRotation(SCREEN_ROTATION);
+
+        #ifdef BODMER_BUFFERED
+            actual.initDMA();
+            tft->setRotation(1);
+            actual.setRotation(SCREEN_ROTATION);
+        #else
+            tft->initDMA();
+            tft->setRotation(SCREEN_ROTATION);
+        #endif
+        //tft->setRotation(1);
         tft->fillScreen(BLACK);
         tft->setTextWrap(true);
         tft->println(F("DisplayTranslator init()!"));
 
-        tft->startWrite();
+        #ifndef BODMER_BUFFERED
+            tft->startWrite();
+        #endif
         Debug_println(F("did init()")); Serial_flush();
         Debug_println(F("did fillscreen()")); Serial_flush();
         delay(500);
@@ -203,7 +219,9 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
     };
 
     virtual void clear(bool force = false) {
+        #ifndef BDOMER_BUFFERED
         if (force)
+        #endif
             tft->fillScreen(BLACK);
         tft->setTextColor(C_WHITE, BLACK);
         //tft->fillRect(0, 0, tft->width(), tft->height(), BLACK);
