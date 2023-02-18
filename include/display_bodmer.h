@@ -73,8 +73,8 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
     virtual const char *get_header_selected_format() { return "%-22s"; }*/
     virtual const char *get_message_format() { return "[%-38.38s]"; }
     virtual const char *get_header_format() { return "%-41s"; }
-    virtual const char *get_header_open_format() { return ">>>%-37s"; }
-    virtual const char *get_header_selected_format() { return "%-40s"; }
+    virtual const char *get_header_open_format() { return ">>>%-38s"; }
+    virtual const char *get_header_selected_format() { return "%-41s"; }
 
     unsigned int size = 0;
 
