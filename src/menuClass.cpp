@@ -232,7 +232,8 @@ int Menu::display() {
 
     //tft->updateScreenAsync(false);
     if (debug) { Debug_println("display()=> about to tft->updateDisplay()"); Serial_flush(); }
-    tft->updateDisplay();
+    if (auto_update)
+        this->updateDisplay();
 
     return y;
 }

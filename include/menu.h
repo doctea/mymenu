@@ -60,6 +60,7 @@ class Menu {
 
     //LinkedList<MenuItem*> *items = nullptr; //LinkedList<MenuItem*>();
 
+
     int opened_page_index = -1;
     int selected_page_index = 0;
     page_t *selected_page = nullptr;
@@ -75,6 +76,8 @@ class Menu {
     public:
         bool debug = false;
         bool debug_times = false;
+
+        bool auto_update = true;    // whether to send update to tft at end of every display() call, or to allow host app to decide
 
         void setDebugTimes(bool value) {
             this->debug_times = value;
@@ -507,6 +510,10 @@ class Menu {
             index%=(sizeof(colours)/sizeof(uint16_t));
             return colours[index++];
         }
+
+    void updateDisplay() {
+        tft->updateDisplay();
+    }
 
 };
 
