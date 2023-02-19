@@ -106,7 +106,8 @@ class MenuItem {
             if (!this->show_header) return pos.y;
 
             tft->drawLine(pos.x, pos.y, tft->width(), pos.y, this->default_fg);
-            tft->setCursor(pos.x, pos.y+1);
+            pos.y++;
+            tft->setCursor(pos.x, pos.y);
             colours(selected, this->default_fg, this->default_bg);
             tft->setTextSize(textSize);
             if (opened) {
@@ -122,6 +123,10 @@ class MenuItem {
             }
             colours(false);
             //return (tft->getTextSize()+1)*6;
+            if (tft->getCursorY() <= pos.y) {
+                // we havent had enough characters to move down a line, so force one
+                tft->println();
+            }
             return tft->getCursorY();
         }
 

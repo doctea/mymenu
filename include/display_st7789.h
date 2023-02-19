@@ -11,7 +11,12 @@
 
 #include "menu.h"
 
-#include <Adafruit_GFX_Buffer.h>
+#define TFT_BUFFERED
+#define USE_SPI_DMA
+
+#ifdef TFT_BUFFERED
+    #include <Adafruit_GFX_Buffer.h>
+#endif
 
 #include <Adafruit_GFX.h>
 #include <SPI.h>
@@ -57,13 +62,16 @@ class DisplayTranslator_ST7789 : public DisplayTranslator {
     //Adafruit_GFX_Buffer<Adafruit_ST7789> actual = Adafruit_GFX_Buffer<Adafruit_ST7789>(135, 240, actual_tft);
 
     Adafruit_ST7789 tft_direct = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
-    Adafruit_GFX_Buffer<Adafruit_ST7789> *tft = new Adafruit_GFX_Buffer<Adafruit_ST7789>(SCREEN_WIDTH, SCREEN_HEIGHT, tft_direct); //Adafruit_ST77(TFT_CS, TFT_DC, TFT_RST));
-    //Adafruit_GFX_Buffer<Adafruit_ST7789> *tft = nullptr;
-   
-    virtual const char *get_message_format() { return "[%-20.20s]"; }
-    virtual const char *get_header_format() { return "%-22s"; }
-    virtual const char *get_header_open_format() { return ">>>%-19s"; }
-    virtual const char *get_header_selected_format() { return "%-22s"; }
+    #ifdef TFT_BUFFERED
+        Adafruit_GFX_Buffer<Adafruit_ST7789> *tft = new Adafruit_GFX_Buffer<Adafruit_ST7789>(SCREEN_WIDTH, SCREEN_HEIGHT, tft_direct); //Adafruit_ST77(TFT_CS, TFT_DC, TFT_RST));
+    #else
+        Adafruit_ST7789 *tft = &tft_direct;
+    #endif
+
+    virtual const char *get_message_format() { return "[%-38.38s]"; }
+    virtual const char *get_header_format() { return "%-40s"; }
+    virtual const char *get_header_open_format() { return ">>>%-37s"; }
+    virtual const char *get_header_selected_format() { return "%-40s"; }
 
     unsigned int size = 0;
 
@@ -79,10 +87,15 @@ class DisplayTranslator_ST7789 : public DisplayTranslator {
 
     virtual void setup() {
         Debug_println(F("st7789 setup()..")); Serial_flush();
+        #ifdef TFT_BUFFERED
+            tft_direct.init(SCREEN_WIDTH, SCREEN_HEIGHT);
+        #endif
         tft->init(SCREEN_WIDTH, SCREEN_HEIGHT);           // Init ST7789 240x135
         tft->setRotation(SCREEN_ROTATION);
         tft->fillScreen(ST77XX_BLACK);
-        tft->setTextWrap(false);
+        //tft_direct.setTextWrap(true);
+        //tft_direct::Adafruit_ST7899:setTextWrap(true);
+        //tft->setTextWrap(true);
         tft->println(F("DisplayTranslator init()!"));
         Debug_println(F("did init()")); Serial_flush();
         Debug_println(F("did fillscreen()")); Serial_flush();
@@ -116,59 +129,119 @@ class DisplayTranslator_ST7789 : public DisplayTranslator {
         tft->fillRect(x, y, w, h, color);
     }
     virtual void setTextSize(unsigned int size) override {
-        this->size = size;
-        tft->setTextSize(size);
+        this->size = size + 1;
+        //Serial.printf("setTextSize(%i)\n", this->size);
+        tft->setTextSize(this->size);
     }
     virtual void printf(const char *pattern) override {
         tft->printf(pattern);
     }
+    #ifdef TFT_BUFFERED
+        // need this when using Adafruit_GFX_Buffer as otherwise nothing gets printed for some reason
+        char stringbuffer[255];
+    #endif
     virtual void printf(const char *pattern, char *param1) override {
-        tft->printf(pattern, param1);
+        #ifdef TFT_BUFFERED
+            snprintf(stringbuffer, 255, (char*)pattern, param1);
+            tft->print(stringbuffer);
+        #else
+            tft->printf(pattern, param1);
+        #endif
     }
     virtual void printf(const char *pattern, char *param1, char *param2) override {
-        tft->printf(pattern, param1, param2);
+        #ifdef TFT_BUFFERED
+            snprintf(stringbuffer, 255, (char*)pattern, param1, param2);
+            tft->print(stringbuffer);
+        #else
+            tft->printf(pattern, param1, param2);
+        #endif
     }
     virtual void printf(const char *pattern, char *param1, char *param2, char *param3) override {
-        tft->printf(pattern, param1, param2, param3);
+        #ifdef TFT_BUFFERED
+            snprintf(stringbuffer, 255, (char*) pattern, param1, param2, param3);
+            tft->print(stringbuffer);
+        #else
+            tft->printf(pattern, param1, param2, param3);
+        #endif
     }
     virtual void printf(const char *pattern, int param1) override {
-        tft->printf(pattern, param1);
+        #ifdef TFT_BUFFERED
+            snprintf(stringbuffer, 255, (char*) pattern, param1);
+            tft->print(stringbuffer);
+        #else
+            tft->printf(pattern, param1);
+        #endif
     }
     virtual void printf(const char *pattern, int param1, int param2) override {
-        tft->printf(pattern, param1, param2);
+        #ifdef TFT_BUFFERED
+            snprintf(stringbuffer, 255, (char*) pattern, param1, param2);
+            tft->print(stringbuffer);
+        #else
+            tft->printf(pattern, param1, param2);
+        #endif
     }
     virtual void printf(const char *pattern, int param1, int param2, int param3) override {
-        tft->printf(pattern, param1, param2, param3);
+        #ifdef TFT_BUFFERED
+            snprintf(stringbuffer, 255, (char*) pattern, param1, param2, param3);
+            tft->print(stringbuffer);
+        #else
+            tft->printf(pattern, param1, param2, param3);
+        #endif
     }
     virtual void printf(const char *pattern, int param1, int param2, int param3, float param4) override {
-        tft->printf(pattern, param1, param2, param3, param4);
+        #ifdef TFT_BUFFERED
+            snprintf(stringbuffer, 255, (char*) pattern, param1, param2, param3, param4);
+            tft->print(stringbuffer);
+        #else
+            tft->printf(pattern, param1, param2, param3, param4);
+        #endif
     }  
+    virtual void printf(const char *pattern, int param1, char* param2) override {
+        #ifdef TFT_BUFFERED
+            snprintf(stringbuffer, 255, (char*) pattern, param1, param2);
+            tft->print(stringbuffer);
+        #else
+            tft->printf(pattern, param1, param2);
+        #endif
+    }
+    virtual void printf(const char *pattern, int param1, const uint8_t* param2) override {
+        #ifdef TFT_BUFFERED
+            snprintf(stringbuffer, 255, (char*) pattern, param1, param2);
+            tft->print(stringbuffer);
+        #else
+            tft->printf(pattern, param1, param2);
+        #endif
+    }
+    virtual void printf(const char *pattern, char *param1, int param2, int param3) {
+        #ifdef TFT_BUFFERED
+            snprintf(stringbuffer, 255, (char*) pattern, param1, param3);
+            tft->print(stringbuffer);
+        #else
+            tft->printf(pattern, param1, param2, param3);
+        #endif
+    }
+    virtual void printf(const char *pattern, char param1, int param2, char *param3) {
+        #ifdef TFT_BUFFERED
+            snprintf(stringbuffer, 255, (char*) pattern, param1, param2, param3);
+            tft->print(stringbuffer);        
+        #else
+            tft->printf(pattern, param1, param2, param3);
+        #endif
+    }
+    virtual void println() {
+        tft->print('\n');
+    }
     virtual void println(const char *txt) override {
         tft->println(txt);
+    }
+    virtual void printc(char c) override {
+        tft->print(c);
     }
     virtual void drawRoundRect(int x, int y, int w, int h, int radius, int color) override {
         tft->drawRoundRect(x, y, w, h, radius, color);
     }
     virtual void fillRoundRect(int x, int y, int w, int h, int radius, int color) override {
         tft->fillRoundRect(x, y, w, h, radius, color);
-    }
-    virtual void printf(const char *pattern, int param1, char* param2) override {
-        tft->printf(pattern, param1, param2);
-    }
-    virtual void printf(const char *pattern, int param1, const uint8_t* param2) override {
-        tft->printf(pattern, param1, param2);
-    }
-    virtual void printf(const char *pattern, char *param1, int param2, int param3) {
-        tft->printf(pattern, param1, param2, param3);
-    }
-    virtual void printf(const char *pattern, char param1, int param2, char *param3) {
-        tft->printf(pattern, param1, param2, param3);
-    }
-    virtual void println() {
-        tft->println();
-    }
-    virtual void printc(char c) override {
-        tft->print(c);
     }
 
     virtual int width() {
@@ -204,7 +277,9 @@ class DisplayTranslator_ST7789 : public DisplayTranslator {
     virtual void updateDisplay() {
         //Serial.println("updateDisplay..");
         //tft->updateScreenAsync(false);
+        #ifdef TFT_BUFFERED
         tft->display();
+        #endif
     }
 
     /*virtual void drawRGBBitmap(int x, int y, GFXcanvas16 *c) {

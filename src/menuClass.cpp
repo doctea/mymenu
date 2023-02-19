@@ -8,7 +8,7 @@
 #ifndef CORE_TEENSY
     // if no FLASHMEM then we're probably not running on Teensy platform, so define it empty
     #define FLASHMEM
-    #define F(x) { x }
+    //#define F(x) { x }
 #endif
 
 // draw the menu display
@@ -177,7 +177,7 @@ int Menu::display() {
             // we havent had enough panels to move down a line, so force one
             tft->println();
         }
-        tft->println();
+        //tft->println();
         y = tft->getCursorY();
 
         // draw each menu item's panel

@@ -301,7 +301,7 @@ class Menu {
             else if (selected_page_index < 0 )
                 this->selected_page_index = pages->size() - 1;
             selected_page = pages->get(selected_page_index);
-            this->tft->clear();
+            //this->tft->clear();
             //if (pages->size()==1)
             //    this->open_page(0);
             //Serial.printf("Selected page %i\n", selected_page_index);
