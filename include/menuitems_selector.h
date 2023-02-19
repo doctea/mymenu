@@ -1,6 +1,8 @@
 #ifndef MENUITEM_SELECTOR__INCLUDED
 #define MENUITEM_SELECTOR__INCLUDED
 
+#include "menuitems.h"
+
 // generic control for selecting one option from a selection of values
 // TODO: keep currently selected option centred in display and scroll through the rest
 class SelectorControl : public MenuItem {
@@ -125,7 +127,7 @@ class SelectorControl : public MenuItem {
             snprintf(msg, MENU_MESSAGE_MAX, "Set %s to %s (%i)", label, get_label_for_value(available_values[selected_value_index]), available_values[selected_value_index]);
             //Serial.printf("about to set_last_message!");
             //msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
-            menu_set_last_message(msg,GREEN);
+            menu_set_last_message(msg, GREEN);
 
             return go_back_on_select;
         }

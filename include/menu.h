@@ -10,6 +10,14 @@ class Coord {
         }
 };
 
+#define MENU_MESSAGE_MAX (MENU_C_MAX*2)
+
+#ifndef CORE_TEENSY
+    // if no FLASHMEM then we're probably not running on Teensy platform, so define it empty
+    #define FLASHMEM
+    //#define F(x) { x }
+#endif
+
 #include "debug.h"
 
 #include "mymenu.h"
@@ -39,7 +47,7 @@ FLASHMEM void setup_menu();
 struct page_t {
     const char *title = "Default"; //[MAX_PAGE_TITLE];
     uint16_t colour = C_WHITE;
-    int currently_selected = -1;
+    volatile int currently_selected = -1;
     int currently_opened = -1;
     int *panel_bottom = nullptr;
     int num_panels = 0;
@@ -51,6 +59,7 @@ class Menu {
     //int currently_opened    = -1;
 
     //LinkedList<MenuItem*> *items = nullptr; //LinkedList<MenuItem*>();
+
 
     int opened_page_index = -1;
     int selected_page_index = 0;
@@ -67,6 +76,8 @@ class Menu {
     public:
         bool debug = false;
         bool debug_times = false;
+
+        bool auto_update = true;    // whether to send update to tft at end of every display() call, or to allow host app to decide
 
         void setDebugTimes(bool value) {
             this->debug_times = value;
@@ -293,6 +304,9 @@ class Menu {
             else if (selected_page_index < 0 )
                 this->selected_page_index = pages->size() - 1;
             selected_page = pages->get(selected_page_index);
+            //this->tft->clear();
+            //if (pages->size()==1)
+            //    this->open_page(0);
             //Serial.printf("Selected page %i\n", selected_page_index);
         }
         void open_page(unsigned int page_index) {
@@ -365,7 +379,7 @@ class Menu {
         virtual int draw_message() {
             //tft.setCursor(0,0);
             // draw the last status message
-            tft->setTextColor(message_colour,ST77XX_BLACK);
+            tft->setTextColor(message_colour,BLACK);
             tft->setTextSize(0);
             tft->printf(tft->get_message_format(), last_message);
             return tft->getCursorY();
@@ -402,7 +416,7 @@ class Menu {
                 static int last_knob_read = 0, new_knob_read;
                 new_knob_read = knob.read() / ENCODER_STEP_DIVISOR;///4;
                 if (new_knob_read!=last_knob_read) {
-                    //Serial.printf("new_knob_read %i changed from %i\n", new_knob_read, last_knob_read);
+                    Debug_printf("new_knob_read %i changed from %i\n", new_knob_read, last_knob_read);
                     /*if (ENCODER_STEP_DIVISOR>1)
                         last_knob_read = new_knob_read; ///4; 
                     else
@@ -496,6 +510,10 @@ class Menu {
             index%=(sizeof(colours)/sizeof(uint16_t));
             return colours[index++];
         }
+
+    void updateDisplay() {
+        tft->updateDisplay();
+    }
 
 };
 

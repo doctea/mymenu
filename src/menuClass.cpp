@@ -5,13 +5,19 @@
 
 #define MAX_KNOB 1024
 
+#ifndef CORE_TEENSY
+    // if no FLASHMEM then we're probably not running on Teensy platform, so define it empty
+    #define FLASHMEM
+    //#define F(x) { x }
+#endif
+
 // draw the menu display
 int Menu::display() {
     bool debug = this->debug;
     //Serial.printf("display !");
     int y = 0;
     
-    if (debug) { Debug_println(F("display()=> about to setTextColor()")); Serial_flush(); }
+    if (debug) { Serial.println("display()=> about to setTextColor()"); Serial_flush(); }
     tft->setTextColor(C_WHITE, BLACK);
 
     int currently_opened = selected_page->currently_opened;
@@ -35,14 +41,14 @@ int Menu::display() {
         tft->setCursor(0, 0);
 
         if (pinned_panel!=nullptr) {
-            Debug_println(F("display()=> about to pinned_panel->display()"));
+            Serial.println("display()=> about to pinned_panel->display()");
             y = pinned_panel->display(Coord(0,0), false, false);
-            Debug_println(F("display()=> did pinned_panel->display()!")); 
+            Serial.println("display()=> did pinned_panel->display()!"); 
         }
 
         tft->setCursor(0, y);
         
-        if (debug) { Debug_println(F("display()=> about to draw_message()")); Serial_flush(); }
+        if (debug) { Serial.println("display()=> about to draw_message()"); Serial_flush(); }
         y = draw_message();
 
         if (currently_selected>=0 && currently_selected < (int)items->size()) {
@@ -167,7 +173,11 @@ int Menu::display() {
             tft->print("|");
             tft->setTextColor(C_WHITE, BLACK);
         }
-        tft->println();
+        if (y == tft->getCursorY()) {
+            // we havent had enough panels to move down a line, so force one
+            tft->println();
+        }
+        //tft->println();
         y = tft->getCursorY();
 
         // draw each menu item's panel
@@ -180,13 +190,13 @@ int Menu::display() {
             //int time = millis();
             //Serial.printf("Menu rendering item %i [selected #%i, opened #%i]\n", i, currently_selected, currently_opened);
             Coord pos = Coord(0,y);
-            if (debug) { Debug_printf(F("display()=> about to display() item %i aka %s\n"), i, item->label); Serial_flush(); }
+            if (debug) { Serial.printf("display()=> about to display() item %i aka %s\n", i, item->label); Serial_flush(); }
 
             unsigned long time_micros = 0;
             if (this->debug_times) time_micros = micros();
             y = item->display(pos, (int)i==currently_selected, (int)i==currently_opened) + 1;
             //Serial.printf("after rendering MenuItem %i, return y is %i, cursor coords are (%i,%i)\n", y, tft->getCursorX(), tft->getCursorY());
-            if (debug) { Debug_printf(F("display()=> just did display() item %i aka %s\n"), i, item->label); Serial_flush(); }
+            if (debug) { Serial.printf("display()=> just did display() item %i aka %s\n", i, item->label); Serial_flush(); }
 
             if (this->debug_times) {
                 tft->setTextSize(1);
@@ -217,12 +227,13 @@ int Menu::display() {
             //tft->printf("S:%2i O:%2i\n", currently_selected, currently_opened);
             tft->printf("Mem: %i\n"), freeRam();
         }*/
-        if (debug) { Debug_println(F("Done in main draw part")); Serial_flush(); }
+        if (debug) { Debug_println("Done in main draw part"); Serial_flush(); }
     }
 
     //tft->updateScreenAsync(false);
-    if (debug) { Debug_println(F("display()=> about to tft->updateDisplay()")); Serial_flush(); }
-    tft->updateDisplay();
+    if (debug) { Debug_println("display()=> about to tft->updateDisplay()"); Serial_flush(); }
+    if (auto_update)
+        this->updateDisplay();
 
     return y;
 }

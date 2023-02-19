@@ -1,7 +1,7 @@
 #ifndef MENUITEMS__INCLUDED
 #define MENUITEMS__INCLUDED
 
-#include "Arduino.h"
+#include <Arduino.h>
 
 #include "menu.h"
 #include "colours.h"
@@ -106,7 +106,8 @@ class MenuItem {
             if (!this->show_header) return pos.y;
 
             tft->drawLine(pos.x, pos.y, tft->width(), pos.y, this->default_fg);
-            tft->setCursor(pos.x, pos.y+1);
+            pos.y++;
+            tft->setCursor(pos.x, pos.y);
             colours(selected, this->default_fg, this->default_bg);
             tft->setTextSize(textSize);
             if (opened) {
@@ -116,11 +117,16 @@ class MenuItem {
             } else if (selected) {
                 //tft->printf((char*)"%-22s",(char*)text);   // \n not needed as reaching to edge
                 tft->printf((char*)tft->get_header_selected_format(), (char*)text);
+                //tft->println();
             } else {
                 tft->printf((char*)tft->get_header_format(), (char*)text);
             }
             colours(false);
             //return (tft->getTextSize()+1)*6;
+            if (tft->getCursorY() <= pos.y) {
+                // we havent had enough characters to move down a line, so force one
+                tft->println();
+            }
             return tft->getCursorY();
         }
 
@@ -351,6 +357,59 @@ class SeparatorMenuItem : public MenuItem {
             return tft->getCursorY();
         }
 };
+
+
+template<class TargetClass>
+class ToggleControl : public MenuItem {
+    public:
+        bool *target_variable;
+        void (*on_change_handler)(bool last_value, bool new_value) = nullptr;
+
+        ToggleControl(
+            const char *label, 
+            bool *target_variable, 
+            void (*on_change_handler)(bool last_value, bool new_value) = nullptr
+        ) : MenuItem(label) {
+            this->target_variable = target_variable;
+            this->on_change_handler = on_change_handler;
+        }
+
+        virtual int display(Coord pos, bool selected, bool opened) override {
+            pos.y = header(label, pos, selected, opened);
+            tft->setCursor(pos.x,pos.y);
+
+            colours(opened, opened ? GREEN : this->default_fg, BLACK);
+            //tft->setTextSize(2);        // was 2 ?
+            //char tmp[MENU_C_MAX] = "";
+            tft->setTextSize(2);
+
+            this->renderValue(selected, opened, MENU_C_MAX);
+
+            return tft->getCursorY();
+        }
+
+        // render the current value at current position
+        virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
+            const char *txt = *this->target_variable ? "On" : "Off";
+            bool use_small = strlen(txt) <= (max_character_width/2);
+            int textSize = use_small ? 2 : 1;
+            //if (this->debug) Serial.printf(F("%s:\trenderValue '%s' (len %i) with max_character_width %i got textSize %i\n"), this->label, txt, strlen(txt), max_character_width/2, textSize);
+            tft->setTextSize(textSize);
+            tft->println(txt);
+            return tft->getCursorY();
+        }
+
+        virtual bool action_opened() override {
+            //if (this->debug) Serial.printf(F("ObjectToggleControl#action_opened on %s\n"), this->label);
+            //bool value = !(this->target_object->*getter)();
+            //this->internal_value = !this->internal_value;
+            *this->target_variable = !*this->target_variable;
+
+            //(this->target_object->*setter)(value); //(bool)this->internal_value);
+            return false;   // don't 'open'
+        }
+};
+
 
 #include "menuitems_object.h"
 

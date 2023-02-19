@@ -6,8 +6,6 @@
 #include "LinkedList.h"
 #include "menuitems.h"
 
-#include "SD.h"
-
 class ListViewerMenuItem : public MenuItem {
     public:
 
