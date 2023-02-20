@@ -61,12 +61,20 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
     //Adafruit_GFX_Buffer<Adafruit_ST7789> actual = Adafruit_GFX_Buffer<Adafruit_ST7789>(135, 240, actual_tft);
 
     //#define MAX_CHARACTER_WIDTH (SCREEN_WIDTH/MAX_CHARACTER_WIDTH)
-    #ifndef BODMER_BUFFERED
-        TFT_eSPI    actual = TFT_eSPI();
-        TFT_eSPI *tft = &actual;
-    #else
+    #ifdef BODMER_BUFFERED
         TFT_eSPI    actual = TFT_eSPI();
         Adafruit_GFX_Buffer<TFT_eSPI> *tft = new Adafruit_GFX_Buffer<TFT_eSPI>(240, 135, actual);
+    #else
+        #ifdef BODMER_SPRITE
+            TFT_eSPI    real_actual_espi = TFT_eSPI();
+            //TFT_eSprite real_actual_sprite = TFT_eSprite(&real_actual_espi);
+            TFT_eSprite actual = TFT_eSprite(&real_actual_espi);
+            uint16_t* sprPtr = nullptr;
+            TFT_eSprite *tft = &actual;
+        #else
+            TFT_eSPI    actual = TFT_eSPI();
+            TFT_eSPI *tft = &actual;
+        #endif        
     #endif
 
     //Adafruit_ST7789 tft_direct = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
@@ -102,18 +110,24 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
             actual.initDMA();
             tft->setRotation(1);
             actual.setRotation(SCREEN_ROTATION);
+            actual.startWrite();
         #else
-            tft->initDMA();
-            tft->setRotation(SCREEN_ROTATION);
+            real_actual_espi.initDMA();
+            real_actual_espi.setRotation(SCREEN_ROTATION);
+            #ifdef BODMER_SPRITE
+                actual.setRotation(SCREEN_ROTATION);
+                sprPtr = (uint16_t*)actual.createSprite(SCREEN_WIDTH, SCREEN_HEIGHT);
+                tft->fillSprite(BLACK);
+                //actual.setRotation(2);
+                real_actual_espi.startWrite();
+                //spr.setTextDatum(MC_DATUM);
+            #endif
         #endif
         //tft->setRotation(1);
         tft->fillScreen(BLACK);
         tft->setTextWrap(true);
         tft->println(F("DisplayTranslator init()!"));
 
-        #ifndef BODMER_BUFFERED
-            tft->startWrite();
-        #endif
         Debug_println(F("did init()")); Serial_flush();
         Debug_println(F("did fillscreen()")); Serial_flush();
         delay(500);
@@ -218,7 +232,7 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         return 6;
     };
 
-    virtual void clear(bool force = false) {
+    virtual void clear(bool force = false) override {
         #ifndef BDOMER_BUFFERED
         if (force)
         #endif
@@ -227,15 +241,20 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         //tft->fillRect(0, 0, tft->width(), tft->height(), BLACK);
     }
 
-    virtual void start() {
+    virtual void start() override {
         Debug_println("Display start.."); Serial_flush();
         //tft->updateScreenAsync(false);
         /*tft->useFrameBuffer(true);
         Debug_println("did useframebuffer()"); Serial_flush();*/
     }
 
-    virtual void updateDisplay() {
-        //Serial.println("updateDisplay..");
+    virtual void updateDisplay() override {
+        #ifdef BODMER_SPRITE
+            //Serial.println("updateDisplay sprite mode");
+            //spr.fillSprite(random(0,pow(2,16)));
+            real_actual_espi.pushImageDMA(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, sprPtr);
+            //actual.pushImage(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, sprPtr);
+        #endif
         //tft->updateScreenAsync(false);
         //tft->display();
         //tft->push
