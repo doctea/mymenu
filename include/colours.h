@@ -62,6 +62,8 @@
     #undef MENU_C_MAX
     #ifdef TFT_ST7789_T3_BIG
         #define MENU_C_MAX  40
+    #elif defined(TFT_ST7789)
+        #define MENU_C_MAX  32
     #else
         #define MENU_C_MAX  20
     #endif

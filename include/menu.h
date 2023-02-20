@@ -505,7 +505,14 @@ class Menu {
                 tft->rgb(200,200,255),
                 tft->rgb(200,255,255),
                 tft->rgb(255,200,255),
-                tft->rgb(255,255,200)
+                tft->rgb(255,255,200),
+                tft->rgb(255,100,100),
+                tft->rgb(100,255,100),
+                tft->rgb(100,100,255),
+                tft->rgb(255,100,100),
+                tft->rgb(255,100,255),
+                tft->rgb(100,255,255),
+                tft->rgb(255,255,100)
             };
             index%=(sizeof(colours)/sizeof(uint16_t));
             return colours[index++];
