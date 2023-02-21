@@ -37,7 +37,7 @@ class DisplayTranslator {
     virtual void start() {};
     virtual void clear(bool force = false) {};
 
-    virtual bool ready() override { return true; };
+    virtual bool ready() { return true; };
 
     virtual void setCursor(int x, int y) {};
     virtual void print(const char *text) {};

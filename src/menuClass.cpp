@@ -16,8 +16,8 @@ int Menu::display() {
     bool debug = this->debug;
 
     // early return if display isn't ready for writing (mostly used for dma checks)
-    if (!this->ready()) {
-	return 0;
+    if (!this->tft->ready()) {
+	    return 0;
     }
 
     //Serial.printf("display !");
