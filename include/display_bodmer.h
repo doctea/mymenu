@@ -1,4 +1,4 @@
-ifndef DISPLAY_BODMER__INCLUDED
+#ifndef DISPLAY_BODMER__INCLUDED
 #define DISPLAY_BODMER__INCLUDED
 
 //#define ENABLE_ST77XX_FRAMEBUFFER
@@ -109,16 +109,21 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         #ifdef BODMER_BUFFERED
             actual.initDMA();
             tft->setRotation(1);
-            actual.setRotation(SCREEN_ROTATION);
+            actual.setRotation(2); //SCREEN_ROTATION);
             actual.startWrite();
         #else
             real_actual_espi.initDMA();
-            real_actual_espi.setRotation(SCREEN_ROTATION);
+            real_actual_espi.setRotation(2); //SCREEN_ROTATION);
             #ifdef BODMER_SPRITE
-                actual.setRotation(SCREEN_ROTATION);
-                sprPtr = (uint16_t*)actual.createSprite(SCREEN_WIDTH, SCREEN_HEIGHT);
+                //actual.setRotation(2); //SCREEN_ROTATION);
+                sprPtr = (uint16_t*)actual.createSprite(SCREEN_HEIGHT, SCREEN_WIDTH);   // < - corrupts display in way that i did find mentioned in that thread !
+                //sprPtr = (uint16_t*)actual.createSprite(SCREEN_WIDTH, SCREEN_HEIGHT);   // < - only like, just over half the screen shize
+                //actual.setViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+                //actual.setPivot(SCREEN_WIDTH/2, SCREEN_HEIGHT);
+                //actual.setRotation(SCREEN_ROTATION);
                 tft->fillSprite(BLACK);
                 //actual.setRotation(2);
+                real_actual_espi.setRotation(SCREEN_ROTATION);
                 real_actual_espi.startWrite();
                 //spr.setTextDatum(MC_DATUM);
             #endif
