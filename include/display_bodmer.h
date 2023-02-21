@@ -1,4 +1,4 @@
-#ifndef DISPLAY_BODMER__INCLUDED
+ifndef DISPLAY_BODMER__INCLUDED
 #define DISPLAY_BODMER__INCLUDED
 
 //#define ENABLE_ST77XX_FRAMEBUFFER
@@ -252,13 +252,21 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         #ifdef BODMER_SPRITE
             //Serial.println("updateDisplay sprite mode");
             //spr.fillSprite(random(0,pow(2,16)));
-            real_actual_espi.pushImageDMA(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, sprPtr);
+	    if (this->ready()) {
+	            real_actual_espi.pushImageDMA(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, sprPtr);
+	    }
             //actual.pushImage(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, sprPtr);
         #endif
         //tft->updateScreenAsync(false);
         //tft->display();
         //tft->push
     }
+
+    #ifdef BODMER_SPRITE
+	virtual bool ready() override {
+	    return !real_actual_espi.dmaBusy();
+        }
+    #endif
 
     /*virtual void drawRGBBitmap(int x, int y, GFXcanvas16 *c) {
         //tft->drawBitmap(c, x, y)

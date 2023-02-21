@@ -14,6 +14,12 @@
 // draw the menu display
 int Menu::display() {
     bool debug = this->debug;
+
+    // early return if display isn't ready for writing (mostly used for dma checks)
+    if (!this->ready()) {
+	return 0;
+    }
+
     //Serial.printf("display !");
     int y = 0;
     
