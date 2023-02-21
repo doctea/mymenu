@@ -233,8 +233,8 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
     };
 
     virtual void clear(bool force = false) override {
-        #ifndef BDOMER_BUFFERED
-        if (force)
+        #if !defined(BDOMER_BUFFERED) && !defined(BODMER_SPRITE)
+            if (force)
         #endif
             tft->fillScreen(BLACK);
         tft->setTextColor(C_WHITE, BLACK);
