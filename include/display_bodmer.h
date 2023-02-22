@@ -228,10 +228,11 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
     }
 
     virtual int width() {
-        return SCREEN_WIDTH; //tft->width();
+        //return SCREEN_HEIGHT; //tft->width();
+        return tft->width();
     }
     virtual int height() {
-        return SCREEN_HEIGHT; //tft->height();
+        return tft->height();
     }
 
     virtual int getRowHeight() override {
@@ -248,7 +249,11 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         #if !defined(BDOMER_BUFFERED) && !defined(BODMER_SPRITE)
             if (force)
         #endif
+        #ifdef BODMER_SPRITE
+            tft->fillRect(0,0,SCREEN_HEIGHT,SCREEN_WIDTH, BLACK);
+        #else
             tft->fillScreen(BLACK);
+        #endif
         tft->setTextColor(C_WHITE, BLACK);
         //tft->fillRect(0, 0, tft->width(), tft->height(), BLACK);
     }
