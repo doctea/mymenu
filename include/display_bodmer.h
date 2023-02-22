@@ -37,10 +37,12 @@
 #endif
 
 #ifndef SCREEN_WIDTH
-    #define SCREEN_WIDTH 135
+    #define SCREEN_WIDTH TFT_WIDTH
+    //#define SCREEN_WIDTH TFT_HEIGHT
 #endif
 #ifndef SCREEN_HEIGHT
-    #define SCREEN_HEIGHT 240
+    #define SCREEN_HEIGHT TFT_HEIGHT
+    //#define SCREEN_HEIGHT TFT_WIDTH
 #endif
 #ifndef SCREEN_ROTATION
     #define SCREEN_ROTATION 0
@@ -66,7 +68,7 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         Adafruit_GFX_Buffer<TFT_eSPI> *tft = new Adafruit_GFX_Buffer<TFT_eSPI>(240, 135, actual);
     #else
         #ifdef BODMER_SPRITE
-            TFT_eSPI    real_actual_espi = TFT_eSPI();
+            TFT_eSPI    real_actual_espi = TFT_eSPI(); //SCREEN_HEIGHT, SCREEN_WIDTH);
             //TFT_eSprite real_actual_sprite = TFT_eSprite(&real_actual_espi);
             TFT_eSprite actual = TFT_eSprite(&real_actual_espi);
             uint16_t* sprPtr = nullptr;
@@ -79,12 +81,8 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
 
     //Adafruit_ST7789 tft_direct = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
     //Adafruit_GFX_Buffer<Adafruit_ST7789> *tft = new Adafruit_GFX_Buffer<Adafruit_ST7789>(SCREEN_WIDTH, SCREEN_HEIGHT, tft_direct); //Adafruit_ST77(TFT_CS, TFT_DC, TFT_RST));
-    //Adafruit_GFX_Buffer<Adafruit_ST7789> *tft = nullptr;
-   
-    /*virtual const char *get_message_format() { return "[%-20.20s]"; }
-    virtual const char *get_header_format() { return "%-22s"; }
-    virtual const char *get_header_open_format() { return ">>>%-19s"; }
-    virtual const char *get_header_selected_format() { return "%-22s"; }*/
+    //Adafruit_GFX_Buffer<Adafruit_ST7789> *tft = nullptr; 
+
     virtual const char *get_message_format() { return "[%-38.38s]"; }
     virtual const char *get_header_format() { return "%-41s"; }
     virtual const char *get_header_open_format() { return ">>>%-38s"; }
@@ -109,23 +107,32 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         #ifdef BODMER_BUFFERED
             actual.initDMA();
             tft->setRotation(1);
-            actual.setRotation(2); //SCREEN_ROTATION);
+            actual.setRotation(1); //SCREEN_ROTATION);
             actual.startWrite();
         #else
-            real_actual_espi.initDMA();
-            real_actual_espi.setRotation(2); //SCREEN_ROTATION);
             #ifdef BODMER_SPRITE
                 //actual.setRotation(2); //SCREEN_ROTATION);
+                real_actual_espi.setRotation(1);
+                real_actual_espi.initDMA();
+                real_actual_espi.setSwapBytes(false);
+                //real_actual_espi.setPivot(SCREEN_WIDTH/2, 0);
+                //real_actual_espi.setRotation(1);
+                //real_actual_espi.setViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, true);
+                //real_actual_espi.setPivot(SCREEN_WIDTH/2, SCREEN_HEIGHT/2);
+                //tft->setViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, false);
                 sprPtr = (uint16_t*)actual.createSprite(SCREEN_HEIGHT, SCREEN_WIDTH);   // < - corrupts display in way that i did find mentioned in that thread !
                 //sprPtr = (uint16_t*)actual.createSprite(SCREEN_WIDTH, SCREEN_HEIGHT);   // < - only like, just over half the screen shize
-                //actual.setViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-                //actual.setPivot(SCREEN_WIDTH/2, SCREEN_HEIGHT);
-                //actual.setRotation(SCREEN_ROTATION);
-                tft->fillSprite(BLACK);
                 //actual.setRotation(2);
-                real_actual_espi.setRotation(SCREEN_ROTATION);
+                real_actual_espi.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK);
+                tft->fillSprite(BLACK);
+                tft->setRotation(1);
+                //actual.setRotation(2);                
                 real_actual_espi.startWrite();
                 //spr.setTextDatum(MC_DATUM);
+            #else
+                //actual.initDMA();
+                //real_actual_espi.setRotation(2); //SCREEN_ROTATION);
+                actual.setRotation(1);
             #endif
         #endif
         //tft->setRotation(1);
@@ -221,10 +228,10 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
     }
 
     virtual int width() {
-        return tft->width();
+        return SCREEN_WIDTH; //tft->width();
     }
     virtual int height() {
-        return tft->height();
+        return SCREEN_HEIGHT; //tft->height();
     }
 
     virtual int getRowHeight() override {
@@ -257,9 +264,12 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         #ifdef BODMER_SPRITE
             //Serial.println("updateDisplay sprite mode");
             //spr.fillSprite(random(0,pow(2,16)));
-	    if (this->ready()) {
-	            real_actual_espi.pushImageDMA(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, sprPtr);
-	    }
+            if (this->ready()) {
+                //real_actual_espi.fillRect(0,0,SCREEN_HEIGHT,)
+                //real_actual_espi.pushImageDMA(0, 0, SCREEN_HEIGHT, SCREEN_WIDTH, sprPtr);
+                real_actual_espi.pushImageDMA(0, 0, SCREEN_HEIGHT, SCREEN_WIDTH, sprPtr);
+                    //actual.pushRotated(90);
+            }
             //actual.pushImage(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, sprPtr);
         #endif
         //tft->updateScreenAsync(false);
