@@ -250,7 +250,7 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
             if (force)
         #endif
         #ifdef BODMER_SPRITE
-            tft->fillRect(0,0,SCREEN_HEIGHT,SCREEN_WIDTH, BLACK);
+            tft->fillRect(0, 0, SCREEN_HEIGHT, SCREEN_WIDTH, BLACK);
         #else
             tft->fillScreen(BLACK);
         #endif
@@ -285,7 +285,7 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
     #ifdef BODMER_SPRITE
 	virtual bool ready() override {
 	    return !real_actual_espi.dmaBusy();
-        }
+    }
     #endif
 
     /*virtual void drawRGBBitmap(int x, int y, GFXcanvas16 *c) {
