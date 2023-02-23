@@ -84,9 +84,9 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
     //Adafruit_GFX_Buffer<Adafruit_ST7789> *tft = nullptr; 
 
     virtual const char *get_message_format() { return "[%-38.38s]"; }
-    virtual const char *get_header_format() { return "%-41s"; }
-    virtual const char *get_header_open_format() { return ">>>%-38s"; }
-    virtual const char *get_header_selected_format() { return "%-41s"; }
+    virtual const char *get_header_format() { return "%-40s"; }
+    virtual const char *get_header_open_format() { return ">>>%-37s"; }
+    virtual const char *get_header_selected_format() { return "%-40s"; }
 
     unsigned int size = 0;
 
