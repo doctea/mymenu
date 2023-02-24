@@ -7,7 +7,9 @@
 
 #ifndef CORE_TEENSY
     // if no FLASHMEM then we're probably not running on Teensy platform, so define it empty
-    #define FLASHMEM
+    #ifndef FLASHMEM
+        #define FLASHMEM
+    #endif
     //#define F(x) { x }
 #endif
 
