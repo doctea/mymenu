@@ -325,12 +325,27 @@ class Menu {
 
         // add a linkedlist of menuitems; delete the object when finished!
         FLASHMEM void add(LinkedList<MenuItem *> *items, uint16_t default_fg_colour = C_WHITE) {
+            //Serial.println("starting add"); Serial.flush();
+            if (items==nullptr) {
+                Serial.println("WARNING: nullptr list passed to menu#add, skipping!");
+                return;
+            }
+            //Serial.printf("passed items @%p\n", items);
+            //Serial.printf("got items of size %i\n", items->size()); Serial.flush();
             for (unsigned int i = 0 ; i < items->size() ; i++) {
+                if (items->get(i)==nullptr) {
+                    //Serial.printf("skipping %i because its nullptr\n", i);
+                    continue;
+                }
                 //items->get(i)->set_default_colours(default_fg_colour, BLACK);
                 //Serial.printf("setting default_fg_colour %04X on %s\n", default_fg_colour, items->get(i)->label);
+                //Serial.printf("adding item %i of %i..\n", i+1, items->size()); Serial.flush();
                 this->add(items->get(i), default_fg_colour);
+                //Serial.printf("added item %i of %i.\n", i+1, items->size()); Serial.flush();
             }
+            //Serial.printf("deleting items?"); Serial.flush();
             delete items;
+            //Serial.printf("deleted items?"); Serial.flush();
         }
         /*#ifndef GDB_DEBUG
         FLASHMEM 
