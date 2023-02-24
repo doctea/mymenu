@@ -2,11 +2,11 @@
 
 Still very much a WIP, as are (currently) both of the projects that rely on it.  Get in touch if you've some interest in using or contributing to this.
  
-UI providing framework and menu item classes for displaying using the ST7789_t3 or ss_oled library with rotary encoders and a couple of buttons.  Should be relatively simple to support other libraries/displays by writing a thin wrapper around it.
+UI providing framework and menu item classes for displaying using the ST7789_t3 and Bodmer gfx library (atrophied/probably non-working ss_oled library code too).  With rotary encoder and a couple of buttons for input.  Should be relatively simple to support other libraries/displays by writing a thin wrapper around it.
 
 Used by the [usb_midi_clocker](https://github.com/doctea/usb_midi_clocker) and [Microlidian](https://github.com/doctea/Microlidian) projects.
 
-Uses [midihelpers]https://github.com/doctea/midihelpers.
+Uses [midihelpers](https://github.com/doctea/midihelpers) library.
 
 sidenhancy_version branch is older version that (should) work with [sidenhancy](https://github.com/doctea/sidenhancy).  
 
