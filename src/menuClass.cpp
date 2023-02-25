@@ -146,9 +146,12 @@ int Menu::display() {
         tft->setCursor(0, y);
         
         //if (debug) { Debug_println(F("display()=> about to draw_message()")); Serial_flush(); }
-        y = draw_message();
+        int new_y = draw_message();
+        if (new_y==y)
+            tft->println(); // force dropping a line if draw_message hasn't for some reason (needed to get the tabs line to show on bodmer/rp2040?)
+        y = tft->getCursorY();
 
-        // draw tabs for pages
+        /////// draw tabs for the pages
         for (unsigned int i = selected_page_index ; i < pages->size() + selected_page_index ; i++) {
             int ci = i;
             if (ci >= (int)pages->size())        // wrap around to start of list if we get to the end
@@ -185,8 +188,8 @@ int Menu::display() {
             // we havent had enough panels to move down a line, so force one
             tft->println();
         }
-        //tft->println();
         y = tft->getCursorY();
+        /// finished drawing tabs
 
         // draw each menu item's panel
         //int start_y = 0;
