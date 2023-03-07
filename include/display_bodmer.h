@@ -19,7 +19,7 @@
 //#include "ST7789_t3.h"
 #include <Adafruit_ST7789.h>
 */
-
+#define USE_SPI_DMA
 #include <TFT_eSPI.h>
 
 #include "colours.h"

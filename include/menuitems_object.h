@@ -273,7 +273,6 @@ class ObjectActionItem : public MenuItem {
 
         return false;   // don't 'open'
     }
-
 };
 
 

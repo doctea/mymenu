@@ -228,7 +228,6 @@ class ActionItem : public MenuItem {
     public:
 
     char button_label[20] = "";
-
     void(*on_open)() = nullptr;
 
     ActionItem(const char *label, void (*on_open)()) : MenuItem(label) {
@@ -259,9 +258,95 @@ class ActionItem : public MenuItem {
 
         return false;   // don't 'open'
     }
-
 };
 
+class ActionFeedbackItem : public MenuItem {
+    public:
+
+    char button_label_false[20] = "";
+    char button_label_true[20] = "";
+    //void(*on_open)() = nullptr;
+
+    using setter_def_2 = void(*)();
+    using setter_def = void(*)(bool);
+    //using get_label_def = char*(TargetClass::*)(bool); //, get_label_def *get_label
+    using getter_def = bool(*)();
+
+    setter_def setter = nullptr;
+    setter_def_2 setter2 = nullptr;
+    getter_def getter = nullptr;
+
+    ActionFeedbackItem(const char *label, setter_def setter) : 
+        MenuItem(label) {
+            this->setter = setter;
+        }
+    ActionFeedbackItem(const char *label, setter_def_2 setter) : 
+        MenuItem(label) {
+            this->setter2 = setter;
+        }
+
+    ActionFeedbackItem(const char *label, setter_def setter, getter_def getter, const char *button_label_true, const char *button_label_false = nullptr) 
+        :ActionFeedbackItem(label, setter) {
+            this->getter = getter;
+        
+        if (button_label_true!=nullptr) {
+            strncpy(this->button_label_true, button_label_true, 20);
+        } else
+            snprintf(this->button_label_true, 20, "%s", label);
+
+        if (button_label_false!=nullptr)
+            snprintf(this->button_label_false, 20, "%s", button_label_false);
+        else
+            snprintf(this->button_label_false, 20, "%s", label);
+        }
+
+    virtual int display(Coord pos, bool selected, bool opened) override {
+        this->tft->setCursor(pos.x, pos.y);
+        return this->renderValue(selected, opened, MENU_C_MAX);
+    }
+
+    virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
+        char *button_label = nullptr;
+        if (this->getter!=nullptr && this->button_label_true[0]) {
+            button_label = (this->getter)() ? this->button_label_true : this->button_label_false;
+        } else if (button_label_false[0]) {
+            //Serial.printf(F("%s: rendering button_label_false '%s'\n"), this->label, this->button_label_false);
+            button_label = this->button_label_false;
+        } else {
+            button_label = label;
+        }
+        //int y = header(button_label, Coord(this->tft->getCursorX(), this->tft->getCursorY()), selected, opened);
+        colours(selected);
+
+        // determine size font to use
+        bool use_small = strlen(button_label) <= (max_character_width/2);
+        int textSize = use_small ? 2 : 1;
+        tft->setTextSize(textSize);
+
+        tft->println(button_label);
+        const int y = tft->getCursorY();
+        return y;
+    }
+
+    virtual bool action_opened() override {
+        //Serial.println(F("ObjectActionItem#action_opened"));
+        //this->on_open();
+        if (this->setter!=nullptr)
+            (this->setter)(true);
+        else if (this->setter2!=nullptr)
+            (this->setter2)();
+
+        char msg[MENU_MESSAGE_MAX];
+        //Serial.printf("about to build msg string...\n");
+        snprintf(msg, MENU_MESSAGE_MAX, "Fired %8s", label);
+        //Serial.printf("about to set_last_message!");
+        //msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
+        menu_set_last_message(msg,GREEN);
+
+        return false;   // don't 'open'
+    }
+
+};
 
 class ActionConfirmItem : public ActionItem {
     public:
