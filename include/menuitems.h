@@ -285,19 +285,29 @@ class ActionFeedbackItem : public MenuItem {
             this->setter2 = setter;
         }
 
-    ActionFeedbackItem(const char *label, setter_def setter, getter_def getter, const char *button_label_true, const char *button_label_false = nullptr) 
-        :ActionFeedbackItem(label, setter) {
-            this->getter = getter;
-        
-        if (button_label_true!=nullptr) {
+    ActionFeedbackItem(const char *label, getter_def getter, const char *button_label_true, const char *button_label_false = nullptr) 
+        : MenuItem(label) {
+        this->getter = getter;
+
+        if (button_label_true!=nullptr)
             strncpy(this->button_label_true, button_label_true, 20);
-        } else
+        else
             snprintf(this->button_label_true, 20, "%s", label);
 
         if (button_label_false!=nullptr)
             snprintf(this->button_label_false, 20, "%s", button_label_false);
         else
             snprintf(this->button_label_false, 20, "%s", label);
+    }
+
+    ActionFeedbackItem(const char *label, setter_def setter, getter_def getter, const char *button_label_true, const char *button_label_false = nullptr) 
+        : ActionFeedbackItem(label, getter, button_label_true, button_label_false) {
+            this->setter = setter;
+        }
+
+    ActionFeedbackItem(const char *label, setter_def_2 setter, getter_def getter, const char *button_label_true, const char *button_label_false = nullptr) 
+        : ActionFeedbackItem(label, getter, button_label_true, button_label_false) {
+            this->setter2 = setter;
         }
 
     virtual int display(Coord pos, bool selected, bool opened) override {
