@@ -5,25 +5,29 @@
 
 // generic control for selecting one option from a selection of values
 // TODO: keep currently selected option centred in display and scroll through the rest
+template<class DataType = int>
 class SelectorControl : public MenuItem {
     public:
         unsigned int num_values;
-        int selected_value_index;
-        int *available_values;
+        int selected_value_index = 0;
+        DataType *available_values;
         int actual_value_index = -1;
 
-        virtual void setter (int new_value) {
+        /*virtual void setter (int new_value) {
         }
         virtual int getter () {
             return 0;
-        }
+        }*/
+        void (*setter)(DataType) = nullptr;
+        DataType (*getter)() = nullptr;
         /*int on_change() {
             Serial.printf("SelectorControl %s changed to %i!\n", label, available_values[selected_value_index]);
         }*/
-        virtual const char*get_label_for_value(int value) {
-            static char value_label[MENU_C_MAX];
-            snprintf(value_label, MENU_C_MAX, "%i", value);
-            return value_label;
+        virtual const char *get_label_for_value(DataType value) {
+            //static char value_label[MENU_C_MAX];
+            //snprintf(value_label, MENU_C_MAX, "%i", value);
+            //return value_label;
+            return getFormattedValue(value);
         }
 
         SelectorControl(const char *label) : MenuItem(label) {};
@@ -42,7 +46,7 @@ class SelectorControl : public MenuItem {
             pos.y = header(label, pos, selected, opened);
             tft->setTextSize(2);
 
-            int current_value = this->getter();
+            DataType current_value = getter!=nullptr ? this->getter() : available_values[this->selected_value_index];
 
             for (unsigned int i = 0 ; i < num_values ; i++) {
                 //bool is_current_value_selected = selected_value_index==i; //available_values[i]==currentValue;
@@ -63,12 +67,29 @@ class SelectorControl : public MenuItem {
             return tft->getCursorY();
         }
 
+        char fmt[20];
+        virtual char *getFormattedValue(int v) {
+            snprintf(fmt, 20, "%i", v);
+            return fmt;
+        }
+        virtual char *getFormattedValue(float v) {
+            snprintf(fmt, 20, "%3.2f", v);
+            return fmt;
+        }
+
         virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
-            char label[MAX_LABEL_LENGTH];
-            strcpy(label, get_label_for_value(available_values[opened ? selected_value_index : this->getter()]));
+            //char label[MAX_LABEL_LENGTH];
+            char *label = nullptr;
+            if (opened) {
+                label = this->getFormattedValue(available_values[selected_value_index]);
+            } else {
+                label = this->getFormattedValue(this->getter());
+            }
+            //strcpy(label, get_label_for_value(available_values[opened ? selected_value_index : this->getter()]));
             if (strlen(label) > max_character_width) {
                 label[max_character_width] = '\0';
             }
+
             tft->printf("%s", label);
             return tft->getCursorY();
         }
@@ -120,7 +141,8 @@ class SelectorControl : public MenuItem {
         virtual bool button_select() override {
             //Serial.printf("button_select with selected_value_index %i\n", selected_value_index);
             //Serial.printf("that is available_values[%i] of %i\n", selected_value_index, available_values[selected_value_index]);
-            this->setter(available_values[selected_value_index]);
+            if (this->setter!=nullptr)
+                this->setter(available_values[selected_value_index]);
 
             char msg[MENU_MESSAGE_MAX];
             //Serial.printf("about to build msg string...\n");
