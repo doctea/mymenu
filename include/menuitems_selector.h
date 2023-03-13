@@ -68,29 +68,29 @@ class SelectorControl : public MenuItem {
         }
 
         char fmt[20];
-        virtual char *getFormattedValue(int v) {
+        virtual const char *getFormattedValue(int v) {
             snprintf(fmt, 20, "%i", v);
             return fmt;
         }
-        virtual char *getFormattedValue(float v) {
+        virtual const char *getFormattedValue(float v) {
             snprintf(fmt, 20, "%3.2f", v);
             return fmt;
         }
 
         virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
-            //char label[MAX_LABEL_LENGTH];
-            char *label = nullptr;
-            if (opened) {
-                label = this->get_label_for_value(available_values[selected_value_index]);
-            } else {
-                label = this->get_label_for_value(this->getter());
-            }
+            char label[MAX_LABEL_LENGTH];
+            const char *src_label = opened ?
+                this->get_label_for_value(available_values[selected_value_index])
+                :
+                this->get_label_for_value(this->getter());
+
             //strcpy(label, get_label_for_value(available_values[opened ? selected_value_index : this->getter()]));
             if (strlen(label) > max_character_width) {
                 label[max_character_width] = '\0';
             }
+            snprintf(label, max_character_width, "%s", src_label);
 
-            tft->printf("%s", label);
+            tft->printf("%s", (char*)label);
             return tft->getCursorY();
         }
 
@@ -149,7 +149,8 @@ class SelectorControl : public MenuItem {
             snprintf(msg, MENU_MESSAGE_MAX, "Set %s to %s (%i)", 
                 label, 
                 get_label_for_value(available_values[selected_value_index]), 
-                getFormattedValue(available_values[selected_value_index])
+                //getFormattedValue(available_values[selected_value_index])
+                selected_value_index
             );
             //Serial.printf("about to set_last_message!");
             //msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
