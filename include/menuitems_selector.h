@@ -81,9 +81,9 @@ class SelectorControl : public MenuItem {
             //char label[MAX_LABEL_LENGTH];
             char *label = nullptr;
             if (opened) {
-                label = this->getFormattedValue(available_values[selected_value_index]);
+                label = this->get_label_for_value(available_values[selected_value_index]);
             } else {
-                label = this->getFormattedValue(this->getter());
+                label = this->get_label_for_value(this->getter());
             }
             //strcpy(label, get_label_for_value(available_values[opened ? selected_value_index : this->getter()]));
             if (strlen(label) > max_character_width) {
@@ -146,7 +146,11 @@ class SelectorControl : public MenuItem {
 
             char msg[MENU_MESSAGE_MAX];
             //Serial.printf("about to build msg string...\n");
-            snprintf(msg, MENU_MESSAGE_MAX, "Set %s to %s (%i)", label, get_label_for_value(available_values[selected_value_index]), available_values[selected_value_index]);
+            snprintf(msg, MENU_MESSAGE_MAX, "Set %s to %s (%i)", 
+                label, 
+                get_label_for_value(available_values[selected_value_index]), 
+                getFormattedValue(available_values[selected_value_index])
+            );
             //Serial.printf("about to set_last_message!");
             //msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
             menu_set_last_message(msg, GREEN);
