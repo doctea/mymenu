@@ -73,16 +73,23 @@ class SelectorControl : public MenuItem {
             return fmt;
         }
         virtual const char *getFormattedValue(float v) {
-            snprintf(fmt, 20, "%3.2f", v);
+            if (abs(v-(int)v)>0.01)
+                snprintf(fmt, 20, "%3.2f", v);
+            else        // don't print .00 fractional part if there isn't one
+                snprintf(fmt, 20, "%3i", (int)v);
+                
             return fmt;
         }
 
         virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
             char label[MAX_LABEL_LENGTH];
-            const char *src_label = opened ?
+            /*const char *src_label = opened ?
                 this->get_label_for_value(available_values[selected_value_index])
                 :
-                this->get_label_for_value(this->getter());
+                this->get_label_for_value(this->getter());*/
+            const char *src_label = this->get_label_for_value(
+                opened ? available_values[selected_value_index] : this->getter()
+            );
 
             //strcpy(label, get_label_for_value(available_values[opened ? selected_value_index : this->getter()]));
             if (strlen(label) > max_character_width) {
