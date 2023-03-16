@@ -13,13 +13,18 @@ class SelectorControl : public MenuItem {
         DataType *available_values;
         int actual_value_index = -1;
 
-        /*virtual void setter (int new_value) {
+        void (*f_setter)(DataType) = nullptr;
+        DataType (*f_getter)() = nullptr;
+
+        virtual void setter (DataType new_value) {
+            if (f_setter!=nullptr)
+                this->f_setter(new_value);
         }
         virtual int getter () {
-            return 0;
-        }*/
-        void (*setter)(DataType) = nullptr;
-        DataType (*getter)() = nullptr;
+            if (f_getter!=nullptr)
+                return this->f_getter();
+            return available_values[this->selected_value_index];
+        }
         /*int on_change() {
             Serial.printf("SelectorControl %s changed to %i!\n", label, available_values[selected_value_index]);
         }*/
@@ -46,7 +51,7 @@ class SelectorControl : public MenuItem {
             pos.y = header(label, pos, selected, opened);
             tft->setTextSize(2);
 
-            DataType current_value = getter!=nullptr ? this->getter() : available_values[this->selected_value_index];
+            DataType current_value = this->getter(); //f_getter!=nullptr ? this->f_getter() : available_values[this->selected_value_index];
 
             for (unsigned int i = 0 ; i < num_values ; i++) {
                 //bool is_current_value_selected = selected_value_index==i; //available_values[i]==currentValue;
@@ -148,8 +153,8 @@ class SelectorControl : public MenuItem {
         virtual bool button_select() override {
             //Serial.printf("button_select with selected_value_index %i\n", selected_value_index);
             //Serial.printf("that is available_values[%i] of %i\n", selected_value_index, available_values[selected_value_index]);
-            if (this->setter!=nullptr)
-                this->setter(available_values[selected_value_index]);
+            if (this->f_setter!=nullptr)
+                this->f_setter(available_values[selected_value_index]);
 
             char msg[MENU_MESSAGE_MAX];
             //Serial.printf("about to build msg string...\n");
