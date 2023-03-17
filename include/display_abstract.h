@@ -85,6 +85,20 @@ class DisplayTranslator {
         return ((r / 8) << 11) | ((g / 4) << 5) | (b / 8);
     }
 
+    // take a 565 16-bit colour value and return a dimmed version of it
+    uint16_t halfbright_565(uint16_t colour) {
+        unsigned char red = (colour & 0xf800) >> 11;
+        unsigned char green = (colour & 0x07e0) >> 5;
+        unsigned char blue = colour & 0x001f;
+        //Serial.printf("halfbright took colour %04x and split into red=%i, green=%i, blue=%i ", colour, red, green, blue);
+        red = red >> 1;
+        green = green >> 1;
+        blue = green >> 1;
+        uint16_t ret = rgb(red<<3,green<<2,blue<<3);
+        //Serial.printf("and returning %04x\n", ret);
+        return ret;
+    }
+
     virtual bool will_x_rows_fit_to_height(int rows, int height = -1) {
         if (height==-1) height = this->height();
         int rowHeight = this->getRowHeight();
