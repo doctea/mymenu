@@ -75,6 +75,8 @@ class Menu {
     int last_knob_position = -1;
     int button_count = 0;
 
+    uint16_t screen_height_cutoff = 100;
+
     public:
         bool debug = false;
         bool debug_times = false;
@@ -249,6 +251,15 @@ class Menu {
             this->tft = dt;
             this->pages = new LinkedList<page_t*>();
             this->select_page(this->add_page("Main"));
+            this->screen_height_cutoff = (int)(0.75f*(float)tft->height());
+        }
+
+        void set_screen_height_cutoff(int cutoff) {
+            this->screen_height_cutoff = cutoff;
+        }
+
+        void set_screen_height_cutoff(float cutoff) {
+            set_screen_height_cutoff((int)(cutoff * ((float)tft->height()-(3 * tft->getRowHeight()))));
         }
 
         //FLASHMEM 
