@@ -39,7 +39,8 @@ class FileViewerMenuItem : public ListViewerMenuItem {
             filename = String("(err)") + filename;
             return;
         }
-        while (String line = f.readStringUntil('\n')) {
+        while (f.available()) {
+            String line = f.readStringUntil('\n');
             list_contents->add(line);
         }
         f.close();

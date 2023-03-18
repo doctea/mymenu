@@ -131,6 +131,7 @@ int Menu::display() {
         #ifndef ALT_MENU_POSITIONING
             start_panel = constrain(start_panel-2, 0, (int)items->size()-1);
             // ^^^ whether this is useful appears to depend on what menus we're on... disabled it for better behaviour on the ParameterInput pages on Microlidian
+            // TODO: fix this behaviour once and for all
         #endif
 
         static int last_start_panel = -1;
