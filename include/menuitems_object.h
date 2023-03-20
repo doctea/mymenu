@@ -296,7 +296,7 @@ class ObjectActionConfirmItem : public ObjectActionItem<TargetClass> {
         //Serial.println("ObjectActionConfirmItem#renderValue..");
         const char *button_label = opened ? "??? Sure ???" : this->label;
 
-        //this->colours(selected);
+        this->colours(selected);
 
         // determine size font to use
         bool use_small = strlen(button_label) <= (max_character_width/2);
