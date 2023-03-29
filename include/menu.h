@@ -355,8 +355,9 @@ class Menu {
                 //Serial.printf("added item %i of %i.\n", i+1, items->size()); Serial.flush();
             }
             //Serial.printf("deleting items?"); Serial.flush();
+            items->clear(); 
             delete items;
-            //Serial.printf("deleted items?"); Serial.flush();
+            //Serial.printf("deleted items!"); Serial.flush();
         }
         /*#ifndef GDB_DEBUG
         FLASHMEM 
@@ -404,7 +405,7 @@ class Menu {
             this->add_message(msg);
         }
 
-        virtual int draw_message() {
+        int draw_message() {
             //tft.setCursor(0,0);
             // draw the last status message
             tft->setTextColor(message_colour,BLACK);
@@ -418,7 +419,7 @@ class Menu {
         //#define LOOP_LENGTH (PPQN * BEATS_PER_BAR * BARS_PER_PHRASE)
 
         // draw the menu display
-        virtual int display();
+        int display();
         
         void update_ticks(unsigned long ticks) {
             if (pinned_panel!=nullptr)
@@ -485,7 +486,7 @@ class Menu {
             #endif
         }
 
-        #if defined(__arm__) && defined(CORE_TEENSY)
+        /*#if defined(__arm__) && defined(CORE_TEENSY)
             int freeRam() {
                 return (char *)&_heap_end - __brkval;
             }
@@ -499,25 +500,12 @@ class Menu {
                 extern int __heap_start, *__brkval;
                 int v;
                 return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
-                /*uint32_t stackTop;
-                uint32_t heapTop;
-
-                // current position of the stack.
-                stackTop = (uint32_t) &stackTop;
-
-                // current position of heap.
-                void* hTop = malloc(1);
-                heapTop = (uint32_t) hTop;
-                free(hTop);
-
-                // The difference is (approximately) the free, available ram.
-                return stackTop - heapTop;*/
             }
             void debug_free_ram() {
                 Serial.print(F("debug_free_ram: Free RAM is "));
                 Serial.println(freeRam());
             }
-        #endif
+        #endif*/
 
         uint16_t get_next_colour() {
             static int index = 0;

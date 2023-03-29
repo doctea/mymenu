@@ -77,6 +77,10 @@ class SelectorControl : public MenuItem {
             snprintf(fmt, 20, "%i", v);
             return fmt;
         }
+        virtual const char *getFormattedValue(uint32_t v) {
+            snprintf(fmt, 20, "%u", v);
+            return fmt;
+        }
         virtual const char *getFormattedValue(float v) {
             if (abs(v-(int)v)>0.01)
                 snprintf(fmt, 20, "%3.2f", v);
