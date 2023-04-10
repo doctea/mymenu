@@ -219,6 +219,9 @@ class NumberControl : public NumberControlBase {
                 tft->setTextSize(1);
             }*/
             //tft->setTextSize(0);
+            colours(false); //, this->default_fg, this->)
+            //Serial.printf("renderValue in NumberControl\tfor %s,\tgot default_fg colour %04x\n", this->label, this->default_fg);
+
             byte textSize = (strlen(tmp) > max_character_width/2) ? 1 : 2;
             //byte textSize = (strlen(tmp) / max_character_width) + 1;
             //Serial.printf("%s\t#renderValue string is \t%s (length=%i), max_character_width is\t%i, setting text size to\t%i\n", this->label, tmp, strlen(tmp), max_character_width, textSize);

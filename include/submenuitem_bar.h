@@ -21,7 +21,7 @@ class SubMenuItemBar : public SubMenuItem {
     }
 
     virtual int display(Coord pos, bool selected, bool opened) override {
-        Debug_printf(F("Start of display in SubMenuItemBar, passed in %i,%i\n"), pos.x, pos.y);
+        Debug_printf("Start of display in SubMenuItemBar, passed in %i,%i\n", pos.x, pos.y);
         pos.y = header(label, pos, selected, opened);
         Debug_printf(F("\tafter header, y=%i\n"), pos.y);
         tft->setCursor(pos.x, pos.y);
@@ -79,7 +79,7 @@ class SubMenuItemBar : public SubMenuItem {
         snprintf(fmt, 10, "%%-%is\n", max_display_width);    // becomes eg "%-6s\n"
         //if (this->debug) Serial.printf("\tGot format '%s'\n", fmt);
 
-        // print label header
+        // print label header // TODO: either move this to be the responsibility of the control, or use something like get_label() instead, so that can override in subclass for things like parameter controls where this might change
         if (this->show_sub_headers) {
             //if (this->debug) Serial.printf("\tdrawing header at %i,%i\n", x, y);
             tft->setCursor(x, y);
@@ -99,6 +99,8 @@ class SubMenuItemBar : public SubMenuItem {
             Serial.printf("\tdoing renderValue at %i,%i on @%p\n", x, y, ctrl);
             Serial.printf("\taka '%s'\n", ctrl->label);
         }*/
+
+        //Serial.printf("SubMenuItem for %s:\t rendering item index %i (named %s)\n", label, index, ctrl->label);
 
         // actually render the item
         y = ctrl->renderValue((!this->show_sub_headers && outer_selected) || is_selected, is_opened, max_display_width); //width/width_in_chars);
