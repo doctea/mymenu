@@ -68,11 +68,14 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         Adafruit_GFX_Buffer<TFT_eSPI> *tft = new Adafruit_GFX_Buffer<TFT_eSPI>(240, 135, actual);
     #else
         #ifdef BODMER_SPRITE
-            TFT_eSPI    real_actual_espi = TFT_eSPI(); //SCREEN_HEIGHT, SCREEN_WIDTH);
+            //TFT_eSPI    real_actual_espi = TFT_eSPI(); //SCREEN_HEIGHT, SCREEN_WIDTH);
+            TFT_eSPI *real_actual_espi = nullptr;
             //TFT_eSprite real_actual_sprite = TFT_eSprite(&real_actual_espi);
-            TFT_eSprite actual = TFT_eSprite(&real_actual_espi);
+            //TFT_eSprite actual = TFT_eSprite(&real_actual_espi);
+            TFT_eSprite *actual = nullptr;
             uint16_t* sprPtr = nullptr;
-            TFT_eSprite *tft = &actual;
+            //TFT_eSprite *tft = &actual;
+            TFT_eSprite *tft = nullptr;//&actual;
         #else
             TFT_eSPI    actual = TFT_eSPI();
             TFT_eSPI *tft = &actual;
@@ -102,7 +105,11 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
 
     virtual void setup() {
         Debug_println(F("DisplayTranslator_Bodmer setup()..")); Serial_flush();
+        real_actual_espi = new TFT_eSPI();
+        actual = new TFT_eSprite(real_actual_espi);
+        tft = actual;
         tft->init(); //SCREEN_WIDTH, SCREEN_HEIGHT);           // Init ST7789 240x135
+
 
         #ifdef BODMER_BUFFERED
             actual.initDMA();
@@ -112,22 +119,22 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         #else
             #ifdef BODMER_SPRITE
                 //actual.setRotation(2); //SCREEN_ROTATION);
-                real_actual_espi.setRotation(1);
-                real_actual_espi.initDMA();
-                real_actual_espi.setSwapBytes(false);
+                real_actual_espi->setRotation(1);
+                real_actual_espi->initDMA();
+                real_actual_espi->setSwapBytes(false);
                 //real_actual_espi.setPivot(SCREEN_WIDTH/2, 0);
                 //real_actual_espi.setRotation(1);
                 //real_actual_espi.setViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, true);
                 //real_actual_espi.setPivot(SCREEN_WIDTH/2, SCREEN_HEIGHT/2);
                 //tft->setViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, false);
-                sprPtr = (uint16_t*)actual.createSprite(SCREEN_HEIGHT, SCREEN_WIDTH);   // < - corrupts display in way that i did find mentioned in that thread !
+                sprPtr = (uint16_t*)actual->createSprite(SCREEN_HEIGHT, SCREEN_WIDTH);   // < - corrupts display in way that i did find mentioned in that thread !
                 //sprPtr = (uint16_t*)actual.createSprite(SCREEN_WIDTH, SCREEN_HEIGHT);   // < - only like, just over half the screen shize
                 //actual.setRotation(2);
-                real_actual_espi.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK);
+                real_actual_espi->fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK);
                 tft->fillSprite(BLACK);
                 tft->setRotation(1);
                 //actual.setRotation(2);                
-                real_actual_espi.startWrite();
+                real_actual_espi->startWrite();
                 //spr.setTextDatum(MC_DATUM);
             #else
                 //actual.initDMA();
@@ -138,6 +145,7 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         //tft->setRotation(1);
         tft->fillScreen(BLACK);
         tft->setTextWrap(true);
+        tft->setCursor(0,0);
         tft->println(F("DisplayTranslator init()!"));
 
         Debug_println(F("did init()")); Serial_flush();
@@ -272,7 +280,7 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
             if (this->ready()) {
                 //real_actual_espi.fillRect(0,0,SCREEN_HEIGHT,)
                 //real_actual_espi.pushImageDMA(0, 0, SCREEN_HEIGHT, SCREEN_WIDTH, sprPtr);
-                real_actual_espi.pushImageDMA(0, 0, SCREEN_HEIGHT, SCREEN_WIDTH, sprPtr);
+                real_actual_espi->pushImageDMA(0, 0, SCREEN_HEIGHT, SCREEN_WIDTH, sprPtr);
                     //actual.pushRotated(90);
             }
             //actual.pushImage(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, sprPtr);
@@ -284,7 +292,7 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
 
     #ifdef BODMER_SPRITE
 	virtual bool ready() override {
-	    return !real_actual_espi.dmaBusy();
+	    return !real_actual_espi->dmaBusy();
     }
     #endif
 
