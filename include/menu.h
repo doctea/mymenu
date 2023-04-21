@@ -299,14 +299,14 @@ class Menu {
             this->opened_page_index = -1;
             if (this->selected_page!=nullptr) 
                 this->selected_page->currently_opened = -1;
-            Serial.printf("select_next_page currently on %i\n", this->selected_page_index);
+            //Serial.printf("select_next_page currently on %i\n", this->selected_page_index);
             this->select_page(++this->selected_page_index);
         }
         void select_previous_page() {
             this->opened_page_index = -1;
             if (this->selected_page!=nullptr) 
                 this->selected_page->currently_opened = -1;
-            Serial.printf("select_previous_page currently on %i\n", this->selected_page_index);
+            //Serial.printf("select_previous_page currently on %i\n", this->selected_page_index);
             this->select_page(this->selected_page_index - 1);
         }
 
