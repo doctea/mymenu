@@ -101,9 +101,9 @@ class SelectorControl : public MenuItem {
             );
 
             //strcpy(label, get_label_for_value(available_values[opened ? selected_value_index : this->getter()]));
-            if (strlen(label) > max_character_width) {
+            /*if (strlen(label) > max_character_width) {
                 label[max_character_width] = '\0';
-            }
+            }*/
             snprintf(label, max_character_width, "%s", src_label);
 
             tft->printf("%s", (char*)label);
