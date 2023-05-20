@@ -110,6 +110,7 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         tft = actual;
         tft->init(); //SCREEN_WIDTH, SCREEN_HEIGHT);           // Init ST7789 240x135
 
+        actual->setFreeFont();
 
         #ifdef BODMER_BUFFERED
             actual.initDMA();
