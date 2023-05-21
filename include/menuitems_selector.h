@@ -8,9 +8,9 @@
 template<class DataType = int>
 class SelectorControl : public MenuItem {
     public:
-        unsigned int num_values;
+        unsigned int num_values = 0;
         int selected_value_index = 0;
-        DataType *available_values;
+        DataType *available_values = nullptr;
         int actual_value_index = -1;
 
         void (*f_setter)(DataType) = nullptr;
@@ -23,6 +23,10 @@ class SelectorControl : public MenuItem {
         virtual int getter () {
             if (f_getter!=nullptr)
                 return this->f_getter();
+            if (available_values==nullptr)
+                return -1;
+            if (this->selected_value_index<0 || this->selected_value_index>=num_values)
+                return -1;
             return available_values[this->selected_value_index];
         }
         /*int on_change() {

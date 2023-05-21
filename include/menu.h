@@ -27,13 +27,6 @@ class Coord {
 
 #define MAX_MESSAGE_LOG 20
 
-/*#ifndef MENU_MAX_PANELS
-    #define MENU_MAX_PANELS 50
-#endif*/
-
-//extern Menu menu;
-//void setup_display();
-
 #include <LinkedList.h>
 #include "menuitems.h"
 
@@ -57,12 +50,6 @@ struct page_t {
 };
 
 class Menu {
-    //int currently_selected  = -1;
-    //int currently_opened    = -1;
-
-    //LinkedList<MenuItem*> *items = nullptr; //LinkedList<MenuItem*>();
-
-
     int opened_page_index = -1;
     int selected_page_index = 0;
     page_t *selected_page = nullptr;
@@ -486,36 +473,9 @@ class Menu {
             #endif
         }
 
-        /*#if defined(__arm__) && defined(CORE_TEENSY)
-            int freeRam() {
-                return (char *)&_heap_end - __brkval;
-            }
-
-            void debug_free_ram() {
-                //Serial.println(F("debug_free_ram() not implemented on Teensy"));
-                Serial.printf(F("debug_free_ram: %i\n"), freeRam());
-            }
-        #else
-            int freeRam () {  
-                extern int __heap_start, *__brkval;
-                int v;
-                return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
-            }
-            void debug_free_ram() {
-                Serial.print(F("debug_free_ram: Free RAM is "));
-                Serial.println(freeRam());
-            }
-        #endif*/
-
         uint16_t get_next_colour() {
             static int index = 0;
             static const uint16_t colours[] = {
-                /*tft->rgb(50,0,0),     // dark colours
-                tft->rgb(0,50,0),
-                tft->rgb(0,0,50),
-                tft->rgb(0,50,50),
-                tft->rgb(50,0,50),
-                tft->rgb(50,50,0)*/
                 tft->rgb(255,200,200),  // bright pastel colours
                 tft->rgb(200,255,200),
                 tft->rgb(200,200,255),
@@ -541,24 +501,6 @@ class Menu {
 };
 
 extern Menu *menu;
-
-
-//void tft_print (char *text);
-//void tft_clear();
-/*void tft_print (char *text) {
-    menu->tft->print(text);
-}
-void tft_clear() {
-    menu->tft->clear();
-}*/
-
-
-/*void tft_print (char *text) {
-    menu->tft->print(text);
-}
-void tft_clear() {
-    menu->tft->clear();
-}*/
 
 #endif
 
