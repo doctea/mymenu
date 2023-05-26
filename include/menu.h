@@ -430,7 +430,11 @@ class Menu {
             //int new_knob_read;
             #ifdef ENCODER_KNOB_L
                 static int last_knob_read = 0, new_knob_read;
-                new_knob_read = knob.read() / ENCODER_STEP_DIVISOR;///4;
+                #ifdef ENCODER_DURING_SETUP // if knob is a pointer to an Encoder; so that we can instantiate the knob at runtime on eg RP2040 earlephilhower so that interrupts dont get trashed https://github.com/PaulStoffregen/Encoder/pull/85
+                    new_knob_read = knob->read() / ENCODER_STEP_DIVISOR;
+                #else
+                    new_knob_read = knob.read() / ENCODER_STEP_DIVISOR;
+                #endif
                 if (new_knob_read!=last_knob_read) {
                     Debug_printf("new_knob_read %i changed from %i\n", new_knob_read, last_knob_read);
                     /*if (ENCODER_STEP_DIVISOR>1)

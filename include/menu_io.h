@@ -5,8 +5,11 @@
 #include <Bounce2.h>
 
 #ifdef ENCODER_KNOB_L
-    //Encoder knob(ENCODER_KNOB_L, ENCODER_KNOB_R);
-    extern Encoder knob;
+    #ifdef ENCODER_DURING_SETUP
+        extern Encoder *knob;
+    #else
+        extern Encoder knob;
+    #endif    
 #endif
 #ifdef PIN_BUTTON_A
     //Bounce pushButtonA = Bounce(PIN_BUTTON_A, 10); // 10ms debounce
