@@ -110,4 +110,72 @@ class SubMenuItemBar : public SubMenuItem {
     }
 };
 
+
+
+class SubMenuItemColumns : public SubMenuItemBar {
+    public:
+
+    bool show_sub_headers = true;
+    int columns = 1;
+
+    SubMenuItemColumns(const char *label, int columns = 1) : SubMenuItemBar(label) {
+        this->columns = columns;
+    }
+
+    virtual bool allow_takeover() override {
+        return false;
+    }
+
+    virtual inline int get_max_pixel_width(int item_number) {
+        return this->tft->width() / columns; //(this->items->size() /*+1*/);
+    }
+
+    virtual int display(Coord pos, bool selected, bool opened) override {
+        Debug_printf("Start of display in SubMenuItemBar, passed in %i,%i\n", pos.x, pos.y);
+        pos.y = header(label, pos, selected, opened);
+        Debug_printf(F("\tafter header, y=%i\n"), pos.y);
+        tft->setCursor(pos.x, pos.y);
+        //tft->setTextSize(1);
+        colours(opened, opened ? GREEN : this->default_fg, this->default_bg);
+
+        int start_y = pos.y;        // y to start drawing at (just under header)
+        int finish_y = pos.y;       // highest y that we finished drawing at
+
+        // draw all the sub-widgets
+        //int width_per_item = this->tft->width() / (this->items->size() /*+1*/);
+        int start_x = 0;
+        Debug_printf(F("display in SubMenuItemBar got width_per_item=%i\tfrom tftwidth\t%i / itemsize\t%i\n"), width_per_item, this->tft->width(), this->items->size());
+        int last_y = 0;
+        for (unsigned int item_index = 0 ; item_index < this->items->size() ; item_index++) {
+            if (item_index % columns == 0) {
+                start_x = 0; 
+                pos.y = tft->getCursorY();
+                last_y = pos.y;
+            } else {
+                start_x = (item_index%columns) * (SCREEN_WIDTH / columns);
+                pos.y = last_y;
+            }
+            const int width = this->get_max_pixel_width(item_index);
+            const int temp_y = this->small_display(
+                item_index, 
+                start_x, 
+                pos.y, 
+                width, //width_per_item, 
+                this->currently_selected==(int)item_index, 
+                this->currently_opened==(int)item_index,
+                !opened && selected
+            );
+            //start_x += width;
+            if (temp_y>finish_y)
+                finish_y = temp_y;
+        }
+
+        tft->setTextColor(this->default_fg, this->default_bg);
+        tft->setTextSize(0);
+
+        Debug_printf(F("End of display, y=%i\n--------\n"), finish_y);
+        return finish_y;//tft->getCursorY();
+    }
+};
+
 #endif
