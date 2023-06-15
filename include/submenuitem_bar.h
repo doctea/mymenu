@@ -111,7 +111,7 @@ class SubMenuItemBar : public SubMenuItem {
 };
 
 
-
+// todo: probably move the column functionality into SubMenuItemBar to save bytes on duplicated logic
 class SubMenuItemColumns : public SubMenuItemBar {
     public:
 
@@ -152,7 +152,7 @@ class SubMenuItemColumns : public SubMenuItemBar {
                 pos.y = tft->getCursorY();
                 last_y = pos.y;
             } else {
-                start_x = (item_index%columns) * (SCREEN_WIDTH / columns);
+                start_x = (item_index%columns) * (menu->tft->width() / columns);
                 pos.y = last_y;
             }
             const int width = this->get_max_pixel_width(item_index);
