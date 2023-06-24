@@ -1,9 +1,9 @@
-#ifndef DISPLAY_ST7789_T3__INCLUDED
-#define DISPLAY_ST7789_T3__INCLUDED
+#ifndef DISPLAY_ILI9341_T3N__INCLUDED
+#define DISPLAY_ILI9341_T3N__INCLUDED
 
 //#define ENABLE_ST77XX_FRAMEBUFFER
 
-#ifdef TFT_ST7789_T3
+#ifdef TFT_ILI9341
 
 #include "display_abstract.h"
 
@@ -13,7 +13,7 @@
 
 #include <Adafruit_GFX.h>
 #include <SPI.h>
-#include "ST7789_t3.h"
+#include <ILI9341_t3n.h>
 
 #include "colours.h"
 
@@ -32,29 +32,33 @@
 #define BLUE    ST77XX_BLUE
 #define YELLOW  ST77XX_YELLOW*/
 
-class DisplayTranslator_STeensy : public DisplayTranslator {
+class DisplayTranslator_ILI9341 : public DisplayTranslator {
     public:
-    ST7789_t3 actual = ST7789_t3(TFT_CS, TFT_DC, TFT_RST);
-    ST7789_t3 *tft;
+    ILI9341_t3n actual = ILI9341_t3n(TFT_CS, TFT_DC, TFT_RST);
+    ILI9341_t3n *tft;
    
-    virtual const char *get_message_format() { return "[%-20.20s]"; }
-    virtual const char *get_header_format() { return "%-22s"; }
-    virtual const char *get_header_open_format() { return ">>>%-19s"; }
-    virtual const char *get_header_selected_format() { return "%-22s"; }
+    virtual const char *get_message_format() { return "[%-38.38s]"; }
+    virtual const char *get_header_format() { return "%-40s"; }
+    virtual const char *get_header_open_format() { return ">>>%-37s"; }
+    virtual const char *get_header_selected_format() { return "%-40s"; }
+    virtual uint8_t get_c_max() {
+        return MENU_C_MAX;
+    }
 
-    DisplayTranslator_STeensy() {
+    DisplayTranslator_ILI9341() {
         this->tft = &actual; //ST7789_t3(TFT_CS, TFT_DC, TFT_RST);
         this->setup();
     }
 
     virtual void setup() {
-        Debug_println(F("steensy setup()..")); Serial_flush();
-        tft->init(135, 240);           // Init ST7789 240x135
-        tft->fillScreen(ST77XX_BLACK);
+        Debug_println(F("ili9341 setup()..")); Serial_flush();
+        tft->begin();
+        //tft->init(240, 320);           // Init ST7789 240x135
+        tft->fillScreen(BLACK);
         tft->setTextWrap(false);
-        tft->println(F("DisplayTranslator init()!"));
-        Debug_println(F("did init()")); Serial_flush();
-        Debug_println(F("did fillscreen()")); Serial_flush();
+        tft->println(F("DisplayTranslator_ILI9341 setup()!"));
+        Debug_println(F("ili9341 did init()")); Serial_flush();
+        Debug_println(F("ili9341 did fillscreen()")); Serial_flush();
         delay(500);
         // large block of text
         //testdrawtext("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa, fringilla sed malesuada et, malesuada sit amet turpis. Sed porttitor neque ut ante pretium vitae malesuada nunc bibendum. Nullam aliquet ultrices massa eu hendrerit. Ut sed nisi lorem. In vestibulum purus a tortor imperdiet posuere. ", ST77XX_WHITE);
@@ -74,7 +78,7 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
     virtual int getCursorY() override {
         return tft->getCursorY();
     }
-    virtual void setTextColor(uint16_t fg, uint16_t bg = ST77XX_BLACK) override {
+    virtual void setTextColor(uint16_t fg, uint16_t bg = BLACK) override {
         //Serial.printf("setTextColor setting fg=%0x,\tbg=%0x\n", fg, bg);
         tft->setTextColor(fg, bg);
     }

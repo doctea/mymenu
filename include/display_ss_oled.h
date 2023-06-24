@@ -243,6 +243,22 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
         //menu->display();
     }
 
+    virtual void drawLine(int x1, int y1, int x2, int y2, uint16_t colour) {
+        actual->drawLine(x1, y1, x2, y2, colour);     // TODO: untested!! implement proper equivalent of this
+    }
+    virtual void drawFastVLine(int x, int y, int height, uint16_t colour) {
+        actual->drawFastVLine(x, y, height, colour);    // TODO: untested!! implement proper equivalent of this
+    }
+    virtual void drawFastHLine(int x, int y, int width, uint16_t colour) {
+        actual->drawFastHLine(x, y, width, colour);    // TODO: untested!! implement proper equivalent of this
+    }
+    virtual void fillCircle(int x, int y, int radius, uint16_t colour) {
+        actual->fillCircle(x, y, radius, colour);       // TODO: untested!! implement proper equivalent of this
+    }
+    virtual void drawRect(int x, int y, int w, int h, uint16_t color) override {
+        actual->drawRect(x, y, w, h, color);
+    }
+
 };
 
 /*void tft_print(char *text, int x, int y) {

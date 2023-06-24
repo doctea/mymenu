@@ -44,8 +44,6 @@ class DisplayTranslator {
     virtual int getCursorX() { return 0; };
     virtual int getCursorY() { return 0; };
     virtual void setTextColor(uint16_t fg, uint16_t bg) {};
-    virtual void drawLine(int x0, int y0, int x1, int y1, uint16_t color) {};
-    virtual void fillRect(int x, int y, int w, int h, uint16_t color) {};
     virtual void setTextSize(unsigned int size) {};
     virtual void printf(const char *pattern) { Serial.println(F("WARNING: printf(char*pattern) not overridden!")); };
     virtual void printf(const char *pattern, char *param1)  { Serial.println(F("WARNING: printf(char*pattern, char *param1) not overridden!")); };
@@ -63,8 +61,6 @@ class DisplayTranslator {
     virtual void println(const char *txt) { Serial.println(F("WARNING: println(const char *) not overridden!"));};
     virtual void printc(char c) { Serial.println(F("WARNING: printc(char) not overridden!")); }
 
-    virtual void drawRoundRect(int x, int y, int w, int h, int radius, int color) { Serial.println(F("TODO: unimplemented drawRoundRect())")); };
-    virtual void fillRoundRect(int x, int y, int w, int h, int radius, int color) { Serial.println(F("TODO: unimplemented fillRoundRect())")); };
 
     virtual int width() { return 128; };
     virtual int height() { return 64; };
@@ -113,6 +109,17 @@ class DisplayTranslator {
                 getCursorY(), rows, rowHeight, position, height);*/
         return result;
     } 
+
+    // shapes + lines
+    virtual void drawLine(int x0, int y0, int x1, int y1, uint16_t color) {};
+    virtual void drawFastVLine(int x, int y, int height, uint16_t colour) = 0;
+    virtual void drawFastHLine(int x, int y, int width, uint16_t colour) = 0;
+    virtual void fillRect(int x, int y, int w, int h, uint16_t color) {};
+    virtual void drawRect(int x, int y, int w, int h, uint16_t color) {};
+    virtual void drawRoundRect(int x, int y, int w, int h, int radius, int color) { Serial.println(F("TODO: unimplemented drawRoundRect())")); };
+    virtual void fillRoundRect(int x, int y, int w, int h, int radius, int color) { Serial.println(F("TODO: unimplemented fillRoundRect())")); };
+    virtual void fillCircle(int x, int y, int radius, uint16_t colour) = 0;
+
 };
 
 

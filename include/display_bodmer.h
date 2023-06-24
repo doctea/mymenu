@@ -174,12 +174,6 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         //Serial.printf("setTextColor setting fg=%0x,\tbg=%0x\n", fg, bg);
         tft->setTextColor(fg, bg);
     }
-    virtual void drawLine(int x0, int y0, int x1, int y1, uint16_t color) override {
-        tft->drawLine(x0, y0, x1, y1, color);
-    }
-    virtual void fillRect(int x, int y, int w, int h, uint16_t color) override {
-        tft->fillRect(x, y, w, h, color);
-    }
     virtual void setTextSize(unsigned int size) override {
         this->size = size;
         tft->setTextSize(size);
@@ -297,6 +291,26 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
 	    return !real_actual_espi->dmaBusy();
     }
     #endif
+
+    virtual void drawLine(int x0, int y0, int x1, int y1, uint16_t color) override {
+        tft->drawLine(x0, y0, x1, y1, color);
+    }
+    virtual void drawFastVLine(int x, int y, int height, uint16_t colour) override {
+        actual->drawFastVLine(x, y, height, colour);   
+    }
+    virtual void drawFastHLine(int x, int y, int width, uint16_t colour) override {
+        actual->drawFastHLine(x, y, width, colour);    
+    }
+
+    virtual void fillRect(int x, int y, int w, int h, uint16_t color) override {
+        tft->fillRect(x, y, w, h, color);
+    }
+    virtual void fillCircle(int x, int y, int radius, uint16_t colour) override {
+        actual->fillCircle(x, y, radius, colour);
+    }
+    virtual void drawRect(int x, int y, int w, int h, uint16_t color) override {
+        actual->drawRect(x, y, w, h, color);
+    }
 
     /*virtual void drawRGBBitmap(int x, int y, GFXcanvas16 *c) {
         //tft->drawBitmap(c, x, y)

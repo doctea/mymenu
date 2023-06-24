@@ -138,7 +138,7 @@ class SubMenuItemColumns : public SubMenuItemBar {
         //tft->setTextSize(1);
         colours(opened, opened ? GREEN : this->default_fg, this->default_bg);
 
-        int start_y = pos.y;        // y to start drawing at (just under header)
+        //int start_y = pos.y;        // y to start drawing at (just under header)
         int finish_y = pos.y;       // highest y that we finished drawing at
 
         // draw all the sub-widgets
