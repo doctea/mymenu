@@ -8,7 +8,7 @@
 template<class DataType = int>
 class SelectorControl : public MenuItem {
     public:
-        unsigned int num_values = 0;
+        int num_values = 0;
         int selected_value_index = 0;
         DataType *available_values = nullptr;
         int actual_value_index = -1;
@@ -57,7 +57,7 @@ class SelectorControl : public MenuItem {
 
             DataType current_value = this->getter(); //f_getter!=nullptr ? this->f_getter() : available_values[this->selected_value_index];
 
-            for (unsigned int i = 0 ; i < num_values ; i++) {
+            for (int i = 0 ; i < num_values ; i++) {
                 //bool is_current_value_selected = selected_value_index==i; //available_values[i]==currentValue;
                 bool is_current_value_selected = available_values[i]==current_value; //getter();
                 int col = is_current_value_selected ? GREEN : C_WHITE;
@@ -82,7 +82,7 @@ class SelectorControl : public MenuItem {
             return fmt;
         }
         virtual const char *getFormattedValue(uint32_t v) {
-            snprintf(fmt, 20, "%u", v);
+            snprintf(fmt, 20, "%u", (unsigned int)v);
             return fmt;
         }
         virtual const char *getFormattedValue(float v) {
