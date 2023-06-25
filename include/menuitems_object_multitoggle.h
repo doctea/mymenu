@@ -16,8 +16,8 @@ class MultiToggleItemBase {
             this->label = label;
         }
         const char *label;
-        virtual bool do_getter();
-        virtual void do_setter(bool value);
+        virtual bool do_getter() = 0;
+        virtual void do_setter(bool value) = 0;
 };
 
 // multi-toggle item that targts getters & setters on an object
