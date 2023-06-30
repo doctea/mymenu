@@ -15,13 +15,21 @@
 #include <SPI.h>
 #include <ILI9341_t3n.h>
 
+#include <ILI9341_fonts.h>
+
 #include "colours.h"
 
 #include "tft.h"
 
-#define TFT_CS        10
+#define SPI_SPEED 30000000
+
+/*#define TFT_CS        10
 #define TFT_RST        6 // Or set to -1 and connect to Arduino RESET pin
-#define TFT_DC         9 
+#define TFT_DC         9 */
+
+#define TFT_CS          9
+#define TFT_RST         -1
+#define TFT_DC          10
 
 //Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 
@@ -32,10 +40,13 @@
 #define BLUE    ST77XX_BLUE
 #define YELLOW  ST77XX_YELLOW*/
 
+// ILI Font file definition.
+extern const ILI9341_t3_font_t Arial_18;
+
 class DisplayTranslator_ILI9341 : public DisplayTranslator {
     public:
-    ILI9341_t3n actual = ILI9341_t3n(TFT_CS, TFT_DC, TFT_RST);
-    ILI9341_t3n *tft;
+    ILI9341_t3n actual = ILI9341_t3n(TFT_CS, TFT_DC, TFT_RST, 11, 13, 12); //, 14, 13, 14);
+    ILI9341_t3n *tft = &actual;
    
     virtual const char *get_message_format() { return "[%-38.38s]"; }
     virtual const char *get_header_format() { return "%-40s"; }
@@ -46,13 +57,27 @@ class DisplayTranslator_ILI9341 : public DisplayTranslator {
     }
 
     DisplayTranslator_ILI9341() {
-        this->tft = &actual; //ST7789_t3(TFT_CS, TFT_DC, TFT_RST);
+        //this->tft = &actual; //ST7789_t3(TFT_CS, TFT_DC, TFT_RST);
+        //this->tft = new ILI9341_t3n(TFT_CS, TFT_DC, TFT_RST, 11, 13, 12);
         this->setup();
     }
 
     virtual void setup() {
         Debug_println(F("ili9341 setup()..")); Serial_flush();
-        tft->begin();
+        Serial.println(F("ili9341 setup()..")); Serial_flush();
+        tft->begin(SPI_SPEED);
+        tft->setRotation(3);
+        tft->useFrameBuffer(true);
+        tft->initDMASettings();
+        tft->setFont(Arial_18);
+        while (true) {
+            //tft->println(F("DisplayTranslator_ILI9341 setup()!"));
+            tft->fillRect(0, 0, tft->width(), tft->height(), random(65535));
+            tft->updateScreen();
+            //delay(100);
+            //Serial.println("did thing");
+        }
+
         //tft->init(240, 320);           // Init ST7789 240x135
         tft->fillScreen(BLACK);
         tft->setTextWrap(false);
@@ -63,9 +88,9 @@ class DisplayTranslator_ILI9341 : public DisplayTranslator {
         // large block of text
         //testdrawtext("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa, fringilla sed malesuada et, malesuada sit amet turpis. Sed porttitor neque ut ante pretium vitae malesuada nunc bibendum. Nullam aliquet ultrices massa eu hendrerit. Ut sed nisi lorem. In vestibulum purus a tortor imperdiet posuere. ", ST77XX_WHITE);
         //tft->useFrameBuffer(true);
+        Serial.println("finishing setup()");
     }
-
-
+    
     virtual void setCursor(int x, int y) override {
         tft->setCursor(x,y);
     }
