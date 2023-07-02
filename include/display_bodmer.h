@@ -120,7 +120,7 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         #else
             #ifdef BODMER_SPRITE
                 //actual.setRotation(2); //SCREEN_ROTATION);
-                real_actual_espi->setRotation(1);
+                real_actual_espi->setRotation(SCREEN_ROTATION);
                 real_actual_espi->initDMA();
                 real_actual_espi->setSwapBytes(false);
                 //real_actual_espi.setPivot(SCREEN_WIDTH/2, 0);
@@ -133,7 +133,7 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
                 //actual.setRotation(2);
                 real_actual_espi->fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK);
                 tft->fillSprite(BLACK);
-                tft->setRotation(1);
+                tft->setRotation(SCREEN_ROTATION);
                 //actual.setRotation(2);                
                 real_actual_espi->startWrite();
                 //spr.setTextDatum(MC_DATUM);
