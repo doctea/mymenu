@@ -110,37 +110,36 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         tft = actual;
         tft->init(); //SCREEN_WIDTH, SCREEN_HEIGHT);           // Init ST7789 240x135
 
-        actual->setFreeFont();
+        #ifdef ARDUINO_ARCH_RP2040
+            actual->setFreeFont();
+        #endif
 
         #ifdef BODMER_BUFFERED
             actual.initDMA();
-            tft->setRotation(1);
-            actual.setRotation(1); //SCREEN_ROTATION);
+            tft->setRotation(SCREEN_ROTATION);
+            actual.setRotation(SCREEN_ROTATION);
             actual.startWrite();
         #else
             #ifdef BODMER_SPRITE
-                //actual.setRotation(2); //SCREEN_ROTATION);
                 real_actual_espi->setRotation(SCREEN_ROTATION);
-                real_actual_espi->initDMA();
+                #ifdef ARDUINO_ARCH_RP2040
+                    real_actual_espi->initDMA();
+                #endif
                 real_actual_espi->setSwapBytes(false);
-                //real_actual_espi.setPivot(SCREEN_WIDTH/2, 0);
-                //real_actual_espi.setRotation(1);
-                //real_actual_espi.setViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, true);
-                //real_actual_espi.setPivot(SCREEN_WIDTH/2, SCREEN_HEIGHT/2);
-                //tft->setViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, false);
-                sprPtr = (uint16_t*)actual->createSprite(SCREEN_HEIGHT, SCREEN_WIDTH);   // < - corrupts display in way that i did find mentioned in that thread !
-                //sprPtr = (uint16_t*)actual.createSprite(SCREEN_WIDTH, SCREEN_HEIGHT);   // < - only like, just over half the screen shize
-                //actual.setRotation(2);
-                real_actual_espi->fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK);
+                if(SCREEN_ROTATION%2==1) {
+                    sprPtr = (uint16_t*)actual->createSprite(SCREEN_HEIGHT, SCREEN_WIDTH);   // < - corrupts display in way that i did find mentioned in that thread !
+                    real_actual_espi->fillRect(0, 0, SCREEN_HEIGHT, SCREEN_WIDTH, BLACK);
+                } else {
+                    sprPtr = (uint16_t*)actual->createSprite(SCREEN_WIDTH, SCREEN_HEIGHT);   // < - corrupts display in way that i did find mentioned in that thread !
+                    real_actual_espi->fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK);
+                }
                 tft->fillSprite(BLACK);
                 tft->setRotation(SCREEN_ROTATION);
-                //actual.setRotation(2);                
                 real_actual_espi->startWrite();
-                //spr.setTextDatum(MC_DATUM);
             #else
                 //actual.initDMA();
                 //real_actual_espi.setRotation(2); //SCREEN_ROTATION);
-                actual.setRotation(1);
+                //actual.setRotation(SCREEN_ROTATION);
             #endif
         #endif
         //tft->setRotation(1);
@@ -231,13 +230,17 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
     }
 
     virtual int width() {
-        //return SCREEN_HEIGHT; //tft->width();
-        return tft->width();
+        if (SCREEN_ROTATION%2==1)
+            return tft->width();
+        else
+            return tft->height();
     }
     virtual int height() {
-        return tft->height();
+        if (SCREEN_ROTATION%2==1)
+            return tft->height();
+        else
+            return tft->width();
     }
-
     virtual int getRowHeight() override {
         //return (tft->getTextSize()+1) * 6;
         //return tft->getTextBounds()
@@ -274,12 +277,21 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
             //Serial.println("updateDisplay sprite mode");
             //spr.fillSprite(random(0,pow(2,16)));
             if (this->ready()) {
-                //real_actual_espi.fillRect(0,0,SCREEN_HEIGHT,)
-                //real_actual_espi.pushImageDMA(0, 0, SCREEN_HEIGHT, SCREEN_WIDTH, sprPtr);
-                real_actual_espi->pushImageDMA(0, 0, SCREEN_HEIGHT, SCREEN_WIDTH, sprPtr);
-                    //actual.pushRotated(90);
+                int s_w, s_h;
+                if (SCREEN_ROTATION%2==1) {
+                    s_w = SCREEN_HEIGHT;
+                    s_h = SCREEN_WIDTH;
+                } else {
+                    s_w = SCREEN_WIDTH;
+                    s_h = SCREEN_HEIGHT;
+                }
+
+                #ifdef ARDUINO_ARCH_RP2040
+                    real_actual_espi->pushImageDMA(0, 0, s_w, s_h, sprPtr);
+                #else
+                    real_actual_espi->pushImage(0, 0, s_w, s_h, sprPtr);
+                #endif
             }
-            //actual.pushImage(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, sprPtr);
         #endif
         //tft->updateScreenAsync(false);
         //tft->display();
@@ -287,9 +299,13 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
     }
 
     #ifdef BODMER_SPRITE
-	virtual bool ready() override {
-	    return !real_actual_espi->dmaBusy();
-    }
+        virtual bool ready() override {
+            #ifdef ARDUINO_ARCH_RP2040
+                return !real_actual_espi->dmaBusy();
+            #else
+                return true;
+            #endif
+        }
     #endif
 
     virtual void drawLine(int x0, int y0, int x1, int y1, uint16_t color) override {
