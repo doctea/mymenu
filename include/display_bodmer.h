@@ -268,7 +268,7 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
             if (force)
         #endif
         #ifdef BODMER_SPRITE
-            tft->fillRect(0, 0, SCREEN_HEIGHT, SCREEN_WIDTH, BLACK);
+            tft->fillRect(0, 0, width(), height(), BLACK);
         #else
             tft->fillScreen(BLACK);
         #endif
