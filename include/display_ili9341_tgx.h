@@ -1,9 +1,7 @@
-#ifndef DISPLAY_ILI9341_T3N__INCLUDED
-#define DISPLAY_ILI9341_T3N__INCLUDED
+#ifndef DISPLAY_ILI9341_TGX__INCLUDED
+#define DISPLAY_ILI9341_TGX__INCLUDED
 
-//#define ENABLE_ST77XX_FRAMEBUFFER
-
-#ifdef TFT_ILI9341
+#ifdef TFT_ILI9341_TGX
 
 #include "display_abstract.h"
 
@@ -11,43 +9,51 @@
 
 #include "menu.h"
 
-#include <Adafruit_GFX.h>
+//#include <Adafruit_GFX.h>
 #include <SPI.h>
-#include <ILI9341_t3n.h>
 
-#include <ILI9341_fonts.h>
+
+// the screen driver library : https://github.com/vindar/ILI9341_T4
+#include <ILI9341_T4.h> 
+
+// the tgx library 
+#include <tgx.h> 
+#include <font_tgx_OpenSans_Bold.h>
 
 #include "colours.h"
 
 #include "tft.h"
 
-#define SPI_SPEED 30000000
+#define PIN_BACKLIGHT 255   // optional, set this only if the screen LED pin is connected directly to the Teensy.
+#define PIN_TOUCH_IRQ 255   // optional. set this only if the touchscreen is connected on the same SPI bus
+#define PIN_TOUCH_CS  255   // optional. set this only if the touchscreen is connected on the same spi bus
 
-/*#define TFT_CS        10
-#define TFT_RST        6 // Or set to -1 and connect to Arduino RESET pin
-#define TFT_DC         9 */
+#define SPI_SPEED       40000000
 
-#define TFT_CS          9
-#define TFT_RST         -1
-#define TFT_DC          10
+using namespace tgx;
 
-//Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
+ILI9341_T4::ILI9341Driver actual(PIN_CS, PIN_DC, PIN_SCLK, PIN_MOSI, PIN_MISO, PIN_RST, PIN_TOUCH_CS, PIN_TOUCH_IRQ);
 
-/*#define C_WHITE ST77XX_WHITE
-#define BLACK   ST77XX_BLACK
-#define RED     ST77XX_RED
-#define GREEN   ST77XX_GREEN
-#define BLUE    ST77XX_BLUE
-#define YELLOW  ST77XX_YELLOW*/
+// 2 x 10K diff buffers (used by tft) for differential updates (in DMAMEM)
+DMAMEM ILI9341_T4::DiffBuffStatic<6000> diff1;
+DMAMEM ILI9341_T4::DiffBuffStatic<6000> diff2;
 
-// ILI Font file definition.
-extern const ILI9341_t3_font_t Arial_18;
+// internal framebuffer (150K in DMAMEM) used by the ILI9431_T4 library for double buffering.
+DMAMEM uint16_t internal_fb[TFT_WIDTH * TFT_HEIGHT];
 
-class DisplayTranslator_ILI9341 : public DisplayTranslator {
+ // main screen framebuffer (150K in DTCM for fastest access)
+uint16_t framebuffer[TFT_WIDTH * TFT_HEIGHT];
+Image<RGB565> img(framebuffer, 320, 240);
+
+class DisplayTranslator_ILI9341_TGX : public DisplayTranslator {
     public:
-    ILI9341_t3n actual = ILI9341_t3n(TFT_CS, TFT_DC, TFT_RST, 11, 13, 12); //, 14, 13, 14);
-    ILI9341_t3n *tft = &actual;
-   
+    //ILI9341_T4::ILI9341Driver *tft = &actual;
+ 
+    // image that encapsulates fb.
+    Image<RGB565> *tft = &img;
+
+    iVec2_s16 cursor;
+
     virtual const char *get_message_format() { return "[%-38.38s]"; }
     virtual const char *get_header_format() { return "%-40s"; }
     virtual const char *get_header_open_format() { return ">>>%-37s"; }
@@ -56,35 +62,40 @@ class DisplayTranslator_ILI9341 : public DisplayTranslator {
         return MENU_C_MAX;
     }
 
-    DisplayTranslator_ILI9341() {
+    DisplayTranslator_ILI9341_TGX() {
         //this->tft = &actual; //ST7789_t3(TFT_CS, TFT_DC, TFT_RST);
         //this->tft = new ILI9341_t3n(TFT_CS, TFT_DC, TFT_RST, 11, 13, 12);
         this->setup();
     }
 
     virtual void setup() {
-        Debug_println(F("ili9341 setup()..")); Serial_flush();
-        Serial.println(F("ili9341 setup()..")); Serial_flush();
-        tft->begin(SPI_SPEED);
-        tft->setRotation(3);
-        tft->useFrameBuffer(true);
-        tft->initDMASettings();
-        tft->setFont(Arial_18);
-        while (true) {
+        Debug_println(F("ili9341_tgx setup()..")); Serial_flush();
+        Serial.println(F("ili9341_tgx setup()..")); Serial_flush();
+        while (!actual.begin(SPI_SPEED));
+
+        actual.setRotation(SCREEN_ROTATION);
+        actual.setFramebuffer(internal_fb);
+        actual.setDiffBuffers(&diff1, &diff2);
+        actual.setDiffGap(4);
+        actual.setRefreshRate(60); // was 140
+        actual.setVsyncSpacing(2);
+
+        //tft->setFont(Arial_18);
+        /*while (true) {
             //tft->println(F("DisplayTranslator_ILI9341 setup()!"));
             tft->fillRect(0, 0, tft->width(), tft->height(), random(65535));
             tft->updateScreen();
             //delay(100);
             //Serial.println("did thing");
-        }
+        }*/
 
         //tft->init(240, 320);           // Init ST7789 240x135
         tft->fillScreen(BLACK);
         tft->setTextWrap(false);
-        tft->println(F("DisplayTranslator_ILI9341 setup()!"));
-        Debug_println(F("ili9341 did init()")); Serial_flush();
-        Debug_println(F("ili9341 did fillscreen()")); Serial_flush();
-        delay(500);
+        tft->println(F("DisplayTranslator_ILI9341_tgx setup()!"));
+        Debug_println(F("ili9341_tgx did init()")); Serial_flush();
+        Debug_println(F("ili9341_tgx did fillscreen()")); Serial_flush();
+        //delay(500);
         // large block of text
         //testdrawtext("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa, fringilla sed malesuada et, malesuada sit amet turpis. Sed porttitor neque ut ante pretium vitae malesuada nunc bibendum. Nullam aliquet ultrices massa eu hendrerit. Ut sed nisi lorem. In vestibulum purus a tortor imperdiet posuere. ", ST77XX_WHITE);
         //tft->useFrameBuffer(true);
@@ -94,14 +105,15 @@ class DisplayTranslator_ILI9341 : public DisplayTranslator {
     virtual void setCursor(int x, int y) override {
         tft->setCursor(x,y);
     }
-    virtual void print(const char *text) override {
-        tft->print(text);
-    }
     virtual int getCursorX() override {
         return tft->getCursorX();
     }
     virtual int getCursorY() override {
         return tft->getCursorY();
+    }
+    /*
+    virtual void print(const char *text) override {
+        tft->print(text);
     }
     virtual void setTextColor(uint16_t fg, uint16_t bg = BLACK) override {
         //Serial.printf("setTextColor setting fg=%0x,\tbg=%0x\n", fg, bg);
@@ -160,7 +172,7 @@ class DisplayTranslator_ILI9341 : public DisplayTranslator {
     }
     virtual void printc(char c) override {
         tft->print(c);
-    }
+    }*/
 
     virtual int width() {
         return tft->width();
@@ -192,7 +204,8 @@ class DisplayTranslator_ILI9341 : public DisplayTranslator {
 
     virtual void updateDisplay() {
         //Serial.println("updateDisplay..");
-        tft->updateScreenAsync(false);
+        //tft->updateScreenAsync(false);
+        tft->update(fb);
     }
 
     virtual void drawLine(int x0, int y0, int x1, int y1, uint16_t color) override {

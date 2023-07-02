@@ -25,8 +25,8 @@
     #include "display_bodmer.h"
 #endif
 
-#ifdef TFT_ILI9341
-    #include "display_ili9341.h"
+#ifdef TFT_ILI9341_TGX
+    #include "display_ili9341_tgx.h"
 #endif
 
 #ifndef ST77XX_WHITE
