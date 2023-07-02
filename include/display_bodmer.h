@@ -122,6 +122,7 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         #else
             #ifdef BODMER_SPRITE
                 real_actual_espi->setRotation(SCREEN_ROTATION);
+                
                 #ifdef ARDUINO_ARCH_RP2040
                     real_actual_espi->initDMA();
                 #endif
@@ -230,16 +231,26 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
     }
 
     virtual int width() {
-        if (SCREEN_ROTATION%2==1)
+        // todo: sort this logic out properly
+        #ifdef ILI9341_DRIVER
+            if (SCREEN_ROTATION%2==0)
+                return tft->width();
+            else
+                return tft->height();
+        #else
             return tft->width();
-        else
-            return tft->height();
+        #endif
     }
     virtual int height() {
-        if (SCREEN_ROTATION%2==1)
+        // todo: sort this logic out properly
+        #ifdef ILI9341_DRIVER
+            if (SCREEN_ROTATION%2==0)
+                return tft->height();
+            else
+                return tft->width();
+        #else
             return tft->height();
-        else
-            return tft->width();
+        #endif
     }
     virtual int getRowHeight() override {
         //return (tft->getTextSize()+1) * 6;
