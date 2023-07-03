@@ -5,6 +5,8 @@
 
 #include "display_abstract.h"
 
+#include <ILI9341Wrapper.h>
+
 #include "debug.h"
 
 #include "menu.h"
@@ -18,7 +20,8 @@
 
 // the tgx library 
 #include <tgx.h> 
-#include <font_tgx_OpenSans_Bold.h>
+//#include <font_tgx_OpenSans_Bold.h>
+#include <font_tgx_Arial.h>
 
 #include "colours.h"
 
@@ -32,7 +35,8 @@
 
 using namespace tgx;
 
-ILI9341_T4::ILI9341Driver actual(PIN_CS, PIN_DC, PIN_SCLK, PIN_MOSI, PIN_MISO, PIN_RST, PIN_TOUCH_CS, PIN_TOUCH_IRQ);
+//ILI9341_T4::ILI9341Driver actual(PIN_CS, PIN_DC, PIN_SCLK, PIN_MOSI, PIN_MISO, PIN_RST, PIN_TOUCH_CS, PIN_TOUCH_IRQ);
+ILI9341Wrapper actual(PIN_CS, PIN_DC, PIN_SCLK, PIN_MOSI, PIN_MISO, PIN_RST, PIN_TOUCH_CS, PIN_TOUCH_IRQ);
 
 // 2 x 10K diff buffers (used by tft) for differential updates (in DMAMEM)
 DMAMEM ILI9341_T4::DiffBuffStatic<6000> diff1;
@@ -42,7 +46,7 @@ DMAMEM ILI9341_T4::DiffBuffStatic<6000> diff2;
 DMAMEM uint16_t internal_fb[TFT_WIDTH * TFT_HEIGHT];
 
  // main screen framebuffer (150K in DTCM for fastest access)
-uint16_t framebuffer[TFT_WIDTH * TFT_HEIGHT];
+DMAMEM uint16_t framebuffer[TFT_WIDTH * TFT_HEIGHT];
 Image<RGB565> img(framebuffer, 320, 240);
 
 class DisplayTranslator_ILI9341_TGX : public DisplayTranslator {
@@ -74,11 +78,11 @@ class DisplayTranslator_ILI9341_TGX : public DisplayTranslator {
         while (!actual.begin(SPI_SPEED));
 
         actual.setRotation(SCREEN_ROTATION);
-        actual.setFramebuffer(internal_fb);
+        actual.setCanvas(internal_fb, TFT_WIDTH, TFT_HEIGHT);
         actual.setDiffBuffers(&diff1, &diff2);
         actual.setDiffGap(4);
         actual.setRefreshRate(60); // was 140
-        actual.setVsyncSpacing(2);
+        //actual.setVsyncSpacing(2);
 
         //tft->setFont(Arial_18);
         /*while (true) {
@@ -90,9 +94,11 @@ class DisplayTranslator_ILI9341_TGX : public DisplayTranslator {
         }*/
 
         //tft->init(240, 320);           // Init ST7789 240x135
-        tft->fillScreen(BLACK);
-        tft->setTextWrap(false);
-        tft->println(F("DisplayTranslator_ILI9341_tgx setup()!"));
+        tft->fillScreen((uint16_t)BLACK);
+        //tft->setTextWrap(false);
+        //tft->println(F("DisplayTranslator_ILI9341_tgx setup()!"));
+        iVec2 pos = { 0, 0 };
+        tft->drawText("DisplayTranslator_ILI9341_tgx setup()!", pos, (uint16_t)C_WHITE, font_tgx_Arial_8, 1);
         Debug_println(F("ili9341_tgx did init()")); Serial_flush();
         Debug_println(F("ili9341_tgx did fillscreen()")); Serial_flush();
         //delay(500);
@@ -103,13 +109,14 @@ class DisplayTranslator_ILI9341_TGX : public DisplayTranslator {
     }
     
     virtual void setCursor(int x, int y) override {
-        tft->setCursor(x,y);
+        //tft->setCursor(x,y);
     }
     virtual int getCursorX() override {
-        return tft->getCursorX();
+        //return tft->getCursorX();
+        return 0;
     }
     virtual int getCursorY() override {
-        return tft->getCursorY();
+        return 0; //return tft->getCursorY();
     }
     /*
     virtual void print(const char *text) override {
@@ -182,7 +189,8 @@ class DisplayTranslator_ILI9341_TGX : public DisplayTranslator {
     }
 
     virtual int getRowHeight() override {
-        return (tft->getTextSize()+1) * 6;
+        //return (tft->getTextSize()+1) * 6;
+        return 6;
     }
     virtual int characterWidth() override { 
         //return (tft->getTextSize()) * 6;
@@ -190,22 +198,23 @@ class DisplayTranslator_ILI9341_TGX : public DisplayTranslator {
     };
 
     virtual void clear(bool force = false) {
-        tft->fillScreen(BLACK);
-        tft->setTextColor(C_WHITE);
+        /*tft->fillScreen(BLACK);
+        tft->setTextColor(C_WHITE);*/
+
         //tft->fillRect(0, 0, tft->width(), tft->height(), BLACK);
     }
 
     virtual void start() {
         Debug_println("Display start.."); Serial_flush();
         //tft->updateScreenAsync(false);
-        tft->useFrameBuffer(true);
+        //tft->useFrameBuffer(true);
         Debug_println("did useframebuffer()"); Serial_flush();
     }
 
     virtual void updateDisplay() {
         //Serial.println("updateDisplay..");
         //tft->updateScreenAsync(false);
-        tft->update(fb);
+        actual.update(framebuffer);
     }
 
     virtual void drawLine(int x0, int y0, int x1, int y1, uint16_t color) override {
@@ -222,7 +231,7 @@ class DisplayTranslator_ILI9341_TGX : public DisplayTranslator {
         tft->fillRect(x, y, w, h, color);
     }
     virtual void fillCircle(int x, int y, int radius, uint16_t colour) override {
-        tft->fillCircle(x, y, radius, colour);
+        actual.drawFilledCircle<false,true>(x, y, radius, colour, colour);
     }
     virtual void drawRect(int x, int y, int w, int h, uint16_t color) override {
         tft->drawRect(x, y, w, h, color);
