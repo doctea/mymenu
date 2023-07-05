@@ -4,7 +4,7 @@
 #undef MENU_C_MAX
 #define MENU_C_MAX 20
 
-#if defined(TFT_SSOLED) or defined(TFT_ST7789_T3) or defined(TFT_ST7789) or defined(TFT_BODMER) or defined(TFT_ILI9341_TGX)
+#if defined(TFT_SSOLED) or defined(TFT_ST7789_T3) or defined(TFT_ST7789) or defined(TFT_BODMER) or defined(TFT_ILI9341_TGX) or defined(TFT_ILI9341_T3N)
     #ifdef C_WHITE
         #undef C_WHITE
     #endif
@@ -90,7 +90,8 @@
     #define MENU_MESSAGE_MAX (MENU_C_MAX*2)
 #endif
 
-#if defined(TFT_ILI9341)
+#if defined(TFT_ILI9341) or defined(TFT_ILI9341_T3N)
+    #include "ILI9341_t3n.h"
     //#include <Adafruit_GFX.h>
     //#include <ILI9341_t3n.h>
     #define C_WHITE ILI9341_WHITE
@@ -108,6 +109,7 @@
 #endif
 
 #if defined(TFT_ILI9341_TGX)
+    #include <Adafruit_GFX.h>
     #include "ILI9341Driver.h"
     using namespace ILI9341_T4;
     #define C_WHITE ILI9341_T4_COLOR_WHITE

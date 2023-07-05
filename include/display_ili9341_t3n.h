@@ -21,15 +21,15 @@
 
 #include "tft.h"
 
-#define SPI_SPEED 30000000
+#define SPI_SPEED 2600000
 
 /*#define TFT_CS        10
 #define TFT_RST        6 // Or set to -1 and connect to Arduino RESET pin
 #define TFT_DC         9 */
 
-#define TFT_CS          9
+/*#define TFT_CS          9
 #define TFT_RST         -1
-#define TFT_DC          10
+#define TFT_DC          10*/
 
 //Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 
@@ -41,9 +41,9 @@
 #define YELLOW  ST77XX_YELLOW*/
 
 // ILI Font file definition.
-extern const ILI9341_t3_font_t Arial_18;
+extern const ILI9341_t3_font_t Arial_8;
 
-class DisplayTranslator_ILI9341 : public DisplayTranslator {
+class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
     public:
     ILI9341_t3n actual = ILI9341_t3n(TFT_CS, TFT_DC, TFT_RST, 11, 13, 12); //, 14, 13, 14);
     ILI9341_t3n *tft = &actual;
@@ -56,7 +56,7 @@ class DisplayTranslator_ILI9341 : public DisplayTranslator {
         return MENU_C_MAX;
     }
 
-    DisplayTranslator_ILI9341() {
+    DisplayTranslator_ILI9341_T3N() {
         //this->tft = &actual; //ST7789_t3(TFT_CS, TFT_DC, TFT_RST);
         //this->tft = new ILI9341_t3n(TFT_CS, TFT_DC, TFT_RST, 11, 13, 12);
         this->setup();
@@ -69,13 +69,14 @@ class DisplayTranslator_ILI9341 : public DisplayTranslator {
         tft->setRotation(3);
         tft->useFrameBuffer(true);
         tft->initDMASettings();
-        tft->setFont(Arial_18);
+        tft->setFont(Arial_8);
         while (true) {
             //tft->println(F("DisplayTranslator_ILI9341 setup()!"));
+
             tft->fillRect(0, 0, tft->width(), tft->height(), random(65535));
-            tft->updateScreen();
+            this->updateDisplay();
+            Serial.println("did thing");
             //delay(100);
-            //Serial.println("did thing");
         }
 
         //tft->init(240, 320);           // Init ST7789 240x135
@@ -192,7 +193,11 @@ class DisplayTranslator_ILI9341 : public DisplayTranslator {
 
     virtual void updateDisplay() {
         //Serial.println("updateDisplay..");
-        tft->updateScreenAsync(false);
+        //tft->updateScreenAsync(false);
+        //tft->updateChangedAreasOnly(true);
+            if (!tft->asyncUpdateActive()) {
+                tft->updateScreen();
+            }
     }
 
     virtual void drawLine(int x0, int y0, int x1, int y1, uint16_t color) override {

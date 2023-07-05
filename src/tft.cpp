@@ -9,7 +9,7 @@ void tft_print (const char *text) {
     #ifdef ENABLE_SCREEN
         if (menu!=nullptr && menu->tft!=nullptr)
             menu->tft->print(text);
-            #if defined(TFT_BODMER) && !defined(ARDUINO_ARCH_RP2040)
+            #if (defined(TFT_ILI9341_T3N) || defined(TFT_BODMER)) && !defined(ARDUINO_ARCH_RP2040)
                 // this is needed to get power-on display messages on usb_midi_clocker
                 // but seems to crash Microlidian for some reasons, so don't do it if we're on RP2040
                 menu->tft->updateDisplay();
