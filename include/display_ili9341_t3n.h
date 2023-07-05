@@ -14,14 +14,13 @@
 #include <Adafruit_GFX.h>
 #include <SPI.h>
 #include <ILI9341_t3n.h>
-
 #include <ILI9341_fonts.h>
 
 #include "colours.h"
 
 #include "tft.h"
 
-#define SPI_SPEED 2600000
+#define SPI_SPEED 20000000
 
 /*#define TFT_CS        10
 #define TFT_RST        6 // Or set to -1 and connect to Arduino RESET pin
@@ -66,18 +65,18 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
         Debug_println(F("ili9341 setup()..")); Serial_flush();
         Serial.println(F("ili9341 setup()..")); Serial_flush();
         tft->begin(SPI_SPEED);
-        tft->setRotation(3);
+        tft->setRotation(SCREEN_ROTATION);
         tft->useFrameBuffer(true);
         tft->initDMASettings();
         tft->setFont(Arial_8);
-        while (true) {
+        /*while (true) {
             //tft->println(F("DisplayTranslator_ILI9341 setup()!"));
 
             tft->fillRect(0, 0, tft->width(), tft->height(), random(65535));
             this->updateDisplay();
             Serial.println("did thing");
             //delay(100);
-        }
+        }*/
 
         //tft->init(240, 320);           // Init ST7789 240x135
         tft->fillScreen(BLACK);
@@ -195,9 +194,9 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
         //Serial.println("updateDisplay..");
         //tft->updateScreenAsync(false);
         //tft->updateChangedAreasOnly(true);
-            if (!tft->asyncUpdateActive()) {
-                tft->updateScreen();
-            }
+        if (!tft->asyncUpdateActive()) {
+            tft->updateScreen();
+        }
     }
 
     virtual void drawLine(int x0, int y0, int x1, int y1, uint16_t color) override {
