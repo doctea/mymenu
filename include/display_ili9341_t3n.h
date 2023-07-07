@@ -14,7 +14,9 @@
 #include <Adafruit_GFX.h>
 #include <SPI.h>
 #include <ILI9341_t3n.h>
-#include <ILI9341_fonts.h>
+//#include <ILI9341_fonts.h>
+
+//#include <fonts/FreeMono9pt7b.h>
 
 #include "colours.h"
 
@@ -40,7 +42,22 @@
 #define YELLOW  ST77XX_YELLOW*/
 
 // ILI Font file definition.
-extern const ILI9341_t3_font_t Arial_8;
+//extern const ILI9341_t3_font_t Arial_8;
+
+//uint16_t *framebuffer1 = nullptr;
+///uint16_t framebuffer2[TFT_WIDTH*TFT_HEIGHT];
+//bool buf = 0;
+
+/*extern DisplayTranslator_Configured *tft;
+void frame_complete_callback() {
+    // swap buffers
+    buf = !buf;
+    if (buf) {
+        tft->tft->setFrameBuffer(framebuffer2);
+    } else {
+        tft->tft->setFrameBuffer(framebuffer1);
+    }
+}*/
 
 class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
     public:
@@ -67,8 +84,15 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
         tft->begin(SPI_SPEED);
         tft->setRotation(SCREEN_ROTATION);
         tft->useFrameBuffer(true);
+        //framebuffer1 = tft->getFrameBuffer();
+        tft->setFrameRateControl(30);
         tft->initDMASettings();
-        tft->setFont(Arial_8);
+        //tft->setFont(Arial_8);
+        //tft->setFont(&FreeMono9pt7b);
+        tft->setFontAdafruit();
+        //tft->updateScreenAsync(false);
+        
+        //tft->setFrameCompleteCB(&frame_complete_callback);
         /*while (true) {
             //tft->println(F("DisplayTranslator_ILI9341 setup()!"));
 
@@ -178,8 +202,10 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
     };
 
     virtual void clear(bool force = false) {
-        tft->fillScreen(BLACK);
-        tft->setTextColor(C_WHITE);
+        //if (force) {
+            tft->fillScreen(BLACK);
+            tft->setTextColor(C_WHITE);
+        //}
         //tft->fillRect(0, 0, tft->width(), tft->height(), BLACK);
     }
 
@@ -195,7 +221,8 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
         //tft->updateScreenAsync(false);
         //tft->updateChangedAreasOnly(true);
         if (!tft->asyncUpdateActive()) {
-            tft->updateScreen();
+            tft->updateScreenAsync();
+            //tft->updateScreen();
         }
     }
 
