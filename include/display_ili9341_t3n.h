@@ -22,7 +22,7 @@
 
 #include "tft.h"
 
-#define SPI_SPEED 20000000
+#define SPI_SPEED 20000000  // todo: see if we can increase this without it becoming unreliable - 30000000
 
 /*#define TFT_CS        10
 #define TFT_RST        6 // Or set to -1 and connect to Arduino RESET pin
@@ -85,7 +85,7 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
         tft->setRotation(SCREEN_ROTATION);
         tft->useFrameBuffer(true);
         //framebuffer1 = tft->getFrameBuffer();
-        tft->setFrameRateControl(30);
+        tft->setFrameRateControl(20);
         tft->initDMASettings();
         //tft->setFont(Arial_8);
         //tft->setFont(&FreeMono9pt7b);
