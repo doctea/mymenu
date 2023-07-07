@@ -85,8 +85,10 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
         tft->setRotation(SCREEN_ROTATION);
         tft->useFrameBuffer(true);
         //framebuffer1 = tft->getFrameBuffer();
-        tft->setFrameRateControl(20);
+        tft->setFrameRateControl(20);   // 20 to flicker less than 30!
         tft->initDMASettings();
+        tft->updateChangedAreasOnly(true);
+
         //tft->setFont(Arial_8);
         //tft->setFont(&FreeMono9pt7b);
         tft->setFontAdafruit();
