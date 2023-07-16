@@ -28,7 +28,7 @@
  www.jeffreythompson.org
  */
 
-#if defined(TFT_ST7789) || defined(TFT_ST7789_T3)
+#if defined(TFT_ST7789) || defined(TFT_ST7789_T3) || defined (TFT_ILI9341_T3N)
 
 #ifdef TFT_ST7789
     #include "display_st7789.h"
@@ -38,6 +38,9 @@
 #elif defined(TFT_ST7789_T3_BIG)
     #include "display_st7789_t3_big.h"
 #endif
+#if defined(TFT_ILI9341_T3N)
+    #include "display_ili9341_t3n.h"
+#endif
 bool save_screenshot(DisplayTranslator_Configured *display) {
     Serial.println(F("save_screenshot!"));
 
@@ -45,6 +48,8 @@ bool save_screenshot(DisplayTranslator_Configured *display) {
         ST7789 *screen = display->tft;
     #elif defined(TFT_ST7789_T3)
         ST7789_t3 *screen = display->tft;
+    #elif defined(TFT_ILI9341_T3N)
+        ILI9341_t3n *screen = display->tft;
     #endif
 
     char name[] = "umc_0000.bmp";       // filename convention (will auto-increment)

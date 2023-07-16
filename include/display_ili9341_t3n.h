@@ -59,11 +59,14 @@ void frame_complete_callback() {
     }
 }*/
 
+/*extern uint16_t *framebuffers[2];
+void swap_framebuffer();*/
+
 class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
     public:
     ILI9341_t3n actual = ILI9341_t3n(TFT_CS, TFT_DC, TFT_RST, 11, 13, 12); //, 14, 13, 14);
     ILI9341_t3n *tft = &actual;
-   
+  
     virtual const char *get_message_format() { return "[%-38.38s]"; }
     virtual const char *get_header_format() { return "%-40s"; }
     virtual const char *get_header_open_format() { return ">>>%-37s"; }
@@ -78,16 +81,32 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
         this->setup();
     }
 
+    uint16_t *allocate_framebuffer() {
+        int CBALLOC = TFT_WIDTH*TFT_HEIGHT*sizeof(uint16_t);
+        uint16_t *_we_allocated_buffer = (uint16_t *)malloc(CBALLOC+32);
+        if (_we_allocated_buffer == NULL)
+            return 0;	// failed 
+        _we_allocated_buffer = (uint16_t*) (((uintptr_t)_we_allocated_buffer + 32) & ~ ((uintptr_t) (31)));
+        memset(_we_allocated_buffer, 0, CBALLOC);	    
+        return _we_allocated_buffer;
+    }
+
     virtual void setup() {
         Debug_println(F("ili9341 setup()..")); Serial_flush();
         Serial.println(F("ili9341 setup()..")); Serial_flush();
         tft->begin(SPI_SPEED);
         tft->setRotation(SCREEN_ROTATION);
+        //framebuffers[0] = allocate_framebuffer();
+        //framebuffers[1] = allocate_framebuffer();
+        //tft->setFrameBuffer(framebuffers[0]);
         tft->useFrameBuffer(true);
         //framebuffer1 = tft->getFrameBuffer();
-        tft->setFrameRateControl(20);   // 20 to flicker less than 30!
+        tft->setFrameRateControl(15);   // 20 to flicker less than 30!
         tft->initDMASettings();
         tft->updateChangedAreasOnly(true);
+        //tft->endUpdateAsync
+
+        //tft->setFrameCompleteCB(swap_framebuffer);
 
         //tft->setFont(Arial_8);
         //tft->setFont(&FreeMono9pt7b);
@@ -222,10 +241,16 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
         //Serial.println("updateDisplay..");
         //tft->updateScreenAsync(false);
         //tft->updateChangedAreasOnly(true);
-        if (!tft->asyncUpdateActive()) {
-            tft->updateScreenAsync();
+        //if (/*ready() &&*/ !tft->asyncUpdateActive()) {
+            tft->updateScreenAsync(false);
+            //this->framebuffer_ready = false;
             //tft->updateScreen();
-        }
+        //}
+    }
+
+    virtual bool ready() override {
+        return !tft->asyncUpdateActive();
+        //return this->framebuffer_ready;
     }
 
     virtual void drawLine(int x0, int y0, int x1, int y1, uint16_t color) override {
@@ -252,7 +277,6 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
         tft->drawRGBBitmap(x, y, c->getBuffer(), c->width(), c->height());
     }*/
 };
-
 
 //void tft_print(const char *text);
 
