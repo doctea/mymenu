@@ -12,13 +12,14 @@
     #endif
     //extern ST7789_t3 tft;
 #endif
-#ifdef TFT_SSOLED
-    #include <ss_oled.h>
-    #include "display_ss_oled.h"
-#endif
 
 #ifdef TFT_ST7789
     #include "display_st7789.h"
+#endif
+
+#ifdef TFT_SSOLED
+    #include <ss_oled.h>
+    #include "display_ss_oled.h"
 #endif
 
 #ifdef TFT_BODMER

@@ -29,6 +29,7 @@ class Coord {
 
 #include <LinkedList.h>
 #include "menuitems.h"
+#include "menuitems_pinned.h"
 
 FLASHMEM void setup_menu();
 
