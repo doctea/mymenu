@@ -3,6 +3,8 @@
 #endif
 #include <Arduino.h>
 
+#include "tft.h"
+
 void tft_print (const char *text) {
     Serial.print(text);
     //Serial_flush();
