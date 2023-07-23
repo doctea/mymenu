@@ -31,10 +31,6 @@
     #include "display_ili9341_t3n.h"
 #endif
 
-#ifdef TFT_ILI9341_TGX
-    #include "display_ili9341_tgx.h"
-#endif
-
 #ifndef ST77XX_WHITE
     #define ST77XX_WHITE    0xFF
     #define ST77XX_BLACK    0x00

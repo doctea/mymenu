@@ -4,7 +4,7 @@
 #undef MENU_C_MAX
 #define MENU_C_MAX 20
 
-#if defined(TFT_SSOLED) or defined(TFT_ST7789_T3) or defined(TFT_ST7789) or defined(TFT_BODMER) or defined(TFT_ILI9341_TGX) or defined(TFT_ILI9341_T3N)
+#if defined(TFT_SSOLED) or defined(TFT_ST7789_T3) or defined(TFT_ST7789) or defined(TFT_BODMER) or defined(TFT_ILI9341_T3N)
     #ifdef C_WHITE
         #undef C_WHITE
     #endif
@@ -103,24 +103,6 @@
     #define ORANGE  ILI9341_ORANGE
     #define PURPLE  ILI9341_MAGENTA
     #define GREY    (ILI9341_WHITE / 2)
-    #undef MENU_C_MAX
-    #define MENU_C_MAX 41
-    #define MENU_MESSAGE_MAX (MENU_C_MAX*2)
-#endif
-
-#if defined(TFT_ILI9341_TGX)
-    #include <Adafruit_GFX.h>
-    #include "ILI9341Driver.h"
-    using namespace ILI9341_T4;
-    #define C_WHITE ILI9341_T4_COLOR_WHITE
-    #define BLACK   ILI9341_T4_COLOR_BLACK
-    #define RED     ILI9341_T4_COLOR_RED
-    #define GREEN   ILI9341_T4_COLOR_GREEN
-    #define BLUE    ILI9341_T4_COLOR_BLUE
-    #define YELLOW  ILI9341_T4_COLOR_YELLOW
-    #define ORANGE  ILI9341_T4_COLOR_ORANGE
-    #define PURPLE  ILI9341_T4_COLOR_PURPLE
-    #define GREY    (C_WHITE/2)
     #undef MENU_C_MAX
     #define MENU_C_MAX 41
     #define MENU_MESSAGE_MAX (MENU_C_MAX*2)
