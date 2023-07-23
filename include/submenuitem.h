@@ -8,6 +8,8 @@
 
 #include "menuitems.h"
 
+//#include "debug.h"
+
 class SubMenuItem : public MenuItem {
     public:
         bool always_show = false;       // whether to hide items until menu is opened or not
@@ -28,6 +30,8 @@ class SubMenuItem : public MenuItem {
             return this->always_show==false;
         }
         virtual bool action_opened() override {
+            //debug_flag = true;
+            //this->debug = true;
             Debug_println("submenuitem#action_opened"); Serial_flush();
             //if (this->allow_takeover())
             //    tft->clear();
@@ -99,12 +103,13 @@ class SubMenuItem : public MenuItem {
             int start_item = constrain(currently_selected-2, 0, (int)this->items->size()-1);
 
             if (opened || this->always_show) {
+                //if (this->debug) { Serial.printf("submenuitem#display()=> doing opened/always_show display\n", currently_opened); Serial_flush();}
                 //tft->clear();
                 //colours(false, C_WHITE, BLACK);
                 //Serial.println("submenuitem#display opened or always_show"); Serial.flush();            
 
                 for (unsigned int i = start_item ; i < this->items->size() ; i++) {
-                    //Serial.printf("submenuitem#display rendering item %i..\n", i); Serial.flush();            
+                    //if (this->debug) { Serial.printf("submenuitem#display rendering item %i..\n", i); Serial.flush(); }
                     y = tft->getCursorY();
 
                     tft->setTextColor(this->default_fg, this->default_bg);
@@ -123,13 +128,16 @@ class SubMenuItem : public MenuItem {
                         break;
                 }
                 // blank to bottom of screen
+                //if (this->debug) { Serial.printf("submenuitem#display blanking\n"); Serial.flush(); }
                 if (!always_show && y < tft->height()) {
-                    while (y < tft->height()) {
+                    /*while (y < tft->height()) {
                         for (unsigned int i = 0 ; i < tft->get_c_max() ; i++)
                             tft->print((char*)" ");
                         y = tft->getCursorY();
-                    }
+                    }*/
+                    tft->drawRect(0, y, 0, tft->height(), BLACK);
                 }
+                //if (this->debug) { Serial.printf("submenuitem#display finished\n"); Serial.flush(); }
             } else {
                 tft->printf("[%i sub-items...]\n", this->items->size());
                 y = tft->getCursorY();

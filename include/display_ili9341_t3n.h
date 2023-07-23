@@ -101,7 +101,7 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
         //tft->setFrameBuffer(framebuffers[0]);
         tft->useFrameBuffer(true);
         //framebuffer1 = tft->getFrameBuffer();
-        tft->setFrameRateControl(15);   // 20 to flicker less than 30!
+        tft->setFrameRateControl(20);   // 20 to flicker less than 30!
         tft->initDMASettings();
         tft->updateChangedAreasOnly(true);
         //tft->endUpdateAsync
@@ -225,6 +225,7 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
     virtual void clear(bool force = false) {
         //if (force) {
             tft->fillScreen(BLACK);
+            //tft->fillRect(0,0,tft->width(),tft->height(),BLACK);
             tft->setTextColor(C_WHITE);
         //}
         //tft->fillRect(0, 0, tft->width(), tft->height(), BLACK);

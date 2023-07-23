@@ -414,8 +414,11 @@ class SeparatorMenuItem : public MenuItem {
         virtual int display(Coord pos, bool selected, bool opened) override {
             tft->drawLine(pos.x, pos.y, tft->width(), pos.y, this->default_fg);
             pos.y += 2;
-
+            
+            int old_y = pos.y;
             pos.y = header(label, pos, selected, opened);
+            if (old_y==pos.y)
+                pos.y += tft->getRowHeight(); // force display down a lne
 
             return pos.y;
         }

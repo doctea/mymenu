@@ -30,18 +30,28 @@ int Menu::display() {
 
     int currently_opened = selected_page->currently_opened;
     int currently_selected = selected_page->currently_selected;
+    //if (debug) { Serial.printf("display()=> about to get the selected_page items.. "); Serial_flush(); }
     LinkedList<MenuItem*> *items = selected_page->items;
+    //if (debug) { Serial.printf("currently_opened = %i/%i, currently_selected = %i/%i..\n", currently_opened+1, selected_page->items->size(), currently_selected+1, selected_page->items->size()); Serial_flush(); }
 
     // now draw the menu
+    //if (debug) { Serial.println("display()=> about to check display mode and branch.."); Serial_flush(); }
     if (currently_opened>=0 && items->get(currently_opened)->allow_takeover()) {
+        //if (debug) { Serial.println("display()=> takeover branch"); Serial_flush(); }
         // takeover -- focus on this menu item only
-        if (pinned_panel!=nullptr)
+        if (pinned_panel!=nullptr) {
+            //if (debug) { Serial.println("display()=> doing pinned_panel display"); Serial_flush(); }
             y = pinned_panel->display(Coord(0,0), false, false);
-            //y = draw_message();
+        }
+        //y = draw_message();
         // let the currently opened item take care of drawing all of the display
         //Serial.println("allow_takeover!");
+        //if (debug) { Serial.printf("display()=> doing display of item %i\n", currently_opened); Serial_flush(); }
+        //if (debug) { Serial.printf("display()=> got item to display '%s'\n", items->get(currently_opened)->label); Serial_flush(); }
         items->get(currently_opened)->display(Coord(0,y), true, true);
+        //if (debug) { Serial.println("display()=> finished display\n"); Serial_flush(); }
     } else if (mode==DISPLAY_ONE) {
+        //if (debug) { Serial.println("display()=> DISPLAY_ONE branch"); Serial_flush(); }
         // for screens that can only display one option at a time
         static int last_displayed = 0;
         if (last_displayed!=currently_selected)
@@ -49,14 +59,14 @@ int Menu::display() {
         tft->setCursor(0, 0);
 
         if (pinned_panel!=nullptr) {
-            Serial.println("display()=> about to pinned_panel->display()");
+            //Serial.println("display()=> about to pinned_panel->display()");
             y = pinned_panel->display(Coord(0,0), false, false);
-            Serial.println("display()=> did pinned_panel->display()!"); 
+            //Serial.println("display()=> did pinned_panel->display()!"); 
         }
 
         tft->setCursor(0, y);
         
-        if (debug) { Serial.println("display()=> about to draw_message()"); Serial_flush(); }
+        //if (debug) { Serial.println("display()=> about to draw_message()"); Serial_flush(); }
         y = draw_message();
 
         if (currently_selected>=0 && currently_selected < (int)items->size()) {
@@ -70,6 +80,7 @@ int Menu::display() {
         tft->println("");
 
     } else {
+        //if (debug) { Serial.println("display()=> default branch"); Serial_flush(); }
         //static bool first_display = true;
         //static int *panel_bottom = nullptr;
         bool bottoms_computed = false;
@@ -198,7 +209,10 @@ int Menu::display() {
 
         // draw each menu item's panel
         //int start_y = 0;
+        //if (debug) { Serial.println("display()=> about to start drawing the items.."); Serial_flush(); }
+
         for (unsigned int i = start_panel ; i < items->size() ; i++) {
+            //if (debug) { Serial.printf("display()=> about to get item %i\n", i); Serial_flush(); }
             MenuItem *item = items->get(i);
             /*if(item->label[0]=='T')
                 delay(5000);*/
@@ -206,13 +220,13 @@ int Menu::display() {
             //int time = millis();
             //Serial.printf("Menu rendering item %i [selected #%i, opened #%i]\n", i, currently_selected, currently_opened);
             Coord pos = Coord(0,y);
-            if (debug) { Serial.printf("display()=> about to display() item %i aka %s\n", i, item->label); Serial_flush(); }
+            //if (debug) { Serial.printf("display()=> about to display() item %i aka %s\n", i, item->label); Serial_flush(); }
 
             unsigned long time_micros = 0;
             if (this->debug_times) time_micros = micros();
             y = item->display(pos, (int)i==currently_selected, (int)i==currently_opened) + 1;
             //Serial.printf("after rendering MenuItem %i, return y is %i, cursor coords are (%i,%i)\n", y, tft->getCursorX(), tft->getCursorY());
-            if (debug) { Serial.printf("display()=> just did display() item %i aka %s\n", i, item->label); Serial_flush(); }
+            //if (debug) { Serial.printf("display()=> just did display() item %i aka %s\n", i, item->label); Serial_flush(); }
 
             if (this->debug_times) {
                 tft->setTextSize(1);

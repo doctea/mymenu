@@ -24,3 +24,5 @@
         #define Debug_print(X)      {}
     #endif
 #endif
+
+extern bool debug_flag;
