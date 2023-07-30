@@ -18,18 +18,22 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
         TargetClass *target_object, 
         void(TargetClass::*setter_func)(DataType), 
         DataType(TargetClass::*getter_func)(), 
-        void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr
-    ) : ObjectNumberControl<TargetClass,DataType>(label, target_object, setter_func, getter_func, on_change_handler) {
+        void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr,
+        bool go_back_on_select = false
+    ) : ObjectNumberControl<TargetClass,DataType>(label, target_object, setter_func, getter_func, on_change_handler, go_back_on_select) {
         if (this->target_object!=nullptr && this->getter!=nullptr)
             this->set_internal_value (this->get_index_for_value( (this->target_object->*this->getter)() ));
         //this->debug = true;
     }
 
     virtual bool action_opened() override {
+        Serial.printf("ObjectSelectorControl#action_opened, internal_value is currently %i (%s)\n", this->internal_value, getFormattedValue());
+        Serial.printf("ObjectSelectorControl#action_opened, value from getter is %i\n", (this->target_object->*this->getter)());
         this->internal_value = this->get_index_for_value((this->target_object->*this->getter)());
-        return ObjectNumberControl<TargetClass,DataType>::action_opened();
+        Serial.printf("ObjectSelectorControl#action_opened, internal_value setting to %i (%s)\n", this->internal_value, getFormattedValue());
+        return !ObjectNumberControl<TargetClass,DataType>::readOnly;
+        //return ObjectNumberControl<TargetClass,DataType>::action_opened();
     }
-
 
     virtual int get_index_for_value(DataType value) {
         if (this->available_values == nullptr) return 0;
@@ -143,6 +147,8 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
             this->setup_available_values();
         available_values->add(option { .value = value, .label = label });
         this->minimum_value = 0;
+        //if (value>this->maximum_value)
+        //    this->maximum_value = value;
         this->maximum_value = available_values->size() - 1;
     }
 
@@ -153,7 +159,14 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
     }
     virtual void set_available_values(LinkedList<option> *available_values) {
         this->available_values = available_values;
-        this->maximum_value = available_values->size() - 1;
+        if (available_values!=nullptr) {
+            this->maximum_value = available_values->size() - 1;
+            /*DataType highest = 0;
+            for (unsigned int i = 0 ; i < available_values->size() ; i++) {
+                if (available_values->get(i).value > highest)
+                    this->maximum_value = available_values->get(i).value;
+            }*/
+        }
     }
 
 };
