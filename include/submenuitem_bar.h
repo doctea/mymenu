@@ -21,9 +21,9 @@ class SubMenuItemBar : public SubMenuItem {
     }
 
     virtual int display(Coord pos, bool selected, bool opened) override {
-        if (this->debug) Serial.printf("Start of display in SubMenuItemBar at %u, passed in %i,%i\n", millis(), pos.x, pos.y);
+        //if (this->debug) Serial.printf("Start of display in SubMenuItemBar at %u, passed in %i,%i\n", millis(), pos.x, pos.y);
         pos.y = header(label, pos, selected, opened);
-        if (this->debug) Serial.printf(F("\tafter header, y=%i\n"), pos.y);
+        //if (this->debug) Serial.printf(F("\tafter header, y=%i\n"), pos.y);
         tft->setCursor(pos.x, pos.y);
         //tft->setTextSize(1);
         colours(opened, opened ? GREEN : this->default_fg, this->default_bg);
@@ -37,7 +37,7 @@ class SubMenuItemBar : public SubMenuItem {
         //Debug_printf(F("display in SubMenuItemBar got width_per_item=%i\tfrom tftwidth\t%i / itemsize\t%i\n"), width_per_item, this->tft->width(), this->items->size());
         for (unsigned int item_index = 0 ; item_index < this->items->size() ; item_index++) {
             const int width = this->get_max_pixel_width(item_index);
-            if (this->debug) Serial.printf("about to small_display for item %i\n", item_index);
+            //if (this->debug) Serial.printf("about to small_display for item %i\n", item_index);
             const int temp_y = this->small_display(
                 item_index, 
                 start_x, 
@@ -55,12 +55,12 @@ class SubMenuItemBar : public SubMenuItem {
         tft->setTextColor(this->default_fg, this->default_bg);
         tft->setTextSize(0);
 
-        if (this->debug) Serial.printf(F("End of display, y=%i\n--------\n"), finish_y);
+        //if (this->debug) Serial.printf(F("End of display, y=%i\n--------\n"), finish_y);
         return finish_y;//tft->getCursorY();
     }
 
     virtual int small_display(int index, int x, int y, int width_in_pixels, bool is_selected, bool is_opened, bool outer_selected) {
-        if (this->debug) Serial.printf(F("\tSubMenuItemBar: start of small_display for index %i, passed in x,y=%i,%i and width=%i\n"), index, x, y, width_in_pixels);
+        //if (this->debug) Serial.printf(F("\tSubMenuItemBar: start of small_display for index %i, passed in x,y=%i,%i and width=%i\n"), index, x, y, width_in_pixels);
 
         MenuItem *ctrl = items->get(index);
         const int character_width_in_pixels = tft->characterWidth(); // presumed font width
@@ -82,7 +82,7 @@ class SubMenuItemBar : public SubMenuItem {
 
         // print label header // TODO: either move this to be the responsibility of the control, or use something like get_label() instead, so that can override in subclass for things like parameter controls where this might change
         if (this->show_sub_headers) {
-            if (this->debug) Serial.printf("\tdrawing header at %i,%i\n", x, y);
+            //if (this->debug) Serial.printf("\tdrawing header at %i,%i\n", x, y);
             tft->setCursor(x, y);
             colours(is_selected, is_opened ? GREEN : colour, ctrl->default_bg);
             tft->setTextSize(0);
@@ -91,22 +91,22 @@ class SubMenuItemBar : public SubMenuItem {
             tft->printf(fmt, ctrl->label);
             //y = tft->getCursorY();
             y += tft->getRowHeight();
-            if (this->debug) Serial.printf("\t bottom of header is %i\n", y);
+            //if (this->debug) Serial.printf("\t bottom of header is %i\n", y);
         }
 
         // get position ready for value
         tft->setCursor(x, y);   // reset cursor to underneath the label
-        if (this->debug) {
+        /*if (this->debug) {
             Serial.printf("\tdoing renderValue at %i,%i on @%p\n", x, y, ctrl);
             Serial.printf("\taka '%s'\n", ctrl->label);
-        }
+        }*/
 
         //if (this->debug) Serial.printf("SubMenuItem for %s:\t rendering item index %i (named %s)\n", label, index, ctrl->label);
 
         // actually render the item
         y = ctrl->renderValue((!this->show_sub_headers && outer_selected) || is_selected, is_opened, max_display_width); //width/width_in_chars);
 
-        if (this->debug) Serial.printf("\tend of small_display, returning y=%i\n", y);
+        //if (this->debug) Serial.printf("\tend of small_display, returning y=%i\n", y);
         return y;
     }
 };
@@ -132,9 +132,9 @@ class SubMenuItemColumns : public SubMenuItemBar {
     }
 
     virtual int display(Coord pos, bool selected, bool opened) override {
-        Debug_printf("Start of display in SubMenuItemBar, passed in %i,%i\n", pos.x, pos.y);
+        //Debug_printf("Start of display in SubMenuItemBar, passed in %i,%i\n", pos.x, pos.y);
         pos.y = header(label, pos, selected, opened);
-        Debug_printf(F("\tafter header, y=%i\n"), pos.y);
+        //Debug_printf(F("\tafter header, y=%i\n"), pos.y);
         tft->setCursor(pos.x, pos.y);
         //tft->setTextSize(1);
         colours(opened, opened ? GREEN : this->default_fg, this->default_bg);
@@ -174,7 +174,7 @@ class SubMenuItemColumns : public SubMenuItemBar {
         tft->setTextColor(this->default_fg, this->default_bg);
         tft->setTextSize(0);
 
-        Debug_printf(F("End of display, y=%i\n--------\n"), finish_y);
+        //Debug_printf(F("End of display, y=%i\n--------\n"), finish_y);
         return finish_y;//tft->getCursorY();
     }
 };

@@ -105,6 +105,7 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
         tft->initDMASettings();
         tft->updateChangedAreasOnly(true);
         //tft->endUpdateAsync
+        tft->setTextWrap(true);
 
         //tft->setFrameCompleteCB(swap_framebuffer);
 
@@ -125,7 +126,7 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
 
         //tft->init(240, 320);           // Init ST7789 240x135
         tft->fillScreen(BLACK);
-        tft->setTextWrap(false);
+        //tft->setTextWrap(false);
         tft->println(F("DisplayTranslator_ILI9341 setup()!"));
         Debug_println(F("ili9341 did init()")); Serial_flush();
         Debug_println(F("ili9341 did fillscreen()")); Serial_flush();
@@ -215,7 +216,7 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
     }
 
     virtual int getRowHeight() override {
-        return (tft->getTextSize()+1) * 6;
+        return (tft->getTextSize()+1) * 8;
     }
     virtual int characterWidth() override { 
         //return (tft->getTextSize()) * 6;

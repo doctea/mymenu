@@ -14,6 +14,10 @@ Uses [midihelpers](https://github.com/doctea/midihelpers) library, which also pr
 
 Also extended by the [parameters](https://github.com/doctea/parameters) library to implement configurable ADC inputs with mapping to configurable parameters.
 
+# Requirements
+
+- [patched bodme/TFT_eSPI library](https://github.com/doctea/TFT_eSPI) needed to fix bug with wrapping not working (leading to missing headers from menus?)
+
 ## todo
 
 - Refactor to improve inheritance and reusability of the menu item code?

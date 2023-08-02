@@ -3,10 +3,20 @@
 
 #include <Arduino.h>
 
-#include "menu.h"
+//#include "menu.h"
+#include "display_abstract.h"
 #include "colours.h"
 
 #define MAX_LABEL_LENGTH 40
+
+class Coord {
+    public:
+        int x, y;
+        Coord(int in_x, int in_y) {
+            x = in_x;
+            y = in_y;
+        }
+};
 
 void menu_set_last_message(const char *msg, int colour);
 
@@ -39,12 +49,12 @@ class MenuItem {
             strcpy(label, in_label);
         }
         virtual void on_add() {
-            Debug_printf(F("MenuItem#on_add in %s\n"), this->label);
+            //Debug_printf(F("MenuItem#on_add in %s\n"), this->label);
             menu_c_max = tft->get_c_max();
         }    // called when this menuitem is added to menu
 
         virtual void update_label(const char *new_label) {
-            Debug_printf("%s#update_label('%s')\n", this->label, new_label);
+            //Debug_printf("%s#update_label('%s')\n", this->label, new_label);
             strcpy(this->label, new_label);
         }
 
@@ -123,11 +133,12 @@ class MenuItem {
             }
             colours(false);
             //return (tft->getTextSize()+1)*6;
-            if (tft->getCursorY() <= pos.y) {
+            /*if (tft->getCursorY() <= pos.y) {
                 // we havent had enough characters to move down a line, so force one
                 tft->println();
-            }
-            return tft->getCursorY();
+            }*/
+            tft->setCursor(0, tft->getCursorY()+2);
+            return tft->getCursorY(); // + 2;
         }
 
         // called when item is selected ie opened from the main menu - return true to open, return false to 'refuse to open'
@@ -170,9 +181,21 @@ class MenuItem {
 
 };
 
+class PinnedPanelMenuItem : public MenuItem {
+    public:
+        unsigned long ticks = 0;
+
+        PinnedPanelMenuItem(const char *label) : MenuItem(label) {};
+
+        virtual void update_ticks(unsigned long ticks) override {
+            this->ticks = ticks;
+        }
+};
+
+
 #include "menuitems_numbers.h"
 #include "menuitems_selector.h"
-#include "menuitems_pinned.h"
+//#include "menuitems_pinned.h"
 
 String get_note_name(int pitch);
 const char *get_note_name_c(int pitch);
@@ -242,11 +265,11 @@ class ActionItem : public MenuItem {
 
         colours(opened, opened ? GREEN : this->default_fg, this->default_bg);
 
-        return tft->getCursorY();
+        return tft->getCursorY() + 1;
     }
 
     virtual bool action_opened() override {
-        Debug_println(F("ActionItem#action_opened"));
+        //Debug_println(F("ActionItem#action_opened"));
         this->on_open();
 
         char msg[MENU_MESSAGE_MAX];
@@ -375,17 +398,17 @@ class ActionConfirmItem : public ActionItem {
         //tft->setTextSize(textSize);
         colours(opened, opened ? GREEN : this->default_fg, this->default_bg);
 
-        return tft->getCursorY();
+        return pos.y; //tft->getCursorY();
     }
 
     virtual bool action_opened() override {
-        Debug_println(F("ActionConfirmItem#action_opened"));
+        //Debug_println(F("ActionConfirmItem#action_opened"));
         //this->on_open();
         return true; 
     }
 
     virtual bool button_select() override {
-        Debug_println(F("ActionConfirmItem#button_select"));
+        //Debug_println(F("ActionConfirmItem#button_select"));
 
         this->on_open();
 
@@ -415,45 +438,16 @@ class SeparatorMenuItem : public MenuItem {
             tft->drawLine(pos.x, pos.y, tft->width(), pos.y, this->default_fg);
             pos.y += 2;
             
-            int old_y = pos.y;
+            /*int old_y = pos.y;*/
             pos.y = header(label, pos, selected, opened);
-            if (old_y==pos.y)
+            /*if (old_y==pos.y) /{
                 pos.y += tft->getRowHeight(); // force display down a lne
+            }*/
 
             return pos.y;
         }
 
-        virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false) {
-            if (!this->show_header) return pos.y;
-
-            /*tft->drawLine(pos.x, pos.y, tft->width(), pos.y, this->default_fg);
-            tft->setCursor(pos.x, pos.y+1);
-            //colours(!selected, this->default_fg, this->default_bg);
-            colours(false, this->default_fg, this->default_bg);
-            tft->setTextSize(0);
-            tft->printf((char*)tft->get_header_format(), (char*)text);
-            int start_x = tft->characterWidth() * strlen(text);
-            //tft->drawLine(start_x, pos.y, tft->width(), pos.y, this->default_fg);
-            tft->drawLine(start_x, pos.y+3, tft->width(), pos.y+2, this->default_fg);
-            tft->drawLine(start_x, pos.y+6, tft->width(), pos.y+4, this->default_fg);
-            tft->drawLine(start_x, pos.y+8, tft->width(), pos.y+6, this->default_fg);*/
-            tft->setTextSize(0);
-
-            colours(false, this->default_fg, this->default_bg);
-            tft->drawLine(pos.x, pos.y, tft->width(), pos.y, this->default_fg);
-            tft->setCursor(pos.x, pos.y+1);
-            int end_x = (tft->width() - (tft->characterWidth() * strlen(text))) - 2;
-            tft->drawLine(0, pos.y+2, end_x, pos.y+2, this->default_fg);
-            tft->drawLine(0, pos.y+4, end_x, pos.y+4, this->default_fg);
-            tft->drawLine(0, pos.y+6, end_x, pos.y+6, this->default_fg);
-            tft->drawLine(0, pos.y+8, end_x, pos.y+8, this->default_fg);
-            tft->setCursor(end_x+2, pos.y+1);
-            tft->printf((char*)tft->get_header_format(), (char*)text);
-
-            colours(false);
-            //return (tft->getTextSize()+1)*6;
-            return tft->getCursorY();
-        }
+        virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false);
 };
 
 

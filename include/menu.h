@@ -1,15 +1,6 @@
 #ifndef MENU_LIB_INCLUDED
 #define MENU_LIB_INCLUDED
 
-class Coord {
-    public:
-        int x, y;
-        Coord(int in_x, int in_y) {
-            x = in_x;
-            y = in_y;
-        }
-};
-
 #define MENU_MESSAGE_MAX (MENU_C_MAX*2)
 
 #ifndef CORE_TEENSY
@@ -29,7 +20,7 @@ class Coord {
 
 #include <LinkedList.h>
 #include "menuitems.h"
-#include "menuitems_pinned.h"
+//#include "menuitems_pinned.h"
 
 FLASHMEM void setup_menu();
 

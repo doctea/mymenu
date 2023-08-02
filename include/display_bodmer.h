@@ -146,6 +146,8 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         //tft->setRotation(1);
         tft->fillScreen(BLACK);
         tft->setTextWrap(true);
+        real_actual_espi->setTextWrap(true);
+        actual->setTextWrap(true);
         tft->setCursor(0,0);
         tft->println(F("DisplayTranslator init()!"));
 

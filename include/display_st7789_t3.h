@@ -51,7 +51,7 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
         Debug_println(F("steensy setup()..")); Serial_flush();
         tft->init(135, 240);           // Init ST7789 240x135
         tft->fillScreen(ST77XX_BLACK);
-        tft->setTextWrap(false);
+        //tft->setTextWrap(false);
         tft->println(F("DisplayTranslator init()!"));
         Debug_println(F("did init()")); Serial_flush();
         Debug_println(F("did fillscreen()")); Serial_flush();
