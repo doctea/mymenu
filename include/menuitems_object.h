@@ -156,7 +156,7 @@ class ObjectToggleControl : public MenuItem {
 
         // render the current value at current position
         virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
-            const char *txt = (this->target_object->*getter)() ? "On" : "Off";
+            const char *txt = (this->target_object->*getter)() ? label_on : label_off;
             bool use_small = strlen(txt) <= (max_character_width/2);
             int textSize = use_small ? 2 : 1;
             //if (this->debug) Serial.printf(F("%s:\trenderValue '%s' (len %i) with max_character_width %i got textSize %i\n"), this->label, txt, strlen(txt), max_character_width/2, textSize);
@@ -266,7 +266,7 @@ class ObjectActionItem : public MenuItem {
 
         char msg[MENU_MESSAGE_MAX];
         //Serial.printf("about to build msg string...\n");
-        snprintf(msg, MENU_MESSAGE_MAX, "Fired %8s", label);
+        snprintf(msg, MENU_MESSAGE_MAX, fired_message, label);
         //Serial.printf("about to set_last_message!");
         //msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
         menu_set_last_message(msg,GREEN);
@@ -294,7 +294,7 @@ class ObjectActionConfirmItem : public ObjectActionItem<TargetClass> {
 
     virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
         //Serial.println("ObjectActionConfirmItem#renderValue..");
-        const char *button_label = opened ? "??? Sure ???" : this->label;
+        const char *button_label = opened ? sure_message : this->label;
 
         this->colours(selected);
 
@@ -326,7 +326,7 @@ class ObjectActionConfirmItem : public ObjectActionItem<TargetClass> {
 
         char msg[MENU_MESSAGE_MAX];
         //Serial.printf("about to build msg string...\n");
-        snprintf(msg, MENU_MESSAGE_MAX, "Fired %8s", this->label);
+        snprintf(msg, MENU_MESSAGE_MAX, fired_message, this->label);
         //Serial.printf("about to set_last_message!");
         //msg[this->tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
         menu_set_last_message(msg,GREEN);

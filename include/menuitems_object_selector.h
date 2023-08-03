@@ -27,10 +27,10 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
     }
 
     virtual bool action_opened() override {
-        Serial.printf("ObjectSelectorControl#action_opened, internal_value is currently %i (%s)\n", this->internal_value, getFormattedValue());
-        Serial.printf("ObjectSelectorControl#action_opened, value from getter is %i\n", (this->target_object->*this->getter)());
+        //Serial.printf("ObjectSelectorControl#action_opened, internal_value is currently %i (%s)\n", this->internal_value, getFormattedValue());
+        //Serial.printf("ObjectSelectorControl#action_opened, value from getter is %i\n", (this->target_object->*this->getter)());
         this->internal_value = this->get_index_for_value((this->target_object->*this->getter)());
-        Serial.printf("ObjectSelectorControl#action_opened, internal_value setting to %i (%s)\n", this->internal_value, getFormattedValue());
+        //Serial.printf("ObjectSelectorControl#action_opened, internal_value setting to %i (%s)\n", this->internal_value, getFormattedValue());
         return !ObjectNumberControl<TargetClass,DataType>::readOnly;
         //return ObjectNumberControl<TargetClass,DataType>::action_opened();
     }

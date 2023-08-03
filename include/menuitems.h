@@ -48,137 +48,38 @@ class MenuItem {
         MenuItem(const char *in_label) {
             strcpy(label, in_label);
         }
-        virtual void on_add() {
-            //Debug_printf(F("MenuItem#on_add in %s\n"), this->label);
-            menu_c_max = tft->get_c_max();
-        }    // called when this menuitem is added to menu
+        virtual void on_add();
+        virtual void update_label(const char *new_label);
 
-        virtual void update_label(const char *new_label) {
-            //Debug_printf("%s#update_label('%s')\n", this->label, new_label);
-            strcpy(this->label, new_label);
-        }
-
-        MenuItem *set_default_colours(uint16_t fg, uint16_t bg = BLACK) {
-            this->default_fg = fg;
-            this->default_bg = bg;
-            return this;
-        }
+        MenuItem *set_default_colours(uint16_t fg, uint16_t bg = BLACK);
 
         // called every tick, in case anything needs doing
         virtual void update_ticks(unsigned long ticks) {
+            // nothing to do by default
         };
         
-        virtual int display(Coord pos, bool selected, bool opened) {
-            //Serial.printf("MenuItem display()")
-            //tft_print("hello?");
-            //char state[10];
-            //if (selected) sprintf(state,"Sel");
-            //if (opened) sprintf(&state[3]," Open");
-            //sprintf(state,"%s%s",selected?'Sel':'   ', opened?'Ope':'   ');
-            // display this item however that may be
-            //tft->fillRect(random(20), random(20), random(20), random(20), C_WHITE);
-            //Serial.printf("MenuItem: base display for %s at (%i,%i) [s:%i o:%i]\n", label, tft->getCursorX(), tft->getCursorY(), selected, opened);
-            tft->setTextSize(0);
-            tft->setCursor(pos.x,pos.y);
-            //tft->setTextColor(ST77XX_WHITE, ST77XX_BLACK);
-            colours(selected);
-            //tft->printf("%s [s:%i o:%i]", label, (int)selected, (int)opened);
-            this->renderValue(selected, opened, MENU_C_MAX);
-            this->tft->println();
-            //return (tft->getTextSizeY() * 8) + 2;
-            return tft->getCursorY();
-        }
+        virtual int display(Coord pos, bool selected, bool opened);
+        virtual int renderValue(bool selected, bool opened, uint16_t max_character_width);
 
-        virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) {
-            //tft->printf("%s [s:%i o:%i]", label, (int)selected, (int)opened);
-            colours(selected);
-            tft->setTextSize((strlen(label) < max_character_width/2) ? 2 : 1 );
-            tft->println(label);
-            return tft->getCursorY();
-        }
-
-        virtual void colours(bool inverted) {
-            colours(inverted, /*tft->WHITE*/this->default_fg, this->default_bg);
-        }
-        virtual void colours(bool inverted, uint16_t fg) {
-            colours(inverted, fg, this->default_bg);
-        }
-        virtual void colours(bool inverted, uint16_t fg, uint16_t bg) {
-            if (!inverted) {
-                tft->setTextColor(fg, bg);
-            } else {
-                //Serial.printf("%s selected, setting colours %02x, %02x\n", label, bg, fg);
-                tft->setTextColor(bg, fg) ;//ST77XX_BLACK, ST77XX_WHITE);
-            }
-        }
+        virtual void colours(bool inverted);
+        virtual void colours(bool inverted, uint16_t fg);
+        virtual void colours(bool inverted, uint16_t fg, uint16_t bg);
         
-        virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false, int textSize = 0) {
-            if (!this->show_header) return pos.y;
-
-            tft->drawLine(pos.x, pos.y, tft->width(), pos.y, this->default_fg);
-            pos.y++;
-            tft->setCursor(pos.x, pos.y);
-            colours(selected, this->default_fg, this->default_bg);
-            tft->setTextSize(textSize);
-            if (opened) {
-                //tft->print(">>>");
-                //tft->printf((char*)"%-19s",(char*)text);   // \n not needed as reaching to edge
-                tft->printf((char*)tft->get_header_open_format(), (char*)text);
-            } else if (selected) {
-                //tft->printf((char*)"%-22s",(char*)text);   // \n not needed as reaching to edge
-                tft->printf((char*)tft->get_header_selected_format(), (char*)text);
-                //tft->println();
-            } else {
-                tft->printf((char*)tft->get_header_format(), (char*)text);
-            }
-            colours(false);
-            //return (tft->getTextSize()+1)*6;
-            /*if (tft->getCursorY() <= pos.y) {
-                // we havent had enough characters to move down a line, so force one
-                tft->println();
-            }*/
-            tft->setCursor(0, tft->getCursorY()+2);
-            return tft->getCursorY(); // + 2;
-        }
+        virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false, int textSize = 0);
 
         // called when item is selected ie opened from the main menu - return true to open, return false to 'refuse to open'
-        virtual bool action_opened() {
-            return true;
-        }
+        virtual bool action_opened();
 
         // default to returning true to exit out to main menu after setting (IF OPENED, otherwise button_select is not sent!)
-        virtual bool button_select() {
-            return go_back_on_select;
-        }
-        virtual bool button_select_released() {
-            return false;
-        }
-        
-        virtual bool button_back() {
-            return false;
-        }
-        
-        virtual bool button_right() {
-            return false;
-        }
-
-        virtual bool knob_left() {
-            return false;
-        }
-
-        virtual bool knob_right() {
-            return false;
-        }
-
-        virtual bool allow_takeover() {
-            return false;
-        }
-
+        virtual bool button_select();
+        virtual bool button_select_released();
+        virtual bool button_back();
+        virtual bool button_right();
+        virtual bool knob_left();
+        virtual bool knob_right();
+        virtual bool allow_takeover();
         // whether we should be allowed to hover over this one
-        virtual bool is_selectable () {
-            return this->selectable;
-        }
-
+        virtual bool is_selectable ();
 };
 
 class PinnedPanelMenuItem : public MenuItem {
@@ -197,6 +98,7 @@ class PinnedPanelMenuItem : public MenuItem {
 #include "menuitems_selector.h"
 //#include "menuitems_pinned.h"
 
+// from midi_helpers library
 String get_note_name(int pitch);
 const char *get_note_name_c(int pitch);
 
@@ -246,6 +148,8 @@ class HarmonyStatus : public MenuItem {
         }
 };
 
+extern const char *fired_message;
+extern const char *sure_message;
 
 class ActionItem : public MenuItem {
     public:
@@ -274,7 +178,7 @@ class ActionItem : public MenuItem {
 
         char msg[MENU_MESSAGE_MAX];
         //Serial.printf("about to build msg string...\n");
-        snprintf(msg, MENU_MESSAGE_MAX, "Fired %8s", label);
+        snprintf(msg, MENU_MESSAGE_MAX, fired_message, label);
         //Serial.printf("about to set_last_message!");
         //msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
         menu_set_last_message(msg,GREEN);
@@ -315,12 +219,12 @@ class ActionFeedbackItem : public MenuItem {
         if (button_label_true!=nullptr)
             strncpy(this->button_label_true, button_label_true, 20);
         else
-            snprintf(this->button_label_true, 20, "%s", label);
+            snprintf(this->button_label_true, 20, label);
 
         if (button_label_false!=nullptr)
-            snprintf(this->button_label_false, 20, "%s", button_label_false);
+            snprintf(this->button_label_false, 20, button_label_false);
         else
-            snprintf(this->button_label_false, 20, "%s", label);
+            snprintf(this->button_label_false, 20, label);
     }
 
     ActionFeedbackItem(const char *label, setter_def setter, getter_def getter, const char *button_label_true, const char *button_label_false = nullptr) 
@@ -371,7 +275,7 @@ class ActionFeedbackItem : public MenuItem {
 
         char msg[MENU_MESSAGE_MAX];
         //Serial.printf("about to build msg string...\n");
-        snprintf(msg, MENU_MESSAGE_MAX, "Fired %8s", label);
+        snprintf(msg, MENU_MESSAGE_MAX, fired_message, label);
         //Serial.printf("about to set_last_message!");
         //msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
         menu_set_last_message(msg,GREEN);
@@ -389,7 +293,7 @@ class ActionConfirmItem : public ActionItem {
     }
 
     virtual int display(Coord pos, bool selected, bool opened) override {
-        const char *text_to_render = opened ? "??? Sure ???" : button_label;
+        const char *text_to_render = opened ? sure_message : button_label;
 
         int textSize = ((int)strlen(text_to_render)*tft->characterWidth() < tft->width()/2 );
         pos.y = header(text_to_render, pos, selected, opened, textSize);
@@ -414,7 +318,7 @@ class ActionConfirmItem : public ActionItem {
 
         char msg[MENU_MESSAGE_MAX];
         //Serial.printf("about to build msg string...\n");
-        snprintf(msg, MENU_MESSAGE_MAX, "Fired %8s", label);
+        snprintf(msg, MENU_MESSAGE_MAX, fired_message, label);
         //Serial.printf("about to set_last_message!");
         //msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
         menu_set_last_message(msg,GREEN);
@@ -434,19 +338,7 @@ class SeparatorMenuItem : public MenuItem {
             this->default_fg = default_fg;
         }
 
-        virtual int display(Coord pos, bool selected, bool opened) override {
-            tft->drawLine(pos.x, pos.y, tft->width(), pos.y, this->default_fg);
-            pos.y += 2;
-            
-            /*int old_y = pos.y;*/
-            pos.y = header(label, pos, selected, opened);
-            /*if (old_y==pos.y) /{
-                pos.y += tft->getRowHeight(); // force display down a lne
-            }*/
-
-            return pos.y;
-        }
-
+        virtual int display(Coord pos, bool selected, bool opened) override;
         virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false);
 };
 
@@ -482,7 +374,7 @@ class ToggleControl : public MenuItem {
 
         // render the current value at current position
         virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
-            const char *txt = *this->target_variable ? "On" : "Off";
+            const char *txt = *this->target_variable ? label_on : label_off;
             bool use_small = strlen(txt) <= (max_character_width/2);
             int textSize = use_small ? 2 : 1;
             //if (this->debug) Serial.printf(F("%s:\trenderValue '%s' (len %i) with max_character_width %i got textSize %i\n"), this->label, txt, strlen(txt), max_character_width/2, textSize);
