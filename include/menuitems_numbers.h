@@ -100,7 +100,7 @@ class NumberControl : public NumberControlBase {
             return fmt;
         }*/
         virtual const char *getFormattedValue(bool value) {
-            return value ? this->label_on : this->label_off;
+            return value ? label_on : label_off;
         }
         virtual const char *getFormattedValue(int value) {
             static char fmt[15] = "      ";

@@ -2,6 +2,9 @@
 
 const char *fired_message = "Fired %s";
 const char *sure_message = "??? Sure ???";
+const char *set_message = "Set %s to %s (%i)";
+const char *label_on    = "On";
+const char *label_off   = "Off";
 
 void MenuItem::on_add() {
     //Debug_printf(F("MenuItem#on_add in %s\n"), this->label);
@@ -134,17 +137,17 @@ int SeparatorMenuItem::header(const char *text, Coord pos, bool selected, bool o
     colours(false, this->default_fg, this->default_bg);
     //tft->drawLine(pos.x, pos.y, tft->width(), pos.y, this->default_fg);
     tft->setCursor(pos.x, pos.y+1);
-    int end_x = (tft->width() - (tft->characterWidth() * strlen(text))) - 2;
-    tft->drawLine(0, pos.y,   end_x-2, pos.y,   this->default_fg);
-    tft->drawLine(0, pos.y+2, end_x-2, pos.y+2, this->default_fg);
-    tft->drawLine(0, pos.y+4, end_x-2, pos.y+4, this->default_fg);
+    int end_x = (tft->width() - (tft->characterWidth() * strlen(text))) - 4;
+    tft->drawLine(0, pos.y,   end_x, pos.y,   this->default_fg);
+    tft->drawLine(0, pos.y+2, end_x, pos.y+2, this->default_fg);
+    tft->drawLine(0, pos.y+4, end_x, pos.y+4, this->default_fg);
 
     //tft->drawLine(0, pos.y, end_x-1, pos.y+12, YELLOW); // debu g disalgonal line
-    tft->setCursor(end_x+2, pos.y);
+    tft->setCursor(end_x+4, pos.y);
     //int initial_position = tft->getCursorY();
     tft->printf((char*)tft->get_header_format(), (char*)text);
     // have to draw this after the text for some reason, otherwise it doesn't get drawn/gets wiped out??
-    tft->drawLine(0, pos.y+6, end_x-2, pos.y+6, this->default_fg);
+    tft->drawLine(0, pos.y+6, end_x, pos.y+6, this->default_fg);
 
     //tft->drawLine(8, pos.y+8, end_x-1, pos.y+8, this->default_fg);
     //tft->drawLine(10, pos.y+10, end_x-1, pos.y+12, this->default_fg);

@@ -9,6 +9,10 @@
 
 #define MAX_LABEL_LENGTH 40
 
+extern const char *set_message;
+extern const char *label_on;
+extern const char *label_off;
+
 class Coord {
     public:
         int x, y;
@@ -29,9 +33,6 @@ class MenuItem {
         int menu_c_max = MENU_C_MAX;
 
         char label[MAX_LABEL_LENGTH];
-
-        const char *label_on    = "On";
-        const char *label_off   = "Off";
 
         uint16_t default_fg = C_WHITE; //0xFFFF;
         uint16_t default_bg = BLACK;

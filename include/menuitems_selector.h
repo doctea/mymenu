@@ -63,7 +63,7 @@ class SelectorControl : public MenuItem {
                 int col = is_current_value_selected ? GREEN : C_WHITE;
                 colours(opened && selected_value_index==(int)i, col, BLACK);
 
-                tft->printf("%s", (char*)get_label_for_value(available_values[i]));
+                tft->printf((char*)get_label_for_value(available_values[i]));
 
                 //this->renderValue(selected, opened, MENU_C_MAX);
 
@@ -72,7 +72,7 @@ class SelectorControl : public MenuItem {
                     tft->printf(" ");
             }
             if (tft->getCursorX()>0) // if we haven't wrapped onto next line then do it manually
-                tft->println("");
+                tft->println();
             return tft->getCursorY();
         }
 
@@ -108,9 +108,9 @@ class SelectorControl : public MenuItem {
             /*if (strlen(label) > max_character_width) {
                 label[max_character_width] = '\0';
             }*/
-            snprintf(label, max_character_width, "%s", src_label);
+            snprintf(label, max_character_width, src_label);
 
-            tft->printf("%s", (char*)label);
+            tft->printf((char*)label);
             return tft->getCursorY();
         }
 
@@ -166,7 +166,7 @@ class SelectorControl : public MenuItem {
 
             char msg[MENU_MESSAGE_MAX];
             //Serial.printf("about to build msg string...\n");
-            snprintf(msg, MENU_MESSAGE_MAX, "Set %s to %s (%i)", 
+            snprintf(msg, MENU_MESSAGE_MAX, set_message, 
                 label, 
                 get_label_for_value(available_values[selected_value_index]), 
                 //getFormattedValue(available_values[selected_value_index])

@@ -45,21 +45,21 @@ class DisplayTranslator {
     virtual int getCursorY() { return 0; };
     virtual void setTextColor(uint16_t fg, uint16_t bg) {};
     virtual void setTextSize(unsigned int size) {};
-    virtual void printf(const char *pattern) { Serial.println(F("WARNING: printf(char*pattern) not overridden!")); };
-    virtual void printf(const char *pattern, char *param1)  { Serial.println(F("WARNING: printf(char*pattern, char *param1) not overridden!")); };
-    virtual void printf(const char *pattern, char *param1, char *param2) { Serial.println(F("WARNING: printf(char*pattern, char *param1, char *param2) not overridden!")); };
-    virtual void printf(const char *pattern, char *param1, char *param2, char *param3) { Serial.println(F("WARNING: printf(char*pattern, char *param1, char *param2, char *param3) not overridden!")); };
-    virtual void printf(const char *pattern, char *param1, int param2, int param3) { Serial.println(F("WARNING: printf(char*pattern, char *param1, char *param2, char *param3) not overridden!")); };
-    virtual void printf(const char *pattern, int param1, char* param2) { Serial.println(F("WARNING: printf(char *pattern, int param1, char* param2) not overridden!")); }
-    virtual void printf(const char *pattern, int param1) { Serial.println(F("WARNING: printf(char *pattern, int param1) not overridden!")); }
-    virtual void printf(const char *pattern, int param1, int param2) { Serial.println(F("WARNING: printf(char *pattern, int param1, int param2) not overridden!")); } 
-    virtual void printf(const char *pattern, int param1, int param2, int param3) { Serial.println(F("WARNING: printf(char *pattern, int param1, int param2, int param3) not overridden!")); } 
-    virtual void printf(const char *pattern, int param1, int param2, int param3, float param4) { Serial.println(F("WARNING: printf(char *pattern, int param1, int param2, int param3, float param4) not overridden!")); } 
-    virtual void printf(const char *pattern, int param1, const uint8_t *param2) { Serial.println(F("WARNING: printf(char *pattern, int param1, const uint8_t *param2) not overridden!")); }
-    virtual void printf(const char *pattern, char param1, int param2, char *param3) { Serial.println(F("WARNING: printf(char *pattern, int param1, const uint8_t *param2) not overridden!")); }
-    virtual void println() { Serial.println(F("WARNING: println(void) not overridden!")); };
-    virtual void println(const char *txt) { Serial.println(F("WARNING: println(const char *) not overridden!"));};
-    virtual void printc(char c) { Serial.println(F("WARNING: printc(char) not overridden!")); }
+    virtual void printf(const char *pattern);
+    virtual void printf(const char *pattern, char *param1);
+    virtual void printf(const char *pattern, char *param1, char *param2);
+    virtual void printf(const char *pattern, char *param1, char *param2, char *param3);
+    virtual void printf(const char *pattern, char *param1, int param2, int param3);
+    virtual void printf(const char *pattern, int param1, char* param2);
+    virtual void printf(const char *pattern, int param1);
+    virtual void printf(const char *pattern, int param1, int param2);
+    virtual void printf(const char *pattern, int param1, int param2, int param3);
+    virtual void printf(const char *pattern, int param1, int param2, int param3, float param4);
+    virtual void printf(const char *pattern, int param1, const uint8_t *param2);
+    virtual void printf(const char *pattern, char param1, int param2, char *param3);
+    virtual void println();
+    virtual void println(const char *txt);
+    virtual void printc(char c);
 
 
     virtual int width() { return 128; };
@@ -71,44 +71,11 @@ class DisplayTranslator {
     virtual void updateDisplay() {};
 
     // by ktownsend from https://forums.adafruit.com/viewtopic.php?t=21536
-    uint16_t rgb(uint8_t r, uint8_t g, uint8_t b) {
-        return ((r / 8) << 11) | ((g / 4) << 5) | (b / 8);
-    }
-    uint16_t rgb(uint32_t rgb) {
-        uint8_t r = rgb>>16;
-        uint8_t g = rgb>>8;
-        uint8_t b = rgb & 0b11111111;
-        return ((r / 8) << 11) | ((g / 4) << 5) | (b / 8);
-    }
-
+    uint16_t rgb(uint8_t r, uint8_t g, uint8_t b);
+    uint16_t rgb(uint32_t rgb);
     // take a 565 16-bit colour value and return a dimmed version of it
-    uint16_t halfbright_565(uint16_t colour) {
-        unsigned char red = (colour & 0xf800) >> 11;
-        unsigned char green = (colour & 0x07e0) >> 5;
-        unsigned char blue = colour & 0x001f;
-        //Serial.printf("halfbright took colour %04x and split into red=%i, green=%i, blue=%i ", colour, red, green, blue);
-        red = red >> 1;
-        green = green >> 1;
-        blue = green >> 1;
-        uint16_t ret = rgb(red<<3,green<<2,blue<<3);
-        //Serial.printf("and returning %04x\n", ret);
-        return ret;
-    }
-
-    virtual bool will_x_rows_fit_to_height(int rows, int height = -1) {
-        if (height==-1) height = this->height();
-        int rowHeight = this->getRowHeight();
-        
-        int position = getCursorY() + (rows*rowHeight);
-        bool result = position <= height;
-        /*if (result) 
-            Serial.printf("will_x_rows_fit_to_height: current Y is %i, rows %i, rowHeight %i, (so Y+rows*rowHeight=%i) -> will fit in height %i?\n", 
-                getCursorY(), rows, rowHeight, position, height);
-        else
-            Serial.printf("will_x_rows_fit_to_height: current Y is %i, rows %i, rowHeight %i, (so Y+rows*rowHeight=%i) -> WON'T fit in height %i?\n", 
-                getCursorY(), rows, rowHeight, position, height);*/
-        return result;
-    } 
+    uint16_t halfbright_565(uint16_t colour);
+    virtual bool will_x_rows_fit_to_height(int rows, int height = -1);
 
     // shapes + lines
     virtual void drawLine(int x0, int y0, int x1, int y1, uint16_t color) {};
