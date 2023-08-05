@@ -99,7 +99,7 @@
     #define BLACK   ILI9341_BLACK
     #define RED     ILI9341_RED
     #define GREEN   ILI9341_GREEN
-    #define BLUE    ILI9341_BLUE
+    #define BLUE    ILI9341_CYAN
     #define YELLOW  ILI9341_YELLOW
     #define ORANGE  ILI9341_ORANGE
     #define PURPLE  ILI9341_MAGENTA
