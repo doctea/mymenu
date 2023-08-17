@@ -45,12 +45,14 @@ int SubMenuItemBar::small_display(int index, int x, int y, int width_in_pixels, 
     //if (this->debug) Serial.printf(F("\tSubMenuItemBar: start of small_display for index %i, passed in x,y=%i,%i and width=%i\n"), index, x, y, width_in_pixels);
 
     MenuItem *ctrl = items->get(index);
-    const uint_fast16_t character_width_in_pixels = tft->characterWidth(); // presumed font width
-    const uint_fast16_t max_display_width = (int)(get_max_pixel_width(index)/character_width_in_pixels) - (index==number_columns()-1?1:0);   // do one less character width on last column to avoid wrapping unnecesarily?
+    const uint_fast16_t character_width_in_pixels = tft->currentCharacterWidth(); // presumed font width
+    //const uint_fast16_t max_display_width_characters = (int)(get_max_pixel_width(index)/character_width_in_pixels) - (index==number_columns()-1?1:0);   // do one less character width on last column to avoid wrapping unnecesarily?
+    //const uint_fast16_t max_display_width_characters = (int)(get_max_pixel_width(index)/character_width_in_pixels);
+    const uint_fast16_t max_display_width_characters = get_max_character_width(index);
     //if (index==this->number_columns()-1)
-    //    max_display_width-=1;   // for the last column, use one less character, to avoid wrapping unnecessarily
+    //    max_display_width_characters-=1;   // for the last column, use one less character, to avoid wrapping unnecessarily
 
-    //Serial.printf("(width_in_pixels %i/character_width_in_pixels %i) = %i\n", width_in_pixels, character_width_in_pixels, max_display_width);
+    //Serial.printf("(width_in_pixels %i/character_width_in_pixels %i) = %i\n", width_in_pixels, character_width_in_pixels, max_display_width_characters);
     /*Serial.printf("small_display in %s, item %i (%s), got colour %4x!\n", 
         this->label, 
         index, 
@@ -62,7 +64,7 @@ int SubMenuItemBar::small_display(int index, int x, int y, int width_in_pixels, 
 
     // prepare label header format
     char fmt[MENU_C_MAX];
-    snprintf(fmt, MENU_C_MAX, "%%-%is\n", max_display_width);    // becomes eg "%-6s\n"
+    snprintf(fmt, MENU_C_MAX, "%%-%is\n", max_display_width_characters);    // becomes eg "%-6s\n"
     //if (this->debug) Serial.printf("\tGot format '%s'\n", fmt);
 
     // print label header // TODO: either move this to be the responsibility of the control, or use something like get_label() instead, so that can override in subclass for things like parameter controls where this might change
@@ -89,7 +91,7 @@ int SubMenuItemBar::small_display(int index, int x, int y, int width_in_pixels, 
     //if (this->debug) Serial.printf("SubMenuItem for %s:\t rendering item index %i (named %s)\n", label, index, ctrl->label);
 
     // actually render the item
-    y = ctrl->renderValue((!this->show_sub_headers && outer_selected) || is_selected, is_opened, max_display_width); //width/width_in_chars);
+    y = ctrl->renderValue((!this->show_sub_headers && outer_selected) || is_selected, is_opened, max_display_width_characters); //width/width_in_chars);
 
     //if (this->debug) Serial.printf("\tend of small_display, returning y=%i\n", y);
     return y;

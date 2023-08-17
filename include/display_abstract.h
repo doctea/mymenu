@@ -10,19 +10,45 @@
 #define BLUE        0x00
 #define YELLOW      0xF0
 
-class DisplayTranslator {
+const int message_max = 20;
 
+class DisplayTranslator {
     public:
+
+    int default_textsize = 0;
+    unsigned int size = default_textsize;
 
     // seems like some tft devices need to be inited dynamically instead of statically, so allow for that
     virtual void init() {}; 
 
-    virtual const char *get_message_format() { return "[%-20.20s]"; }
-    virtual const char *get_header_format() { return "%-22s"; }
-    virtual const char *get_header_open_format() { return ">>>%-19s"; }
-    virtual const char *get_header_selected_format() { return "%-22s"; }
+    int row_character_width = 22;
+    char message_format[message_max] = "[%-20.20s]";
+    char header_format[message_max] = "%-22s";
+    char header_open_format[message_max] = ">>>%-19s";
+    char header_selected_format[message_max] = "%-22s";
+    // recreate string formats based on current textsize
+    virtual void setup_formats() {
+        this->row_character_width = this->get_row_character_width();
+        snprintf(message_format,         message_max, "[%%-%i.%is]", row_character_width-2, row_character_width-2);
+        snprintf(header_format,          message_max, "%%-%is",      row_character_width);
+        snprintf(header_open_format,     message_max, ">>>%%-%is",   row_character_width-3);
+        snprintf(header_selected_format, message_max, "%%-%is",      row_character_width);
+    }
+    virtual int get_row_character_width() { return (this->width() / ((this->size+1) * this->characterWidth())) + 1; }
+    virtual const char *get_message_format()         { return message_format; }
+    virtual const char *get_header_format()          { return header_format; }
+    virtual const char *get_header_open_format()     { return header_open_format; }
+    virtual const char *get_header_selected_format() { return header_selected_format; }
+
+    // set the base textsize to use (and recreate the string formats based on that size)
+    virtual void set_default_textsize(int textsize) {
+        this->default_textsize = textsize;
+        this->setup_formats();
+    }
+
     virtual uint8_t get_c_max() {
-        return 20;
+        //return 20;
+        return row_character_width;
     }
 
     /*const char *MESSAGE_FORMAT          = "[%-20s]";
@@ -34,7 +60,9 @@ class DisplayTranslator {
     //~DisplayTranslator() {};
 
     virtual void setup() {};
-    virtual void start() {};
+    virtual void start() {
+        this->set_default_textsize(this->default_textsize);
+    };
     virtual void clear(bool force = false) {};
 
     virtual bool ready() { return true; };
@@ -67,6 +95,9 @@ class DisplayTranslator {
 
     virtual int getRowHeight() { return 1; };
     virtual int characterWidth() { return 1; };
+    virtual int currentCharacterWidth() {
+        return characterWidth() * (this->size>0?this->size:1);
+    }
 
     virtual void updateDisplay() {};
 

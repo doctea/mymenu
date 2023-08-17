@@ -68,10 +68,10 @@ class DisplayTranslator_ST7789 : public DisplayTranslator {
         Adafruit_ST7789 *tft = &tft_direct;
     #endif
 
-    virtual const char *get_message_format() { return "[%-38.38s]"; }
+    /*virtual const char *get_message_format() { return "[%-38.38s]"; }
     virtual const char *get_header_format() { return "%-40s"; }
     virtual const char *get_header_open_format() { return ">>>%-37s"; }
-    virtual const char *get_header_selected_format() { return "%-40s"; }
+    virtual const char *get_header_selected_format() { return "%-40s"; }*/
 
     unsigned int size = 0;
 
@@ -129,7 +129,8 @@ class DisplayTranslator_ST7789 : public DisplayTranslator {
         tft->fillRect(x, y, w, h, color);
     }
     virtual void setTextSize(unsigned int size) override {
-        this->size = size + 1;
+        size += this->default_textsize;
+        this->size = size;
         //Serial.printf("setTextSize(%i)\n", this->size);
         tft->setTextSize(this->size);
     }
@@ -261,20 +262,21 @@ class DisplayTranslator_ST7789 : public DisplayTranslator {
         return 6;
     };
 
-    virtual void clear(bool force = false) {
+    virtual void clear(bool force = false) override {
         tft->fillScreen(BLACK);
         tft->setTextColor(C_WHITE);
         //tft->fillRect(0, 0, tft->width(), tft->height(), BLACK);
     }
 
-    virtual void start() {
+    virtual void start() override {
+        DisplayTranslator::start();
         Debug_println("Display start.."); Serial_flush();
         //tft->updateScreenAsync(false);
         /*tft->useFrameBuffer(true);
         Debug_println("did useframebuffer()"); Serial_flush();*/
     }
 
-    virtual void updateDisplay() {
+    virtual void updateDisplay() override {
         //Serial.println("updateDisplay..");
         //tft->updateScreenAsync(false);
         #ifdef TFT_BUFFERED

@@ -86,12 +86,10 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
     //Adafruit_GFX_Buffer<Adafruit_ST7789> *tft = new Adafruit_GFX_Buffer<Adafruit_ST7789>(SCREEN_WIDTH, SCREEN_HEIGHT, tft_direct); //Adafruit_ST77(TFT_CS, TFT_DC, TFT_RST));
     //Adafruit_GFX_Buffer<Adafruit_ST7789> *tft = nullptr; 
 
-    virtual const char *get_message_format() { return "[%-38.38s]"; }
-    virtual const char *get_header_format() { return "%-40s"; }
-    virtual const char *get_header_open_format() { return ">>>%-37s"; }
-    virtual const char *get_header_selected_format() { return "%-40s"; }
-
-    unsigned int size = 0;
+    /*virtual const char *get_message_format() { return "[%-39.39s]"; }
+    virtual const char *get_header_format() { return "%-41s"; }
+    virtual const char *get_header_open_format() { return ">>>%-38s"; }
+    virtual const char *get_header_selected_format() { return "%-41s"; }*/
 
     DisplayTranslator_Bodmer() {
         //this->tft = &actual; //ST7789_t3(TFT_CS, TFT_DC, TFT_RST);
@@ -102,7 +100,6 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
     virtual void init() override {
         this->setup();
     }
-
     virtual void setup() {
         Debug_println(F("DisplayTranslator_Bodmer setup()..")); Serial_flush();
         real_actual_espi = new TFT_eSPI();
@@ -177,8 +174,9 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         tft->setTextColor(fg, bg);
     }
     virtual void setTextSize(unsigned int size) override {
+        size += this->default_textsize;
         this->size = size;
-        tft->setTextSize(size);
+        tft->setTextSize(this->size);
     }
     virtual void printf(const char *pattern) override {
         tft->printf(pattern);
@@ -279,10 +277,9 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
     }
 
     virtual void start() override {
+        DisplayTranslator::start();
         Debug_println("Display start.."); Serial_flush();
         //tft->updateScreenAsync(false);
-        /*tft->useFrameBuffer(true);
-        Debug_println("did useframebuffer()"); Serial_flush();*/
     }
 
     virtual void updateDisplay() override {

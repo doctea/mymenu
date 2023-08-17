@@ -44,10 +44,10 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
     SSOLED *tft;
     uint8_t ucBackBuffer[1024];
 
-    virtual const char *get_message_format() { return "[%-19.19s]"; }
+    /*virtual const char *get_message_format() { return "[%-19.19s]"; }
     virtual const char *get_header_format() { return "%-19s"; }
     virtual const char *get_header_open_format() { return ">>>%-18s"; }
-    virtual const char *get_header_selected_format() { return "%-19s"; }
+    virtual const char *get_header_selected_format() { return "%-19s"; }*/
 
     DisplayTranslator_SS_OLED() {
         this->tft = &ssoled;
@@ -114,6 +114,7 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
         oledRectangle(tft, x1, y1, w-x1, h-y1, ucColor, true);
     }
     virtual void setTextSize(unsigned int size) override {
+        size += this->default_textsize;
         textSize = size;
     }
     virtual void printf(const char *text) override {

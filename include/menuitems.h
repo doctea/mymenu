@@ -296,7 +296,7 @@ class ActionConfirmItem : public ActionItem {
     virtual int display(Coord pos, bool selected, bool opened) override {
         const char *text_to_render = opened ? sure_message : button_label;
 
-        int textSize = ((int)strlen(text_to_render)*tft->characterWidth() < tft->width()/2 );
+        int textSize = ((int)strlen(text_to_render)*tft->currentCharacterWidth() < tft->width()/2 );
         pos.y = header(text_to_render, pos, selected, opened, textSize);
 
         //tft->setCursor(pos.x,pos.y);

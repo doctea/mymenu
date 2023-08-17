@@ -166,6 +166,7 @@ int Menu::display() {
         if (new_y==y)
             tft->println(); // force dropping a line if draw_message hasn't for some reason (needed to get the tabs line to show on bodmer/rp2040?)
         y = tft->getCursorY();
+        //tft->setCursor(0, new_y);
 
         /////// draw tabs for the pages
         for (unsigned int i = selected_page_index ; i < pages->size() + selected_page_index ; i++) {
@@ -181,7 +182,11 @@ int Menu::display() {
             else
                 tft->setTextColor(pages->get(ci)->colour, BLACK);
 
-            int characters_left = ((tft->width() - tft->getCursorX()) / tft->characterWidth()) - 1; // + (tft->characterWidth() * (strlen(pages->get(ci)->title)+1)));
+            int tft_width = tft->width();
+            int cursor_x = tft->getCursorX();
+            int current_character_width = tft->currentCharacterWidth();
+            //int characters_left = ((tft->width() - tft->getCursorX()) / tft->currentCharacterWidth()) - 1; // + (tft->characterWidth() * (strlen(pages->get(ci)->title)+1)));
+            int characters_left = ((tft_width - cursor_x) / current_character_width) - 1;
             if (characters_left<2) {
                 break;
             } else if (characters_left < (int)strlen(pages->get(ci)->title)+1) {
@@ -201,7 +206,7 @@ int Menu::display() {
             tft->setTextColor(C_WHITE, BLACK);
         }
         if (y == tft->getCursorY()) {
-            // we havent had enough panels to move down a line, so force one
+            // we havent had enough tabs to move down a line, so force one
             tft->println();
         }
         y = tft->getCursorY();

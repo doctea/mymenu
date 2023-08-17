@@ -48,7 +48,6 @@ class Menu {
     LinkedList<page_t*> *pages = nullptr;
 
     PinnedPanelMenuItem *pinned_panel = nullptr;
-
     LinkedList<String> *messages_log = nullptr;
 
     int last_knob_position = -1;
@@ -75,6 +74,10 @@ class Menu {
         };
 
         int mode = NORMAL;
+
+        char last_message[MENU_C_MAX] = ""; //...started up...";
+        uint32_t message_colour = C_WHITE;
+        DisplayTranslator *tft;
 
         bool is_opened() {
             return this->selected_page->currently_opened!=-1;
@@ -222,9 +225,6 @@ class Menu {
             return this->selected_page->items->size();
         }
 
-        char last_message[MENU_C_MAX] = ""; //...started up...";
-        uint32_t message_colour = C_WHITE;
-        DisplayTranslator *tft;
 
         Menu(DisplayTranslator *dt) {
             this->tft = dt;
@@ -388,8 +388,9 @@ class Menu {
             //tft.setCursor(0,0);
             // draw the last status message
             tft->setTextColor(message_colour,BLACK);
-            tft->setTextSize(0);
+            tft->setTextSize(tft->default_textsize);
             tft->printf(tft->get_message_format(), last_message);
+            tft->setCursor(0,tft->getCursorY()+3);  // workaround for tab positions?
             return tft->getCursorY();
         }
 

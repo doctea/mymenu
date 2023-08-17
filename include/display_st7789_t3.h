@@ -37,10 +37,10 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
     ST7789_t3 actual = ST7789_t3(TFT_CS, TFT_DC, TFT_RST);
     ST7789_t3 *tft;
    
-    virtual const char *get_message_format() { return "[%-20.20s]"; }
+    /*virtual const char *get_message_format() { return "[%-20.20s]"; }
     virtual const char *get_header_format() { return "%-22s"; }
     virtual const char *get_header_open_format() { return ">>>%-19s"; }
-    virtual const char *get_header_selected_format() { return "%-22s"; }
+    virtual const char *get_header_selected_format() { return "%-22s"; }*/
 
     DisplayTranslator_STeensy() {
         this->tft = &actual; //ST7789_t3(TFT_CS, TFT_DC, TFT_RST);
@@ -79,7 +79,9 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
         tft->setTextColor(fg, bg);
     }
     virtual void setTextSize(unsigned int size) override {
-        tft->setTextSize(size);
+        size += this->default_textsize;
+        this->size = size;
+        tft->setTextSize(this->size);
     }
     virtual void printf(const char *pattern) override {
         tft->printf(pattern);
@@ -148,20 +150,21 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
         return 6;
     };
 
-    virtual void clear(bool force = false) {
+    virtual void clear(bool force = false) override {
         tft->fillScreen(BLACK);
         tft->setTextColor(C_WHITE);
         //tft->fillRect(0, 0, tft->width(), tft->height(), BLACK);
     }
 
-    virtual void start() {
+    virtual void start() override {
+        DisplayTranslator::start();
         Debug_println("Display start.."); Serial_flush();
         //tft->updateScreenAsync(false);
         tft->useFrameBuffer(true);
         Debug_println("did useframebuffer()"); Serial_flush();
     }
 
-    virtual void updateDisplay() {
+    virtual void updateDisplay() override {
         //Serial.println("updateDisplay..");
         tft->updateScreenAsync(false);
     }

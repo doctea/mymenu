@@ -21,7 +21,15 @@ class SubMenuItemBar : public SubMenuItem {
     }
 
     virtual inline int get_max_pixel_width(int item_number) {
-        return (this->tft->width() / this->number_columns());
+        //return (this->tft->width() / this->number_columns());
+        return this->get_max_character_width(item_number) * tft->currentCharacterWidth();
+    }
+
+    virtual inline uint_fast16_t get_max_character_width(int item_number) {
+        //return (get_max_pixel_width(item_number)/tft->characterWidth()) - (item_number==number_columns()-1?1:0);
+        int_fast16_t screen_width_in_characters = this->tft->width() / tft->currentCharacterWidth();
+        int_fast16_t character_width_per_column = screen_width_in_characters / this->number_columns();
+        return character_width_per_column - (item_number==number_columns()-1?1:0);
     }
 
     virtual int display(Coord pos, bool selected, bool opened) override;

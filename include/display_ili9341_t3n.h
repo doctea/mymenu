@@ -67,13 +67,13 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
     ILI9341_t3n actual = ILI9341_t3n(TFT_CS, TFT_DC, TFT_RST, 11, 13, 12); //, 14, 13, 14);
     ILI9341_t3n *tft = &actual;
   
-    virtual const char *get_message_format() { return "[%-38.38s]"; }
+    /*virtual const char *get_message_format() { return "[%-38.38s]"; }
     virtual const char *get_header_format() { return "%-40s"; }
     virtual const char *get_header_open_format() { return ">>>%-37s"; }
     virtual const char *get_header_selected_format() { return "%-40s"; }
     virtual uint8_t get_c_max() {
         return MENU_C_MAX;
-    }
+    }*/
 
     DisplayTranslator_ILI9341_T3N() {
         //this->tft = &actual; //ST7789_t3(TFT_CS, TFT_DC, TFT_RST);
@@ -154,7 +154,9 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
         tft->setTextColor(fg, bg);
     }
     virtual void setTextSize(unsigned int size) override {
-        tft->setTextSize(size);
+        size += this->default_textsize;
+        this->size = size;
+        tft->setTextSize(this->size);
     }
     virtual void printf(const char *pattern) override {
         tft->printf(pattern);
@@ -232,7 +234,8 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
         //tft->fillRect(0, 0, tft->width(), tft->height(), BLACK);
     }
 
-    virtual void start() {
+    virtual void start() override {
+        DisplayTranslator::start();
         Debug_println("Display start.."); Serial_flush();
         //tft->updateScreenAsync(false);
         tft->useFrameBuffer(true);
