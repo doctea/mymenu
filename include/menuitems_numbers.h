@@ -226,7 +226,6 @@ class NumberControl : public NumberControlBase {
             //byte textSize = (strlen(tmp) / max_character_width) + 1;
             //Serial.printf("%s\t#renderValue string is \t%s (length=%i), max_character_width is\t%i, setting text size to\t%i\n", this->label, tmp, strlen(tmp), max_character_width, textSize);
             tft->setTextSize(textSize);
-            //tft->setTextSize(textSize);
 
             tft->println(tmp);
             return tft->getCursorY();

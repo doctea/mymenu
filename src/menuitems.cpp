@@ -118,7 +118,7 @@ int MenuItem::header(const char *text, Coord pos, bool selected, bool opened, in
 
 
 
-int SeparatorMenuItem::header(const char *text, Coord pos, bool selected, bool opened) {
+int SeparatorMenuItem::header(const char *text, Coord pos, bool selected, bool opened, int textSize) {
     if (!this->show_header) return pos.y;
 
     /*tft->drawLine(pos.x, pos.y, tft->width(), pos.y, this->default_fg);
@@ -132,7 +132,7 @@ int SeparatorMenuItem::header(const char *text, Coord pos, bool selected, bool o
     tft->drawLine(start_x, pos.y+3, tft->width(), pos.y+2, this->default_fg);
     tft->drawLine(start_x, pos.y+6, tft->width(), pos.y+4, this->default_fg);
     tft->drawLine(start_x, pos.y+8, tft->width(), pos.y+6, this->default_fg);*/
-    tft->setTextSize(0);
+    tft->setTextSize(textSize);
 
     colours(false, this->default_fg, this->default_bg);
     //tft->drawLine(pos.x, pos.y, tft->width(), pos.y, this->default_fg);

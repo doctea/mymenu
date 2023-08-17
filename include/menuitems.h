@@ -164,9 +164,9 @@ class ActionItem : public MenuItem {
     }
 
     virtual int display(Coord pos, bool selected, bool opened) override {
-        pos.y = header(button_label, pos, selected, opened);
+        int textSize = ((int)strlen(button_label)*tft->currentCharacterWidth() < tft->width()/2 );
+        pos.y = header(button_label, pos, selected, opened, textSize);
         tft->setCursor(pos.x,pos.y);
-        tft->setTextSize(1);
 
         colours(opened, opened ? GREEN : this->default_fg, this->default_bg);
 
@@ -340,7 +340,7 @@ class SeparatorMenuItem : public MenuItem {
         }
 
         virtual int display(Coord pos, bool selected, bool opened) override;
-        virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false);
+        virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false, int textSize = 0);
 };
 
 
@@ -360,7 +360,9 @@ class ToggleControl : public MenuItem {
         }
 
         virtual int display(Coord pos, bool selected, bool opened) override {
-            pos.y = header(label, pos, selected, opened);
+            int textSize = ((int)strlen(label)*tft->currentCharacterWidth() < tft->width()/2 );
+
+            pos.y = header(label, pos, selected, opened, textSize);
             tft->setCursor(pos.x,pos.y);
 
             colours(opened, opened ? GREEN : this->default_fg, BLACK);

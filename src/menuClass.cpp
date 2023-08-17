@@ -70,6 +70,7 @@ int Menu::display() {
         y = draw_message();
 
         if (currently_selected>=0 && currently_selected < (int)items->size()) {
+            tft->setTextSize(0);
             items->get(currently_selected)->display(Coord(0,y), true, currently_opened==currently_selected);
             last_displayed = currently_selected;
         }
@@ -229,6 +230,7 @@ int Menu::display() {
 
             unsigned long time_micros = 0;
             if (this->debug_times) time_micros = micros();
+            tft->setTextSize(0);
             y = item->display(pos, (int)i==currently_selected, (int)i==currently_opened) + 1;
             //Serial.printf("after rendering MenuItem %i, return y is %i, cursor coords are (%i,%i)\n", y, tft->getCursorX(), tft->getCursorY());
             //if (debug) { Serial.printf("display()=> just did display() item %i aka %s\n", i, item->label); Serial_flush(); }

@@ -1,5 +1,17 @@
 #include "submenuitem_bar.h"
 
+int SubMenuItemBar::get_max_pixel_width(int item_number) {
+    //return (this->tft->width() / this->number_columns());
+    return this->get_max_character_width(item_number) * tft->currentCharacterWidth();
+}
+
+uint_fast16_t SubMenuItemBar::get_max_character_width(int item_number) {
+    //return (get_max_pixel_width(item_number)/tft->characterWidth()) - (item_number==number_columns()-1?1:0);
+    int_fast16_t screen_width_in_characters = this->tft->width() / tft->currentCharacterWidth();
+    int_fast16_t character_width_per_column = screen_width_in_characters / this->number_columns();
+    return character_width_per_column - (item_number==number_columns()-1?1:0);
+}
+
 int SubMenuItemBar::display(Coord pos, bool selected, bool opened) {
     //if (this->debug) Serial.printf("Start of display in SubMenuItemBar at %u, passed in %i,%i\n", millis(), pos.x, pos.y);
     pos.y = header(label, pos, selected, opened);
@@ -16,6 +28,7 @@ int SubMenuItemBar::display(Coord pos, bool selected, bool opened) {
     uint_fast16_t start_x = 0;
     //Debug_printf(F("display in SubMenuItemBar got width_per_item=%i\tfrom tftwidth\t%i / itemsize\t%i\n"), width_per_item, this->tft->width(), this->items->size());
     for (uint_fast16_t item_index = 0 ; item_index < this->items->size() ; item_index++) {
+        tft->setTextSize(0);
         const uint_fast16_t width = this->get_max_pixel_width(item_index);
         //if (this->debug) Serial.printf("about to small_display for item %i\n", item_index);
         const uint_fast16_t temp_y = this->small_display(
@@ -33,7 +46,7 @@ int SubMenuItemBar::display(Coord pos, bool selected, bool opened) {
     }
 
     tft->setTextColor(this->default_fg, this->default_bg);
-    tft->setTextSize(0);
+    //tft->setTextSize(0);
 
     tft->setCursor(0, finish_y);
 
@@ -75,6 +88,7 @@ int SubMenuItemBar::small_display(int index, int x, int y, int width_in_pixels, 
         tft->setTextSize(0);
         //if (x + width_in_pixels>=tft->width())
         //    fmt[strlen(fmt)-2] = '\0';  // cut off the \n if we've reached the width of the display in order to fix wraparound?
+
         tft->printf(fmt, ctrl->label);
         y = tft->getCursorY();
         //y += tft->getRowHeight();
@@ -138,7 +152,7 @@ int SubMenuItemColumns::display(Coord pos, bool selected, bool opened) {
     }
 
     tft->setTextColor(this->default_fg, this->default_bg);
-    tft->setTextSize(0);
+    //tft->setTextSize(0);
 
     //Debug_printf(F("End of display, y=%i\n--------\n"), finish_y);
     return finish_y;//tft->getCursorY();
