@@ -45,6 +45,14 @@ class DisplayTranslator {
         this->default_textsize = textsize;
         this->setup_formats();
     }
+    virtual int get_default_textsize() {
+        return this->default_textsize;
+    }
+
+    virtual int get_textsize_for_width(const char *text, int pixel_width) {
+        //((int)strlen(text_to_render)*tft->currentCharacterWidth() < tft->width()/2);
+        return pixel_width / (characterWidth() * strlen(text));
+    }
 
     virtual uint8_t get_c_max() {
         //return 20;
@@ -72,7 +80,8 @@ class DisplayTranslator {
     virtual int getCursorX() { return 0; };
     virtual int getCursorY() { return 0; };
     virtual void setTextColor(uint16_t fg, uint16_t bg) {};
-    virtual void setTextSize(unsigned int size) {};
+    virtual void setTextSize(int size) {};
+    virtual int getTextSize() { return size; };
     virtual void printf(const char *pattern);
     virtual void printf(const char *pattern, char *param1);
     virtual void printf(const char *pattern, char *param1, char *param2);
