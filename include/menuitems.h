@@ -164,7 +164,8 @@ class ActionItem : public MenuItem {
     }
 
     virtual int display(Coord pos, bool selected, bool opened) override {
-        int textSize = ((int)strlen(button_label)*tft->currentCharacterWidth() < tft->width()/2 );
+        //int textSize = ((int)strlen(button_label)*tft->currentCharacterWidth() < tft->width()/2 );
+        int textSize = tft->get_textsize_for_width(button_label, tft->width());
         pos.y = header(button_label, pos, selected, opened, textSize);
         tft->setCursor(pos.x,pos.y);
 
@@ -257,8 +258,9 @@ class ActionFeedbackItem : public MenuItem {
         colours(selected);
 
         // determine size font to use
-        bool use_small = strlen(button_label) <= (max_character_width/2);
-        int textSize = use_small ? 2 : 1;
+        //bool use_small = strlen(button_label) <= (max_character_width/2);
+        //int textSize = use_small ? 2 : 1;
+        int textSize = tft->get_textsize_for_width(button_label, tft->width());
         tft->setTextSize(textSize);
 
         tft->println(button_label);
@@ -296,7 +298,7 @@ class ActionConfirmItem : public ActionItem {
     virtual int display(Coord pos, bool selected, bool opened) override {
         const char *text_to_render = opened ? sure_message : button_label;
 
-        int textSize = ((int)strlen(text_to_render)*tft->currentCharacterWidth() < tft->width()/2 );
+        int textSize = tft->get_textsize_for_width(text_to_render, tft->width());
         pos.y = header(text_to_render, pos, selected, opened, textSize);
 
         //tft->setCursor(pos.x,pos.y);
@@ -360,7 +362,8 @@ class ToggleControl : public MenuItem {
         }
 
         virtual int display(Coord pos, bool selected, bool opened) override {
-            int textSize = ((int)strlen(label)*tft->currentCharacterWidth() < tft->width()/2 );
+            //int textSize = ((int)strlen(label)*tft->currentCharacterWidth() < tft->width()/2 );
+            int textSize = tft->get_textsize_for_width(label, tft->width());
 
             pos.y = header(label, pos, selected, opened, textSize);
             tft->setCursor(pos.x,pos.y);
@@ -378,8 +381,9 @@ class ToggleControl : public MenuItem {
         // render the current value at current position
         virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
             const char *txt = *this->target_variable ? label_on : label_off;
-            bool use_small = strlen(txt) <= (max_character_width/2);
-            int textSize = use_small ? 2 : 1;
+            //bool use_small = strlen(txt) <= (max_character_width/2);
+            //int textSize = use_small ? 2 : 1;
+            int textSize = tft->get_textsize_for_width(txt, tft->width());
             //if (this->debug) Serial.printf(F("%s:\trenderValue '%s' (len %i) with max_character_width %i got textSize %i\n"), this->label, txt, strlen(txt), max_character_width/2, textSize);
             tft->setTextSize(textSize);
             tft->println(txt);

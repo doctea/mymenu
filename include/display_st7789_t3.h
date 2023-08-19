@@ -78,7 +78,7 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
         //Serial.printf("setTextColor setting fg=%0x,\tbg=%0x\n", fg, bg);
         tft->setTextColor(fg, bg);
     }
-    virtual void setTextSize(unsigned int size) override {
+    virtual void setTextSize(int size) override {
         size += this->default_textsize;
         this->size = size;
         tft->setTextSize(this->size);

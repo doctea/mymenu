@@ -128,7 +128,7 @@ class DisplayTranslator_ST7789 : public DisplayTranslator {
     virtual void fillRect(int x, int y, int w, int h, uint16_t color) override {
         tft->fillRect(x, y, w, h, color);
     }
-    virtual void setTextSize(unsigned int size) override {
+    virtual void setTextSize(int size) override {
         size += this->default_textsize;
         this->size = size;
         //Serial.printf("setTextSize(%i)\n", this->size);

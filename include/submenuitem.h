@@ -277,6 +277,8 @@ class DualMenuItem : public SubMenuItem {
                     tft->setCursor(pos.x, pos.y+1);
                     colours((!opened && selected) || (opened && i==this->currently_selected), this->default_fg, this->default_bg);
                     //tft->setTextSize(0);
+                    int textSize = tft->get_textsize_for_width(this->items->get(i)->label, tft->width()/2);
+                    tft->setTextSize(textSize);
                     tft->println(this->items->get(i)->label);
                     colours(false);
                     pos.y = tft->getCursorY();  // set position to just under the fake header

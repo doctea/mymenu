@@ -156,7 +156,6 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         //tft->useFrameBuffer(true);
     }
 
-
     virtual void setCursor(int x, int y) override {
         tft->setCursor(x,y);
     }
@@ -173,7 +172,8 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         //Serial.printf("setTextColor setting fg=%0x,\tbg=%0x\n", fg, bg);
         tft->setTextColor(fg, bg);
     }
-    virtual void setTextSize(unsigned int size) override {
+    virtual void setTextSize(int size) override {
+        size = constrain(size, 0, 2);
         size += this->default_textsize;
         this->size = size;
         tft->setTextSize(this->size);
