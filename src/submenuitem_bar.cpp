@@ -45,7 +45,7 @@ int SubMenuItemBar::display(Coord pos, bool selected, bool opened) {
             start_x, 
             start_y, 
             width, //width_per_item, 
-            this->currently_selected==(int)item_index || (selected && !this->show_header), 
+            this->currently_selected==(int)item_index || (!opened && selected && !this->show_header), 
             this->currently_opened==(int)item_index,
             !opened && selected
         );
@@ -154,7 +154,7 @@ int SubMenuItemColumns::display(Coord pos, bool selected, bool opened) {
             start_x, 
             pos.y, 
             width, //width_per_item, 
-            this->currently_selected==(int)item_index, 
+            this->currently_selected==(int)item_index || (!opened && selected && !this->show_header), 
             this->currently_opened==(int)item_index,
             !opened && selected
         );
