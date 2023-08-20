@@ -231,8 +231,9 @@ class SubMenuItem : public MenuItem {
 };
 
 
+
 // two options side-by-side (actually probably works for multiple items, but doesn't do any scaling)
-class DualMenuItem : public SubMenuItem {
+/*class DualMenuItem : public SubMenuItem {
     public: 
         DualMenuItem(const char *label) : SubMenuItem(label, true) {
         }
@@ -252,7 +253,8 @@ class DualMenuItem : public SubMenuItem {
         virtual int display(Coord pos, bool selected, bool opened) override {
             needs_redraw = false;
 
-            int y = header(this->label, pos, selected, opened);
+            //tft->setTextSize(0);
+            int y = header(this->label, pos, selected, opened, 0);
             colours(false,this->default_fg,this->default_bg);
 
             if (currently_opened>=0 && this->items->get(currently_opened)->allow_takeover())
@@ -315,6 +317,6 @@ class DualMenuItem : public SubMenuItem {
 
             return y;
         }
-};
+};*/
 
 #endif

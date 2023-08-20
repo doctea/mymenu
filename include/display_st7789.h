@@ -252,11 +252,14 @@ class DisplayTranslator_ST7789 : public DisplayTranslator {
         return tft->height();
     }
 
-    virtual int getRowHeight() override {
+    virtual int getSingleRowHeight() override {
+        return 6;
+    }
+    /*virtual int getRowHeight() override {
         //return (tft->getTextSize()+1) * 6;
         //return tft->getTextBounds()
         return (this->size+1) * 6;   // TODO: figure out how to do this properly
-    }
+    }*/
     virtual int characterWidth() override { 
         //return (tft->getTextSize()) * 6;
         return 6;

@@ -142,9 +142,9 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
         return tft->height();
     }
 
-    virtual int getRowHeight() override {
+    /*virtual int getRowHeight() override {
         return (tft->getTextSize()+1) * 6;
-    }
+    }*/
     virtual int characterWidth() override { 
         //return (tft->getTextSize()) * 6;
         return 6;

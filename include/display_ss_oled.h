@@ -224,9 +224,9 @@ class DisplayTranslator_SS_OLED : public DisplayTranslator {
         return 7; //tft->height(); // 64?
     }
 
-    virtual int getRowHeight() override {
+    /*virtual int getRowHeight() override {
         return this->textSize+1;
-    }
+    }*/
 
     virtual void clear(bool force) override {
         //Serial.println("clear..");

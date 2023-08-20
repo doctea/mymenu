@@ -217,9 +217,12 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
         return tft->height();
     }
 
-    virtual int getRowHeight() override {
-        return (tft->getTextSize()+1) * 8;
+    virtual int getSingleRowHeight() override {
+        return 8;
     }
+    /*virtual int getRowHeight() override {
+        return (tft->getTextSize()+1) * 8;
+    }*/
     virtual int characterWidth() override { 
         //return (tft->getTextSize()) * 6;
         return 6;

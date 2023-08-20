@@ -15,7 +15,8 @@ const int message_max = 20;
 class DisplayTranslator {
     public:
 
-    int default_textsize = 0;
+    unsigned int default_textsize = 0;
+    unsigned int maximum_textsize = 3;
     unsigned int size = default_textsize;
 
     // seems like some tft devices need to be inited dynamically instead of statically, so allow for that
@@ -41,18 +42,18 @@ class DisplayTranslator {
     virtual const char *get_header_selected_format() { return header_selected_format; }
 
     // set the base textsize to use (and recreate the string formats based on that size)
-    virtual void set_default_textsize(int textsize) {
+    virtual void set_default_textsize(unsigned int textsize) {
         this->default_textsize = textsize;
         this->setup_formats();
     }
-    virtual int get_default_textsize() {
+    virtual unsigned int get_default_textsize() {
         return this->default_textsize;
     }
 
-    virtual int get_textsize_for_width(const char *text, int pixel_width) {
+    virtual unsigned int get_textsize_for_width(const char *text, unsigned int pixel_width) {
         //((int)strlen(text_to_render)*tft->currentCharacterWidth() < tft->width()/2);
         //return constrain(pixel_width / (characterWidth() * strlen(text)), default_textsize, 3);
-        return pixel_width / (characterWidth() * strlen(text));
+        return constrain(pixel_width / (characterWidth() * strlen(text)), (unsigned int)0, default_textsize+maximum_textsize);
     }
 
     virtual uint8_t get_c_max() {
@@ -103,7 +104,10 @@ class DisplayTranslator {
     virtual int width() { return 128; };
     virtual int height() { return 64; };
 
-    virtual int getRowHeight() { return 1; };
+    virtual int getSingleRowHeight() {
+        return 1;
+    }
+    virtual int getRowHeight() { return getSingleRowHeight() * (1+this->getTextSize()); }
     virtual int characterWidth() { return 1; };
     virtual int currentCharacterWidth() {
         return characterWidth() * (this->size>0?this->size:1);

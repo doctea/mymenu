@@ -53,7 +53,7 @@ class SelectorControl : public MenuItem {
         // classic fixed display version
         virtual int display(Coord pos, bool selected, bool opened) override {
             pos.y = header(label, pos, selected, opened);
-            tft->setTextSize(2);
+            //tft->setTextSize(2);
 
             DataType current_value = this->getter(); //f_getter!=nullptr ? this->f_getter() : available_values[this->selected_value_index];
 
@@ -63,7 +63,9 @@ class SelectorControl : public MenuItem {
                 int col = is_current_value_selected ? GREEN : C_WHITE;
                 colours(opened && selected_value_index==(int)i, col, BLACK);
 
-                tft->printf((char*)get_label_for_value(available_values[i]));
+                const char *label = get_label_for_value(available_values[i]); 
+                tft->setTextSize(tft->get_textsize_for_width(label, tft->width()));
+                tft->printf((char*)label);
 
                 //this->renderValue(selected, opened, MENU_C_MAX);
 
@@ -110,7 +112,12 @@ class SelectorControl : public MenuItem {
             }*/
             snprintf(label, max_character_width, src_label);
 
+            int textSize = tft->get_textsize_for_width(label, max_character_width * tft->characterWidth());
+            tft->setTextSize(textSize);
+            //tft->printf("%i:",textSize);
             tft->printf((char*)label);
+            tft->setCursor(tft->getCursorX(), tft->getCursorY() + tft->getRowHeight());
+
             return tft->getCursorY();
         }
 

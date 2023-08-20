@@ -252,12 +252,15 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
             return tft->height();
         #endif
     }
-    virtual int getRowHeight() override {
+    virtual int getSingleRowHeight() override {
+        return 6; // or is it 8?
+    }
+    /*virtual int getRowHeight() override {
         //return (tft->getTextSize()+1) * 6;
         //return tft->getTextBounds()
         if (this->size==0) return 8;
         return (this->size+1) * 6;   // TODO: figure out how to do this properly
-    }
+    }*/
     virtual int characterWidth() override { 
         //return (tft->getTextSize()) * 6;
         return 6;

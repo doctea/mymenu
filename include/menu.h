@@ -61,11 +61,21 @@ class Menu {
 
         bool auto_update = true;    // whether to send update to tft at end of every display() call, or to allow host app to decide
 
+        bool recalculate_bottoms = false;
+
         void setDebugTimes(bool value) {
             this->debug_times = value;
         }
         bool isDebugTimes() {
             return this->debug_times;
+        }
+
+        void set_default_textsize(int textSize) {
+            tft->set_default_textsize(textSize);
+            this->recalculate_bottoms = true;
+        }
+        int get_default_textsize() {
+            return tft->getTextSize();
         }
 
         enum {

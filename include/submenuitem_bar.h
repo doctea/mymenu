@@ -54,4 +54,11 @@ class SubMenuItemColumns : public SubMenuItemBar {
     virtual int display(Coord pos, bool selected, bool opened) override;
 };
 
+
+class DualMenuItem : public SubMenuItemColumns {
+    public:
+        DualMenuItem(const char *label) : SubMenuItemColumns(label, 2) {
+        }
+};
+
 #endif

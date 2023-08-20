@@ -88,7 +88,10 @@ int Menu::display() {
         if (selected_page->panel_bottom == nullptr) {
             selected_page->panel_bottom = (int*)calloc(this->get_num_panels(), sizeof(int));
         } else {
-            bottoms_computed = true;
+            if (!this->recalculate_bottoms)
+                bottoms_computed = true;
+            else
+                this->recalculate_bottoms = false;
         }
         int *panel_bottom = selected_page->panel_bottom;
         /*if (first_display) {
