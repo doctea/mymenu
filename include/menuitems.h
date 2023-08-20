@@ -260,10 +260,10 @@ class ActionFeedbackItem : public MenuItem {
         // determine size font to use
         //bool use_small = strlen(button_label) <= (max_character_width/2);
         //int textSize = use_small ? 2 : 1;
-        int textSize = tft->get_textsize_for_width(button_label, tft->width());
+        int textSize = tft->get_textsize_for_width(button_label, max_character_width*tft->characterWidth());
         tft->setTextSize(textSize);
-
         tft->println(button_label);
+
         const int y = tft->getCursorY();
         return y;
     }
@@ -371,7 +371,7 @@ class ToggleControl : public MenuItem {
             colours(opened, opened ? GREEN : this->default_fg, BLACK);
             //tft->setTextSize(2);        // was 2 ?
             //char tmp[MENU_C_MAX] = "";
-            tft->setTextSize(2);
+            //tft->setTextSize(2);
 
             this->renderValue(selected, opened, MENU_C_MAX);
 
@@ -383,7 +383,7 @@ class ToggleControl : public MenuItem {
             const char *txt = *this->target_variable ? label_on : label_off;
             //bool use_small = strlen(txt) <= (max_character_width/2);
             //int textSize = use_small ? 2 : 1;
-            int textSize = tft->get_textsize_for_width(txt, tft->width());
+            int textSize = tft->get_textsize_for_width(txt, max_character_width*tft->characterWidth());
             //if (this->debug) Serial.printf(F("%s:\trenderValue '%s' (len %i) with max_character_width %i got textSize %i\n"), this->label, txt, strlen(txt), max_character_width/2, textSize);
             tft->setTextSize(textSize);
             tft->println(txt);

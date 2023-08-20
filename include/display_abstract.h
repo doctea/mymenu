@@ -51,6 +51,7 @@ class DisplayTranslator {
 
     virtual int get_textsize_for_width(const char *text, int pixel_width) {
         //((int)strlen(text_to_render)*tft->currentCharacterWidth() < tft->width()/2);
+        //return constrain(pixel_width / (characterWidth() * strlen(text)), default_textsize, 3);
         return pixel_width / (characterWidth() * strlen(text));
     }
 

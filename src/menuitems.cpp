@@ -6,10 +6,11 @@ const char *set_message = "Set %s to %s (%i)";
 const char *label_on    = "On";
 const char *label_off   = "Off";
 
+// called when this menuitem is added to menu
 void MenuItem::on_add() {
     //Debug_printf(F("MenuItem#on_add in %s\n"), this->label);
     menu_c_max = tft->get_c_max();
-}    // called when this menuitem is added to menu
+}    
 void MenuItem::update_label(const char *new_label) {
     //Debug_printf("%s#update_label('%s')\n", this->label, new_label);
     strcpy(this->label, new_label);
@@ -22,7 +23,8 @@ MenuItem *MenuItem::set_default_colours(uint16_t fg, uint16_t bg) {
 int MenuItem::renderValue(bool selected, bool opened, uint16_t max_character_width) {
     //tft->printf("%s [s:%i o:%i]", label, (int)selected, (int)opened);
     colours(selected);
-    tft->setTextSize((strlen(label) < max_character_width/2) ? 2 : 1 );
+    //tft->setTextSize((strlen(label) < max_character_width/2) ? 2 : 1 );
+    tft->setTextSize(tft->get_textsize_for_width(label, max_character_width*tft->characterWidth()));
     tft->println(label);
     return tft->getCursorY();
 }

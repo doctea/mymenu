@@ -96,9 +96,11 @@ int SubMenuItemBar::small_display(int index, int x, int y, int width_in_pixels, 
         //if (x + width_in_pixels>=tft->width())
         //    fmt[strlen(fmt)-2] = '\0';  // cut off the \n if we've reached the width of the display in order to fix wraparound?
 
-        tft->setTextSize(tft->get_textsize_for_width(header_fmt, get_max_pixel_width(index)));
-
+        //int textsize = tft->get_textsize_for_width(ctrl->label, get_max_pixel_width(index));
+        int textSize = 0;
+        tft->setTextSize(textSize);
         tft->printf(header_fmt, ctrl->label);
+
         y = tft->getCursorY();
         //y += tft->getRowHeight();
         //if (this->debug) Serial.printf("\t bottom of header is %i\n", y);
