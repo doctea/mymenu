@@ -169,7 +169,7 @@ class ActionFeedbackItem : public MenuItem {
 class ActionConfirmItem : public ActionItem {
     public:
 
-    ActionConfirmItem(const char *label, void (*on_open)()) : ActionItem(label, on_open) {
+    ActionConfirmItem(const char *label, void (*on_open)(), bool show_header = true) : ActionItem(label, on_open, show_header) {
         go_back_on_select = true;
     }
 

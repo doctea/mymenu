@@ -55,6 +55,8 @@ class Menu {
 
     uint16_t screen_height_cutoff = 100;
 
+    int8_t tab_textsize = 1;
+
     public:
         bool debug = false;
         bool debug_times = false;

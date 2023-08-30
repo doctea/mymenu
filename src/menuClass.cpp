@@ -172,6 +172,7 @@ int Menu::display() {
         y = tft->getCursorY();
         //tft->setCursor(0, new_y);
 
+        tft->setTextSize(tab_textsize);
         /////// draw tabs for the pages
         for (unsigned int i = selected_page_index ; i < pages->size() + selected_page_index ; i++) {
             int ci = i;
@@ -214,6 +215,7 @@ int Menu::display() {
             tft->println();
         }
         y = tft->getCursorY();
+        tft->setTextSize(0);
         /// finished drawing tabs
 
         // draw each menu item's panel

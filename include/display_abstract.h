@@ -35,7 +35,7 @@ class DisplayTranslator {
         snprintf(header_open_format,     message_max, ">>>%%-%is",   row_character_width-3);
         snprintf(header_selected_format, message_max, "%%-%is",      row_character_width);
     }
-    virtual int get_row_character_width() { return (this->width() / ((this->size+1) * this->characterWidth())) + 1; }
+    virtual int get_row_character_width() { return (this->width() / ((this->default_textsize+1) * this->characterWidth())) + 1; }
     virtual const char *get_message_format()         { return message_format; }
     virtual const char *get_header_format()          { return header_format; }
     virtual const char *get_header_open_format()     { return header_open_format; }
