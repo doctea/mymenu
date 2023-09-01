@@ -76,6 +76,8 @@ int Menu::display() {
     if (currently_opened>=0 && items->get(currently_opened)->allow_takeover()) {
         //if (debug) { Serial.println("display()=> takeover branch"); Serial_flush(); }
         // takeover -- focus on this menu item only
+        tft->setCursor(0, y);
+
         y = display_pinned();
         //y = draw_message();
         // let the currently opened item take care of drawing all of the display

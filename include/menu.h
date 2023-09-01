@@ -57,7 +57,7 @@ class Menu {
 
     int8_t tab_textsize = 1;
 
-    bool profile_enable = true;
+    bool profile_enable = false;
     char profile_string[MENU_C_MAX] = "profiler output";
 
     public:
