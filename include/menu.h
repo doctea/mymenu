@@ -57,6 +57,9 @@ class Menu {
 
     int8_t tab_textsize = 1;
 
+    bool profile_enable = true;
+    char profile_string[MENU_C_MAX] = "profiler output";
+
     public:
         bool debug = false;
         bool debug_times = false;
@@ -70,6 +73,12 @@ class Menu {
         }
         bool isDebugTimes() {
             return this->debug_times;
+        }
+        void setProfileEnable(bool value) {
+            this->profile_enable = value;
+        }
+        bool isProfileEnable() {
+            return this->profile_enable;
         }
 
         void set_default_textsize(int textSize) {
@@ -412,6 +421,8 @@ class Menu {
 
         // draw the menu display
         int display();
+
+        int display_pinned();
         
         void update_ticks(unsigned long ticks) {
             if (pinned_panel!=nullptr)

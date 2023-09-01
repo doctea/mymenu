@@ -3,6 +3,8 @@
 
 #include <LinkedList.h>
 
+#include <string>
+
 #define MAX_KNOB 1024
 
 #ifndef CORE_TEENSY
@@ -13,6 +15,26 @@
     //#define F(x) { x }
 #endif
 
+
+int Menu::display_pinned() {
+    int y = tft->getCursorY();
+    if (profile_enable) {
+        tft->setCursor(0, y);
+        Serial.println(profile_string);
+        tft->setTextSize(0);
+        tft->printf(tft->get_message_format(), profile_string);
+        //tft->println("wtf?");
+        y = tft->getCursorY() + 3;
+    }
+
+    if (pinned_panel!=nullptr) {
+        //if (debug) { Serial.println("display()=> doing pinned_panel display"); Serial_flush(); }
+        y = pinned_panel->display(Coord(0,y), false, false);
+    }
+
+    return y;
+}
+
 // draw the menu display
 int Menu::display() {
     bool debug = this->debug;
@@ -20,6 +42,21 @@ int Menu::display() {
     // early return if display isn't ready for writing (mostly used for dma checks)
     if (!this->tft->ready()) {
 	    return 0;
+    }
+
+    uint32_t display_started = 0;
+    static int frames_drawn = 0;
+    static int frames_in_last_second = 0;
+    static uint32_t current_second = 0, last_second = 0;
+
+    if (profile_enable) {
+        display_started = micros();
+        current_second = micros()/(1000*1000);
+        if (current_second!=last_second) {
+            frames_in_last_second = frames_drawn;
+            frames_drawn = 0;
+            last_second = current_second;
+        }
     }
 
     //Serial.printf("display !");
@@ -39,10 +76,7 @@ int Menu::display() {
     if (currently_opened>=0 && items->get(currently_opened)->allow_takeover()) {
         //if (debug) { Serial.println("display()=> takeover branch"); Serial_flush(); }
         // takeover -- focus on this menu item only
-        if (pinned_panel!=nullptr) {
-            //if (debug) { Serial.println("display()=> doing pinned_panel display"); Serial_flush(); }
-            y = pinned_panel->display(Coord(0,0), false, false);
-        }
+        y = display_pinned();
         //y = draw_message();
         // let the currently opened item take care of drawing all of the display
         //Serial.println("allow_takeover!");
@@ -56,13 +90,9 @@ int Menu::display() {
         static int last_displayed = 0;
         if (last_displayed!=currently_selected)
             tft->clear();
-        tft->setCursor(0, 0);
+        tft->setCursor(0, y);
 
-        if (pinned_panel!=nullptr) {
-            //Serial.println("display()=> about to pinned_panel->display()");
-            y = pinned_panel->display(Coord(0,0), false, false);
-            //Serial.println("display()=> did pinned_panel->display()!"); 
-        }
+        y = display_pinned();
 
         tft->setCursor(0, y);
         
@@ -155,13 +185,9 @@ int Menu::display() {
         }
         last_start_panel = start_panel;
 
-        tft->setCursor(0,0);
+        tft->setCursor(0,y);
 
-        if (pinned_panel!=nullptr) {
-            //if (debug) { Debug_println(F("display()=> about to pinned_panel->display()")); Serial_flush(); }
-            y = pinned_panel->display(Coord(0,0), false, false);
-            //if (debug) { Debug_println(F("display()=> did pinned_panel->display()!")); Serial_flush(); }
-        }
+        y = display_pinned();
 
         tft->setCursor(0, y);
         
@@ -276,6 +302,11 @@ int Menu::display() {
     if (debug) { Debug_println("display()=> about to tft->updateDisplay()"); Serial_flush(); }
     if (auto_update)
         this->updateDisplay();
+
+    if (profile_enable) {
+        snprintf(profile_string, MENU_C_MAX, "display took %-3ius - %-2ifps", micros() - display_started, frames_in_last_second);
+        frames_drawn++;
+    }
 
     return y;
 }
