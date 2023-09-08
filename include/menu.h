@@ -1,3 +1,8 @@
+#if (defined __GNUC__) && (__GNUC__ >= 5) && (__GNUC_MINOR__ >= 4) && (__GNUC_PATCHLEVEL__ > 1)
+    #pragma GCC diagnostic ignored "-Wformat-truncation"
+    #pragma GCC diagnostic ignored "-Wstringop-truncation"
+#endif
+
 #ifndef MENU_LIB_INCLUDED
 #define MENU_LIB_INCLUDED
 
@@ -22,7 +27,8 @@
 #include "menuitems.h"
 //#include "menuitems_pinned.h"
 
-FLASHMEM void setup_menu();
+FLASHMEM // causes a section type conflict with 'void Menu::add(LinkedList<MenuItem*>*, uint16_t)'
+void setup_menu();
 
 #if defined(__arm__) && defined(CORE_TEENSY)
     extern unsigned long _heap_start;
@@ -254,20 +260,22 @@ class Menu {
             this->screen_height_cutoff = (int)(0.75f*(float)tft->height());
         }
 
+        FLASHMEM
         void set_screen_height_cutoff(int cutoff) {
             this->screen_height_cutoff = cutoff;
         }
 
+        FLASHMEM
         void set_screen_height_cutoff(float cutoff) {
             set_screen_height_cutoff((int)(cutoff * ((float)tft->height()-(3 * tft->getRowHeight()))));
         }
 
-        //FLASHMEM 
+        // FLASHMEM // void setup_menu() causes a section type conflict with int Menu::add_page(const char*, uint16_t)
         int add_page(const char *title, uint16_t colour = C_WHITE) {
             //Serial.printf("add_page(%s) has current size of %i\n", title, this->pages->size());
             return insert_page(title, this->pages->size()>0 ? this->pages->size() : 0, colour);
         }
-        FLASHMEM
+        FLASHMEM //causes a section type conflict with 'virtual void DeviceBehaviour_Keystep::setup_callbacks()'
         int insert_page(const char *title, unsigned int position, uint16_t colour = C_WHITE) {
             //Serial.printf("insert_page() passed position %i\n", position);
             if (position > this->pages->size()) 
@@ -335,7 +343,8 @@ class Menu {
         }       
 
         // add a linkedlist of menuitems; delete the object when finished!
-        FLASHMEM void add(LinkedList<MenuItem *> *items, uint16_t default_fg_colour = C_WHITE) {
+        FLASHMEM 
+        void add(LinkedList<MenuItem *> *items, uint16_t default_fg_colour = C_WHITE) {
             //Serial.println("starting add"); Serial.flush();
             if (items==nullptr) {
                 Serial.println("WARNING: nullptr list passed to menu#add, skipping!");
@@ -362,6 +371,7 @@ class Menu {
         /*#ifndef GDB_DEBUG
         FLASHMEM 
         #endif*/
+        // FLASHMEM // void setup_menu() causes a section type conflict with void Menu::add(MenuItem*, uint16_t)
         void add(MenuItem *m, uint16_t default_fg_colour = C_WHITE) {
             //Serial.printf("Menu page %i, adding item %i: %s\n", selected_page_index, selected_page->items->size(), m->label);
             if (m!=nullptr) {
