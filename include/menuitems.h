@@ -1,3 +1,6 @@
+#pragma GCC diagnostic ignored "-Wformat-truncation"
+#pragma GCC diagnostic ignored "-Wstringop-truncation"
+
 #ifndef MENUITEMS__INCLUDED
 #define MENUITEMS__INCLUDED
 
@@ -105,11 +108,12 @@ String get_note_name(int pitch);
 const char *get_note_name_c(int pitch);
 
 class HarmonyStatus : public MenuItem {
-    int *last_note = nullptr;
-    int *current_note = nullptr;
-    int *other_value = nullptr;
-
     public:
+
+        int *last_note = nullptr;
+        int *current_note = nullptr;
+        int *other_value = nullptr;
+
         HarmonyStatus(const char *label) : MenuItem(label) {
             this->selectable = false;
         };

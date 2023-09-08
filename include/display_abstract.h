@@ -1,3 +1,6 @@
+#pragma GCC diagnostic ignored "-Wformat-truncation"
+#pragma GCC diagnostic ignored "-Wstringop-truncation"
+
 #ifndef DISPLAYABSTRACT__INCLUDED
 #define DISPLAYABSTRACT__INCLUDED
 
@@ -30,10 +33,10 @@ class DisplayTranslator {
     // recreate string formats based on current textsize
     virtual void setup_formats() {
         this->row_character_width = this->get_row_character_width();
-        snprintf(message_format,         message_max, "[%%-%i.%is]", row_character_width-2, row_character_width-2);
-        snprintf(header_format,          message_max, "%%-%is",      row_character_width);
-        snprintf(header_open_format,     message_max, ">>>%%-%is",   row_character_width-3);
-        snprintf(header_selected_format, message_max, "%%-%is",      row_character_width);
+        snprintf(message_format,         message_max, "[%%-%i.%is]", (uint8_t)row_character_width-2, (uint8_t)row_character_width-2);
+        snprintf(header_format,          message_max, "%%-%is",      (uint8_t)row_character_width);
+        snprintf(header_open_format,     message_max, ">>>%%-%is",   (uint8_t)row_character_width-3);
+        snprintf(header_selected_format, message_max, "%%-%is",      (uint8_t)row_character_width);
     }
     virtual int get_row_character_width() { return (this->width() / ((this->default_textsize+1) * this->characterWidth())) + 1; }
     virtual const char *get_message_format()         { return message_format; }
