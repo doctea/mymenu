@@ -1,3 +1,5 @@
+#pragma GCC diagnostic ignored "-Wformat-truncation"
+
 #ifndef MYMENU__INCLUDED
 #define MYMENU__INCLUDED
 
