@@ -16,7 +16,7 @@ Also extended by the [parameters](https://github.com/doctea/parameters) library 
 
 # Requirements
 
-- [patched bodme/TFT_eSPI library](https://github.com/doctea/TFT_eSPI) needed to fix bug with wrapping not working (leading to missing headers from menus?)
+- (on rp2040 only) [patched bodme/TFT_eSPI library](https://github.com/doctea/TFT_eSPI) needed to fix bug with wrapping not working (leading to missing headers from menus?)
 
 ## todo
 
