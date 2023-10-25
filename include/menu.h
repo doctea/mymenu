@@ -1,4 +1,5 @@
-#if (defined __GNUC__) && (__GNUC__ >= 5) && (__GNUC_MINOR__ >= 4) && (__GNUC_PATCHLEVEL__ > 1)
+#if (defined __GNUC__) && (__GNUC__ >= 5) && (__GNUC_MINOR__ >= 3) && (__GNUC_PATCHLEVEL__ >= 1)
+    #pragma GCC diagnostic ignored "-Wpragmas"
     #pragma GCC diagnostic ignored "-Wformat-truncation"
     #pragma GCC diagnostic ignored "-Wstringop-truncation"
 #endif
@@ -27,7 +28,7 @@
 #include "menuitems.h"
 //#include "menuitems_pinned.h"
 
-FLASHMEM // causes a section type conflict with 'void Menu::add(LinkedList<MenuItem*>*, uint16_t)'
+//FLASHMEM // causes a section type conflict with 'void Menu::add(LinkedList<MenuItem*>*, uint16_t)'
 void setup_menu();
 
 #if defined(__arm__) && defined(CORE_TEENSY)
@@ -275,7 +276,7 @@ class Menu {
             //Serial.printf("add_page(%s) has current size of %i\n", title, this->pages->size());
             return insert_page(title, this->pages->size()>0 ? this->pages->size() : 0, colour);
         }
-        FLASHMEM //causes a section type conflict with 'virtual void DeviceBehaviour_Keystep::setup_callbacks()'
+        //FLASHMEM //causes a section type conflict with 'virtual void DeviceBehaviour_Keystep::setup_callbacks()'
         int insert_page(const char *title, unsigned int position, uint16_t colour = C_WHITE) {
             //Serial.printf("insert_page() passed position %i\n", position);
             if (position > this->pages->size()) 

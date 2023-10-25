@@ -1,3 +1,9 @@
+#if (defined __GNUC__) && (__GNUC__ >= 5) && (__GNUC_MINOR__ >= 3) && (__GNUC_PATCHLEVEL__ >= 1)
+    #pragma GCC diagnostic ignored "-Wpragmas"
+    #pragma GCC diagnostic ignored "-Wformat-truncation"
+    #pragma GCC diagnostic ignored "-Wstringop-truncation"
+#endif
+
 #ifndef OBJECT_MULTITOGGLED__INCLUDED
 #define OBJECT_MULTITOGGLED__INCLUDED
 
