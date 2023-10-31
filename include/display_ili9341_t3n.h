@@ -11,7 +11,7 @@
 
 #include "menu.h"
 
-#include <Adafruit_GFX.h>
+//#include <Adafruit_GFX.h>
 #include <SPI.h>
 #include <ILI9341_t3n.h>
 //#include <ILI9341_fonts.h>
