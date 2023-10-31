@@ -91,7 +91,7 @@
 #endif
 
 #if defined(TFT_ILI9341) or defined(TFT_ILI9341_T3N)
-    #include <Adafruit_GFX.h>
+    //#include <Adafruit_GFX.h>
     #include "ILI9341_t3n.h"
     //#include <Adafruit_GFX.h>
     //#include <ILI9341_t3n.h>

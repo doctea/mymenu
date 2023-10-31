@@ -27,7 +27,7 @@
 #endif
 
 #ifdef TFT_ILI9341_T3N
-    #include <Adafruit_GFX.h>    // Core graphics library
+    //#include <Adafruit_GFX.h>    // Core graphics library
     #include "display_ili9341_t3n.h"
 #endif
 
