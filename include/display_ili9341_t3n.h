@@ -24,47 +24,10 @@
 
 #define SPI_SPEED 20000000  // todo: see if we can increase this without it becoming unreliable - 30000000
 
-/*#define TFT_CS        10
-#define TFT_RST        6 // Or set to -1 and connect to Arduino RESET pin
-#define TFT_DC         9 */
-
-/*#define TFT_CS          9
-#define TFT_RST         -1
-#define TFT_DC          10*/
-
-//Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
-
-/*#define C_WHITE ST77XX_WHITE
-#define BLACK   ST77XX_BLACK
-#define RED     ST77XX_RED
-#define GREEN   ST77XX_GREEN
-#define BLUE    ST77XX_BLUE
-#define YELLOW  ST77XX_YELLOW*/
-
-// ILI Font file definition.
-//extern const ILI9341_t3_font_t Arial_8;
-
-//uint16_t *framebuffer1 = nullptr;
-///uint16_t framebuffer2[TFT_WIDTH*TFT_HEIGHT];
-//bool buf = 0;
-
-/*extern DisplayTranslator_Configured *tft;
-void frame_complete_callback() {
-    // swap buffers
-    buf = !buf;
-    if (buf) {
-        tft->tft->setFrameBuffer(framebuffer2);
-    } else {
-        tft->tft->setFrameBuffer(framebuffer1);
-    }
-}*/
-
-/*extern uint16_t *framebuffers[2];
-void swap_framebuffer();*/
-
 class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
     public:
-    ILI9341_t3n actual = ILI9341_t3n(TFT_CS, TFT_DC, TFT_RST, 11, 13, 12); //, 14, 13, 14);
+	//ILI9341_t3n(uint8_t _CS, uint8_t _DC, uint8_t _RST = 255, uint8_t _MOSI=11, uint8_t _SCLK=13, uint8_t _MISO=12);
+    ILI9341_t3n actual = ILI9341_t3n(TFT_CS, TFT_DC, TFT_RST, TFT_MOSI, TFT_SCLK, TFT_MISO);
     ILI9341_t3n *tft = &actual;
   
     /*virtual const char *get_message_format() { return "[%-38.38s]"; }
