@@ -30,14 +30,6 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
     ILI9341_t3n actual = ILI9341_t3n(TFT_CS, TFT_DC, TFT_RST, TFT_MOSI, TFT_SCLK, TFT_MISO);
     ILI9341_t3n *tft = &actual;
   
-    /*virtual const char *get_message_format() { return "[%-38.38s]"; }
-    virtual const char *get_header_format() { return "%-40s"; }
-    virtual const char *get_header_open_format() { return ">>>%-37s"; }
-    virtual const char *get_header_selected_format() { return "%-40s"; }
-    virtual uint8_t get_c_max() {
-        return MENU_C_MAX;
-    }*/
-
     DisplayTranslator_ILI9341_T3N() {
         //this->tft = &actual; //ST7789_t3(TFT_CS, TFT_DC, TFT_RST);
         //this->tft = new ILI9341_t3n(TFT_CS, TFT_DC, TFT_RST, 11, 13, 12);
@@ -59,35 +51,16 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
         Serial.println(F("ili9341 setup()..")); Serial_flush();
         tft->begin(SPI_SPEED);
         tft->setRotation(SCREEN_ROTATION);
-        //framebuffers[0] = allocate_framebuffer();
-        //framebuffers[1] = allocate_framebuffer();
-        //tft->setFrameBuffer(framebuffers[0]);
         tft->useFrameBuffer(true);
-        //framebuffer1 = tft->getFrameBuffer();
+
         tft->setFrameRateControl(20);   // 20 to flicker less than 30!
         tft->initDMASettings();
         tft->updateChangedAreasOnly(true);
         //tft->endUpdateAsync
         tft->setTextWrap(true);
 
-        //tft->setFrameCompleteCB(swap_framebuffer);
-
-        //tft->setFont(Arial_8);
-        //tft->setFont(&FreeMono9pt7b);
         tft->setFontAdafruit();
-        //tft->updateScreenAsync(false);
-        
-        //tft->setFrameCompleteCB(&frame_complete_callback);
-        /*while (true) {
-            //tft->println(F("DisplayTranslator_ILI9341 setup()!"));
 
-            tft->fillRect(0, 0, tft->width(), tft->height(), random(65535));
-            this->updateDisplay();
-            Serial.println("did thing");
-            //delay(100);
-        }*/
-
-        //tft->init(240, 320);           // Init ST7789 240x135
         tft->fillScreen(BLACK);
         //tft->setTextWrap(false);
         tft->println(F("DisplayTranslator_ILI9341 setup()!"));
