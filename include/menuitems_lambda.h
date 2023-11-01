@@ -29,8 +29,8 @@ class LambdaNumberControl : public NumberControl<DataType> {
         this->setter_func = setter_func;
 
         this->on_change_handler = on_change_handler;
-        this->minimum_value = 0;
-        this->maximum_value = 100;
+        this->minimum_value = (DataType)0;
+        this->maximum_value = (DataType)100;
         this->go_back_on_select = go_back_on_select;
 
         //if (this->target_object!=nullptr && this->getter!=nullptr) 
@@ -157,8 +157,9 @@ class LambdaToggleControl : public MenuItem {
         // render the current value at current position
         virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
             const char *txt = this->getter() ? label_on : label_off;
-            bool use_small = strlen(txt) <= (max_character_width/2);
-            int textSize = use_small ? 2 : 1;
+            //bool use_small = strlen(txt) <= (max_character_width/2);
+            //int textSize = use_small ? 2 : 1;
+            int textSize = tft->get_textsize_for_width(txt, max_character_width*tft->characterWidth());
             //if (this->debug) Serial.printf(F("%s:\trenderValue '%s' (len %i) with max_character_width %i got textSize %i\n"), this->label, txt, strlen(txt), max_character_width/2, textSize);
             tft->setTextSize(textSize);
             tft->println(txt);

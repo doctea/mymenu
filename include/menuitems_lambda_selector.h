@@ -154,7 +154,7 @@ class LambdaSelectorControl : public LambdaNumberControl<DataType> {
         this->minimum_value = (DataType)0;
         //if (value>this->maximum_value)
         //    this->maximum_value = value;
-        this->maximum_value = available_values->size() - 1;
+        this->maximum_value = (DataType)(available_values->size() - 1);
     }
 
     virtual LinkedList<option> *get_available_values() {
@@ -165,7 +165,7 @@ class LambdaSelectorControl : public LambdaNumberControl<DataType> {
     virtual void set_available_values(LinkedList<option> *available_values) {
         this->available_values = available_values;
         if (available_values!=nullptr) {
-            this->maximum_value = available_values->size() - 1;
+            this->maximum_value = (DataType)(available_values->size() - 1);
             /*DataType highest = 0;
             for (unsigned int i = 0 ; i < available_values->size() ; i++) {
                 if (available_values->get(i).value > highest)

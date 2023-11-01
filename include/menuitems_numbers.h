@@ -71,16 +71,16 @@ class NumberControl : public NumberControlBase {
 
         // step value passed here doesn't matter -- we're just using the datatype overload to set the default
         constexpr DataType get_default_step_for_type(double step) {
-            return 0.05;
+            return (DataType)0.05;
         }
         constexpr DataType get_default_step_for_type(int step) {
-            return 1;
+            return (DataType)1;
         }
         constexpr DataType get_default_step_for_type(long step) {
-            return 1;
+            return (DataType)1;
         }
         constexpr DataType get_default_step_for_type(unsigned long step) {
-            return 1;
+            return (DataType)1;
         }
         /*virtual DataType get_default_step_for_type(unsigned long long step) {
             return 1;
@@ -244,14 +244,14 @@ class NumberControl : public NumberControlBase {
 
         virtual void decrease_value() {
             if (this->get_internal_value()!=this->minimum_value)    // so that unsigned datatypes don't wrap back around when they try to go below 0
-                this->set_internal_value(get_internal_value() - this->step);
+                this->set_internal_value((DataType)(get_internal_value() - this->step));
             else if (wrap)
                 this->set_internal_value(this->maximum_value);
         }
         virtual void increase_value() {
             //Serial.printf("%s#increase_value with internal value %i and step %i makes %i\n", this->label, get_internal_value(), this->step, get_internal_value()+this->step);
             if (this->get_internal_value()!=this->maximum_value)
-                this->set_internal_value(get_internal_value() + this->step);
+                this->set_internal_value((DataType)(get_internal_value() + this->step));
             else if (wrap) 
                 this->set_internal_value(this->minimum_value);
         }
@@ -305,7 +305,7 @@ class NumberControl : public NumberControlBase {
                 return this->getter();
             //if (this->debug) { Serial.printf("Did get_current_value in %s\n", this->label); Serial_flush(); }
 
-            return 0;
+            return (DataType)0;
         }
 
         // override in subclass if need to do something special eg getter/setter
