@@ -25,7 +25,7 @@ class LambdaSelectorControl : public LambdaNumberControl<DataType> {
     ) : LambdaNumberControl<DataType>(label, setter_func, getter_func, on_change_handler, go_back_on_select) {
         //if (this->target_object!=nullptr && this->getter!=nullptr)
         //    this->set_internal_value (this->get_index_for_value( (this->target_object->*this->getter)() ));
-        this->set_internal_value ( getter_func() );
+        this->set_internal_value ( this->getter_func() );
         //this->debug = true;
     }
 
@@ -33,7 +33,7 @@ class LambdaSelectorControl : public LambdaNumberControl<DataType> {
         //Serial.printf("ObjectSelectorControl#action_opened, internal_value is currently %i (%s)\n", this->internal_value, getFormattedValue());
         //Serial.printf("ObjectSelectorControl#action_opened, value from getter is %i\n", (this->target_object->*this->getter)());
         //this->internal_value = this->get_index_for_value((this->target_object->*this->getter)());
-        this->internal_value = this->get_index_for_value(getter_func());
+        this->internal_value = (DataType)this->get_index_for_value(this->getter_func());
         //Serial.printf("ObjectSelectorControl#action_opened, internal_value setting to %i (%s)\n", this->internal_value, getFormattedValue());
         return !LambdaNumberControl<DataType>::readOnly;
         //return ObjectNumberControl<TargetClass,DataType>::action_opened();
@@ -53,10 +53,10 @@ class LambdaSelectorControl : public LambdaNumberControl<DataType> {
         return -1;
     }
     virtual const DataType get_value_for_index(int index) {
-        if (this->available_values == nullptr) return 0;
+        if (this->available_values == nullptr) return (DataType)0;
 
         if (index<0 || index>=(int)available_values->size())
-            return 0;
+            return (DataType)0;
         //Serial.printf("get_value_for_index(%i) returning %i\n", index, available_values.get(index).value);
         return available_values->get(index).value;
     }
@@ -64,7 +64,7 @@ class LambdaSelectorControl : public LambdaNumberControl<DataType> {
         /*static char value_label[MENU_C_MAX];
         sprintf(value_label, "%i", value);
         return value_label;*/
-        int index = get_index_for_value(value);
+        int index = get_index_for_value((SCALE)value);
         return this->get_label_for_index(index);
     }
     virtual const char*get_label_for_index(int index) {
@@ -87,22 +87,22 @@ class LambdaSelectorControl : public LambdaNumberControl<DataType> {
         /*int idx = this->get_index_for_value(this->get_internal_value());
         if (idx==-1) 
             Serial.printf("%s: no index found for value %i!\n", this->label, this->get_internal_value());*/
-        int idx = this->get_internal_value();
+        int idx = (int)this->get_internal_value();
         idx++;
         if ((DataType)idx>=this->maximum_value) idx = this->maximum_value; //available_values->size();
         //Serial.printf("%s: increase_value got new idx %i (corresponding to value %s)\n", this->label, idx, this->get_label_for_index(idx));
-        this->set_internal_value(idx);
+        this->set_internal_value((DataType)idx);
     }
     virtual void decrease_value() override {
         ///int idx = this->get_index_for_value(this->get_internal_value());
-        int idx = this->get_internal_value();
+        int idx = (int)this->get_internal_value();
         if (idx==this->minimum_value)   // for protection against unsigned values wrapping around
             return;
         idx--;
         if ((DataType)idx<this->minimum_value) 
             idx = this->minimum_value;
         //Serial.printf("%s: decrease_value got new idx %i (corresponding to value %s)\n", this->label, idx, this->get_label_for_index(idx));
-        this->set_internal_value(idx);
+        this->set_internal_value((DataType)idx);
     }
 
     // override in subclass if need to do something special eg getter/setter
@@ -151,7 +151,7 @@ class LambdaSelectorControl : public LambdaNumberControl<DataType> {
         if (this->available_values == nullptr) 
             this->setup_available_values();
         available_values->add(option { .value = value, .label = label });
-        this->minimum_value = 0;
+        this->minimum_value = (DataType)0;
         //if (value>this->maximum_value)
         //    this->maximum_value = value;
         this->maximum_value = available_values->size() - 1;

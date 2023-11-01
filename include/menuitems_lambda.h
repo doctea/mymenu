@@ -100,7 +100,7 @@ class LambdaNumberControl : public NumberControl<DataType> {
             return v;
         //}
         
-        return 0;
+        return (DataType)0;
     }
 
     // override in subclass if need to do something special eg getter/setter
@@ -120,9 +120,62 @@ class LambdaNumberControl : public NumberControl<DataType> {
         //}
         //if (this->debug) { Serial.println(F("Done.")); Serial_flush(); }
     }
-
 };
 
-#include "menuitems_object_selector.h"
+class LambdaToggleControl : public MenuItem {
+    public:
+        vl::Func<void(bool)> setter;
+        vl::Func<bool(void)> getter;
+
+        void (*on_change_handler)(bool last_value, bool new_value) = nullptr;
+
+        LambdaToggleControl(
+            const char *label, 
+            vl::Func<void(bool)> setter,
+            vl::Func<bool(void)> getter,
+            void (*on_change_handler)(bool last_value, bool new_value) = nullptr
+        ) : MenuItem(label) {
+            this->setter = setter;
+            this->getter = getter;
+            this->on_change_handler = on_change_handler;
+        }
+
+        virtual int display(Coord pos, bool selected, bool opened) override {
+            pos.y = header(label, pos, selected, opened);
+            tft->setCursor(pos.x,pos.y);
+
+            colours(opened, opened ? GREEN : this->default_fg, BLACK);
+            //tft->setTextSize(2);        // was 2 ?
+            //char tmp[MENU_C_MAX] = "";
+            tft->setTextSize(2);
+
+            this->renderValue(selected, opened, MENU_C_MAX);
+
+            return tft->getCursorY();
+        }
+
+        // render the current value at current position
+        virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
+            const char *txt = this->getter() ? label_on : label_off;
+            bool use_small = strlen(txt) <= (max_character_width/2);
+            int textSize = use_small ? 2 : 1;
+            //if (this->debug) Serial.printf(F("%s:\trenderValue '%s' (len %i) with max_character_width %i got textSize %i\n"), this->label, txt, strlen(txt), max_character_width/2, textSize);
+            tft->setTextSize(textSize);
+            tft->println(txt);
+            return tft->getCursorY();
+        }
+
+        virtual bool action_opened() override {
+            //if (this->debug) Serial.printf(F("LambdaToggleControl#action_opened on %s\n"), this->label);
+            bool value = !this->getter();
+            //this->internal_value = !this->internal_value;
+
+            this->setter(value); //(bool)this->internal_value);
+            return false;   // don't 'open'
+        }
+};
+
+
+#include "menuitems_lambda_selector.h"
 
 #endif
