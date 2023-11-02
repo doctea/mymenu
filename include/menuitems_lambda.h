@@ -53,7 +53,7 @@ class LambdaNumberControl : public NumberControl<DataType> {
     virtual void on_add() override {
         NumberControl<DataType>::on_add();
         //if (this->target_object!=nullptr && this->getter!=nullptr) 
-            this->set_internal_value( getter_func() );
+            this->set_internal_value( this->getter_func() );
     }
 
     virtual void increase_value() override {
@@ -95,7 +95,7 @@ class LambdaNumberControl : public NumberControl<DataType> {
         //if (this->target_object!=nullptr && this->getter!=nullptr) {
             //if (this->debug) { Serial.printf("%s: ObjectNumberControl#get_current_value in %s about to call getter\n", this->label); Serial_flush(); }
             //DataType v = (this->target_object->*getter)();
-            DataType v = getter_func();
+            DataType v = this->getter_func();
             //if (this->debug) { Serial.printf(F("%s: Called getter and got value %i!\n"), this->label, v); Serial_flush(); }
             return v;
         //}
@@ -109,7 +109,7 @@ class LambdaNumberControl : public NumberControl<DataType> {
         //if (this->debug) { Serial.printf(F("ObjectNumberControl#set_current_value(%i)\n"), value); Serial_flush(); }
         //if (this->target_object!=nullptr && this->setter!=nullptr) {
             //(this->target_object->*setter)(value);
-            setter_func(value);
+            this->setter_func(value);
 
             char msg[MENU_MESSAGE_MAX];
             //Serial.printf("about to build msg string...\n");

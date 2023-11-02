@@ -25,9 +25,9 @@ class NumberControl : public NumberControlBase {
         void (*setter)(DataType value) = nullptr;
 
         DataType *target_variable = nullptr;
-        DataType internal_value = 0;
-        DataType minimum_value = 0;
-        DataType maximum_value = 100;
+        DataType internal_value = (DataType)0;
+        DataType minimum_value = (DataType)0;
+        DataType maximum_value = (DataType)100;
         DataType step = this->get_default_step_for_type(internal_value);
 
         float float_mult = 100.0;
