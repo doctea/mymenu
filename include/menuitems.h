@@ -117,6 +117,13 @@ class HarmonyStatus : public MenuItem {
         int *current_note = nullptr;
         int *other_value = nullptr;
 
+        // column headers
+        const char *header_label[3] = {
+            "Last",
+            "Current",
+            "Other"
+        };
+
         HarmonyStatus(const char *label) : MenuItem(label) {
             this->selectable = false;
         };
@@ -128,17 +135,31 @@ class HarmonyStatus : public MenuItem {
         HarmonyStatus(const char *label, int *last_note, int *current_note, int *other_value) : HarmonyStatus(label, last_note, current_note) {
             this->other_value = other_value;
         }
+        HarmonyStatus(const char *label, int *last_note, int *current_note, int *other_value, const char *third_label) 
+            : HarmonyStatus(label, last_note, current_note, other_value) {
+                this->set_header(2, third_label);
+            }
         /*virtual void configure(int *last_note, int *current_note) {   // for if we need to late-bind the harmony note sources
             this->last_note = last_note;
             this->current_note = current_note;   
         }*/
+        void set_header(int id, const char *label) {
+            header_label[id] = label;
+        }
         virtual int display(Coord pos, bool selected, bool opened) override {
             tft->setCursor(pos.x, pos.y);
             header(label, pos, selected, opened);
             //tft->setTextColor(rgb(0xFFFFFF),0);
-            tft->setTextSize(2);
             colours(opened);
 
+            tft->setTextSize(1);
+            if (this->other_value!=nullptr) {
+                tft->printf("%8s  :  %8s  :  %8s\n", (char*)header_label[0], (char*)header_label[1], (char*)header_label[2]);
+            } else {
+                tft->printf("%8s  :  %8s\n", (char*)header_label[0], (char*)header_label[1]);
+            }
+
+            tft->setTextSize(2);
             if (!last_note || !current_note) {
                 tft->println((char *)"[not set]");
             } else if (this->other_value!=nullptr) {
