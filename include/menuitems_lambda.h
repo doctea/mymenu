@@ -8,10 +8,6 @@
 template<class DataType>
 class LambdaNumberControl : public NumberControl<DataType> {
     public:
-    //void(TargetClass::*setter)(DataType) = nullptr;
-    //DataType(TargetClass::*getter)() = nullptr;
-    //void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr;
-    //TargetClass *target_object = nullptr;
 
     vl::Func<void(DataType)> setter_func;
     vl::Func<DataType(void)> getter_func;
@@ -24,7 +20,6 @@ class LambdaNumberControl : public NumberControl<DataType> {
         void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr,
         bool go_back_on_select = false
     ) : NumberControl<DataType>(label) {
-        //this->target_object = target_object;
         this->getter_func = getter_func;
         this->setter_func = setter_func;
 
@@ -33,8 +28,7 @@ class LambdaNumberControl : public NumberControl<DataType> {
         this->maximum_value = (DataType)100;
         this->go_back_on_select = go_back_on_select;
 
-        //if (this->target_object!=nullptr && this->getter!=nullptr) 
-            this->set_internal_value( getter_func() );
+        this->set_internal_value( getter_func() );
     }
     LambdaNumberControl(const char* label, 
         vl::Func<void(DataType)> setter_func,
@@ -52,8 +46,7 @@ class LambdaNumberControl : public NumberControl<DataType> {
 
     virtual void on_add() override {
         NumberControl<DataType>::on_add();
-        //if (this->target_object!=nullptr && this->getter!=nullptr) 
-            this->set_internal_value( this->getter_func() );
+        this->set_internal_value( this->getter_func() );
     }
 
     virtual void increase_value() override {
@@ -67,16 +60,6 @@ class LambdaNumberControl : public NumberControl<DataType> {
         if (direct)
             this->change_value(this->internal_value);
     }
-
-    /*virtual DataType get_internal_value() override {
-        return this->internal_value;
-    }*/
-
-    /*virtual void set_internal_value(DataType value) override {
-        if (this->debug) Serial.printf("ObjectNumberControl.set_internal_value(%i)..\n", value);
-        this->internal_value = constrain(value, this->minimum_value, this->maximum_value);
-        if (this->debug) Serial.printf("constrained to %i (%i:%i)\n", this->internal_value, this->minimum_value, this->maximum_value);
-    }*/
 
     virtual void change_value(DataType new_value) override {
         if (this->readOnly) return;
@@ -92,33 +75,22 @@ class LambdaNumberControl : public NumberControl<DataType> {
 
     // override in subclass if need to do something special eg getter/setter
     virtual DataType get_current_value() override {
-        //if (this->target_object!=nullptr && this->getter!=nullptr) {
-            //if (this->debug) { Serial.printf("%s: ObjectNumberControl#get_current_value in %s about to call getter\n", this->label); Serial_flush(); }
-            //DataType v = (this->target_object->*getter)();
-            DataType v = this->getter_func();
-            //if (this->debug) { Serial.printf(F("%s: Called getter and got value %i!\n"), this->label, v); Serial_flush(); }
-            return v;
-        //}
-        
-        return (DataType)0;
+        DataType v = this->getter_func();
+        //if (this->debug) { Serial.printf(F("%s: Called getter and got value %i!\n"), this->label, v); Serial_flush(); }
+        return v;
     }
 
     // override in subclass if need to do something special eg getter/setter
     virtual void set_current_value(DataType value) override { 
-        //this->internal_value = value;
-        //if (this->debug) { Serial.printf(F("ObjectNumberControl#set_current_value(%i)\n"), value); Serial_flush(); }
-        //if (this->target_object!=nullptr && this->setter!=nullptr) {
-            //(this->target_object->*setter)(value);
-            this->setter_func(value);
+        if (this->debug) { Serial.printf(F("ObjectNumberControl#set_current_value(%i)\n"), value); Serial_flush(); }
 
-            char msg[MENU_MESSAGE_MAX];
-            //Serial.printf("about to build msg string...\n");
-            snprintf(msg, MENU_MESSAGE_MAX, "Set %8s to %s", this->label, this->getFormattedValue(value)); //(int)value);
-            //Serial.printf("about to set_last_message!");
-            //msg[this->tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
-            menu_set_last_message(msg,GREEN);
-        //}
-        //if (this->debug) { Serial.println(F("Done.")); Serial_flush(); }
+        this->setter_func(value);
+
+        char msg[MENU_MESSAGE_MAX];
+        //Serial.printf("about to build msg string...\n");
+        snprintf(msg, MENU_MESSAGE_MAX, "Set %8s to %s", this->label, this->getFormattedValue(value));
+        //Serial.printf("about to set_last_message!");
+        menu_set_last_message(msg,GREEN);
     }
 };
 
@@ -169,11 +141,170 @@ class LambdaToggleControl : public MenuItem {
         virtual bool action_opened() override {
             //if (this->debug) Serial.printf(F("LambdaToggleControl#action_opened on %s\n"), this->label);
             bool value = !this->getter();
-            //this->internal_value = !this->internal_value;
-
-            this->setter(value); //(bool)this->internal_value);
+            this->setter(value); 
             return false;   // don't 'open'
         }
+};
+
+
+class LambdaActionItem : public MenuItem {
+    public:
+
+    char button_label_false[MAX_LABEL_LENGTH] = "";
+    char button_label_true[MAX_LABEL_LENGTH] = "";
+    //char button_label[MAX_LABEL_LENGTH]         = "                             ";
+
+    /*using setter_def_2 = void(TargetClass::*)();
+    using setter_def = void(TargetClass::*)(bool);
+    using getter_def = bool(TargetClass::*)();
+
+    //void(TargetClass::*setter)(bool) = nullptr; 
+    //bool(TargetClass::*getter)() = nullptr;
+    //get_label_def *get_label = nullptr; //void(TargetClass::*setter)(bool) = nullptr;
+    setter_def setter = nullptr;
+    setter_def_2 setter2 = nullptr;
+    getter_def getter = nullptr;*/
+    using setter_2_def = vl::Func<void(void)>; //void(TargetClass::*)();
+    using getter_def = vl::Func<bool(void)>;
+
+    //vl::Func<void(bool)>    setter_func;
+    setter_2_def setter_func_2;
+    getter_def getter_func;
+    bool has_getter = false, has_setter = false, has_setter_2 = false;
+
+    /*LambdaActionItem(const char *label, vl::Func<void(bool)> setter_func) : 
+        MenuItem(label) {
+            this->setter_func = setter_func;
+            this->has_setter = true;
+        }*/
+    LambdaActionItem(const char *label, setter_2_def setter_func_2) : 
+        MenuItem(label) {
+            this->setter_func_2 = setter_func_2;
+            this->has_setter_2 = true;
+        }
+
+    LambdaActionItem(const char *label, setter_2_def setter_func_2, getter_def getter_func, const char *button_label_true, const char *button_label_false = nullptr) 
+        : LambdaActionItem(label, setter_func_2) {
+        this->getter_func = getter_func;
+        this->has_getter = true;
+
+        if (button_label_true!=nullptr) {
+            strncpy(this->button_label_true, button_label_true, MAX_LABEL_LENGTH);
+        } else
+            snprintf(this->button_label_true, MAX_LABEL_LENGTH, "<< %s >>", label);
+
+        if (button_label_false!=nullptr)
+            snprintf(this->button_label_false, MAX_LABEL_LENGTH, ">> %s <<", button_label_false);
+        else
+            snprintf(this->button_label_false, MAX_LABEL_LENGTH, ">> %s <<", label);
+    };
+
+    virtual int display(Coord pos, bool selected, bool opened) override {
+        this->tft->setCursor(pos.x, pos.y);
+        return this->renderValue(selected, opened, MENU_C_MAX);
+    }
+
+    virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
+        char *button_label = nullptr;
+        if (this->has_getter && this->button_label_true[0]) {
+            button_label = this->getter_func() ? this->button_label_true : this->button_label_false;
+        } else if (button_label_false[0]) {
+            //Serial.printf(F("%s: rendering button_label_false '%s'\n"), this->label, this->button_label_false);
+            button_label = this->button_label_false;
+        } else {
+            button_label = label;
+        }
+        //int y = header(button_label, Coord(this->tft->getCursorX(), this->tft->getCursorY()), selected, opened);
+        colours(selected);
+
+        // determine size font to use
+        bool use_small = strlen(button_label) <= (max_character_width/2);
+        int textSize = use_small ? 2 : 1;
+        tft->setTextSize(textSize);
+
+        tft->println(button_label);
+        const int y = tft->getCursorY();
+        return y;
+    }
+
+    virtual void on_open() {
+        /*if (this->has_setter)
+            this->setter_func(true);*/
+        if (this->has_setter_2)
+            this->setter_func_2();
+    }
+
+    virtual bool action_opened() override {
+        //Serial.println(F("ObjectActionItem#action_opened"));
+        this->on_open();
+
+        char msg[MENU_MESSAGE_MAX];
+        //Serial.printf("about to build msg string...\n");
+        snprintf(msg, MENU_MESSAGE_MAX, fired_message, label);
+        //Serial.printf("about to set_last_message!");
+        //msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
+        menu_set_last_message(msg,GREEN);
+
+        return false;   // don't 'open'
+    }
+};
+
+
+class LambdaActionConfirmItem : public LambdaActionItem {
+    public:
+
+    //setter_2_def setter = nullptr;
+
+    LambdaActionConfirmItem(
+        const char *label, 
+        setter_2_def setter_func_2
+    ) : LambdaActionItem(label, setter_func_2) {
+        //this->setter = setter;
+        this->go_back_on_select = true;
+    };
+
+    virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
+        //Serial.println("ObjectActionConfirmItem#renderValue..");
+        const char *button_label = opened ? sure_message : this->label;
+
+        this->colours(selected);
+
+        // determine size font to use
+        bool use_small = strlen(button_label) <= (max_character_width/2);
+        int textSize = use_small ? 2 : 1;
+        this->tft->setTextSize(textSize);
+
+        this->tft->println(button_label);
+
+        const int y = this->tft->getCursorY();
+        return y;
+    }
+
+    virtual bool action_opened() override {
+        //Serial.println(F("ActionConfirmItem#action_opened"));
+        //this->on_open();
+        return true; 
+    }
+
+    /*virtual void on_open() override {
+        (this->target_object->*setter)();
+    }*/
+
+    virtual bool button_select() override {
+        //Serial.println(F("ActionConfirmItem#button_select"));
+
+        this->on_open();
+
+        char msg[MENU_MESSAGE_MAX];
+        //Serial.printf("about to build msg string...\n");
+        snprintf(msg, MENU_MESSAGE_MAX, fired_message, this->label);
+        //Serial.printf("about to set_last_message!");
+        //msg[this->tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
+        menu_set_last_message(msg,GREEN);
+
+        return this->go_back_on_select;    // return to menu
+    }
+
 };
 
 
