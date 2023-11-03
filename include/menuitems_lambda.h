@@ -28,7 +28,7 @@ class LambdaNumberControl : public NumberControl<DataType> {
         this->maximum_value = (DataType)100;
         this->go_back_on_select = go_back_on_select;
 
-        this->set_internal_value( getter_func() );
+        this->set_internal_value( this->getter_func() );
     }
     LambdaNumberControl(const char* label, 
         vl::Func<void(DataType)> setter_func,
@@ -164,7 +164,7 @@ class LambdaActionItem : public MenuItem {
     setter_def setter = nullptr;
     setter_def_2 setter2 = nullptr;
     getter_def getter = nullptr;*/
-    using setter_2_def = vl::Func<void(void)>; //void(TargetClass::*)();
+    using setter_2_def = vl::Func<void(void)>; 
     using getter_def = vl::Func<bool(void)>;
 
     //vl::Func<void(bool)>    setter_func;
@@ -253,13 +253,10 @@ class LambdaActionItem : public MenuItem {
 class LambdaActionConfirmItem : public LambdaActionItem {
     public:
 
-    //setter_2_def setter = nullptr;
-
     LambdaActionConfirmItem(
         const char *label, 
         setter_2_def setter_func_2
     ) : LambdaActionItem(label, setter_func_2) {
-        //this->setter = setter;
         this->go_back_on_select = true;
     };
 
