@@ -53,7 +53,7 @@ class MenuItem {
         }
 
         MenuItem(const char *in_label) {
-            strcpy(label, in_label);
+            strncpy(label, in_label, MAX_LABEL_LENGTH);
         }
         virtual void on_add();
         virtual void update_label(const char *new_label);
@@ -87,6 +87,15 @@ class MenuItem {
         virtual bool allow_takeover();
         // whether we should be allowed to hover over this one
         virtual bool is_selectable ();
+};
+
+class FixedSizeMenuItem : public MenuItem {
+    public:
+    int fixed_size = 0;
+    FixedSizeMenuItem(const char *label, int size) : MenuItem(label) {
+        this->fixed_size = size;
+    }
+    virtual int renderValue(bool selected, bool opened, uint16_t max_character_width);
 };
 
 class PinnedPanelMenuItem : public MenuItem {

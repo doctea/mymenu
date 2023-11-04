@@ -13,7 +13,7 @@ void MenuItem::on_add() {
 }    
 void MenuItem::update_label(const char *new_label) {
     //Debug_printf("%s#update_label('%s')\n", this->label, new_label);
-    strcpy(this->label, new_label);
+    strncpy(this->label, new_label, MAX_LABEL_LENGTH);
 }
 MenuItem *MenuItem::set_default_colours(uint16_t fg, uint16_t bg) {
     this->default_fg = fg;
@@ -118,7 +118,15 @@ int MenuItem::header(const char *text, Coord pos, bool selected, bool opened, in
     return tft->getCursorY(); // + 2;
 }
 
-
+int FixedSizeMenuItem::renderValue(bool selected, bool opened, uint16_t max_character_width) {
+    //tft->printf("%s [s:%i o:%i]", label, (int)selected, (int)opened);
+    colours(selected);
+    //tft->setTextSize((strlen(label) < max_character_width/2) ? 2 : 1 );
+    //tft->setTextSize(tft->get_textsize_for_width(label, max_character_width*tft->characterWidth()));
+    tft->setTextSize(this->fixed_size);
+    tft->println(label);
+    return tft->getCursorY();
+}
 
 int SeparatorMenuItem::header(const char *text, Coord pos, bool selected, bool opened, int textSize) {
     if (!this->show_header) return pos.y;
