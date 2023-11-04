@@ -5,10 +5,14 @@
 
 #include <Arduino.h>
 
+#include <util/atomic.h>
+
 #include "LinkedList.h"
 #include "menuitems.h"
 
 #include "SD.h"
+
+int freeRam();
 
 #include "menuitems_listviewer.h"
 
@@ -30,21 +34,32 @@ class FileViewerMenuItem : public ListViewerMenuItem {
         this->filename = filename;
     }
     void readFile() {
-        Serial.println("readFile()");
-        list_contents->clear();
-        File f = SD.open(filename.c_str(), FILE_READ);
-        f.setTimeout(0);
-        if (!f) {
-            Serial.println("error loading file for viewing!"); Serial_flush();
-            filename = String("(err)") + filename;
-            return;
+        ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+            bool debug = true;
+            Serial.println("readFile()...");
+            Serial.printf("Currently free RAM is %i\n", freeRam());
+            list_contents->clear();
+            if (debug) Serial.println("readFile(): did list_contents->clear();"); Serial_flush();
+            File f = SD.open(filename.c_str(), FILE_READ);
+            // ^^ intermittent crashing here when auto_advancing...
+            if (debug) Serial.printf("readFile(): did SD.open(%s);", filename.c_str()); Serial_flush();
+            f.setTimeout(0);
+            if (!f) {
+                Serial.println("error loading file for viewing!"); Serial_flush();
+                filename = String("(err)") + filename;
+                f.close();
+                return;
+            }
+            while (f.available()) {
+                String line = f.readStringUntil('\n');
+                list_contents->add(line);
+                if (debug) Serial.println("readFile(): read a line;"); Serial_flush();
+            }
+            if (debug) Serial.println("readFile(): closing.."); Serial_flush();
+            f.close();
+            if (debug) Serial.println("readFile(): did f.close();"); Serial_flush();
+            Serial.println("finished readFile()!");
         }
-        while (f.available()) {
-            String line = f.readStringUntil('\n');
-            list_contents->add(line);
-        }
-        f.close();
-        Serial.println("finished readFile()!");
     }
 
     int render_list_header(Coord pos) {
