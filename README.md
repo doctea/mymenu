@@ -17,6 +17,7 @@ Also extended by the [parameters](https://github.com/doctea/parameters) library 
 # Requirements
 
 - (on rp2040 only) [patched bodme/TFT_eSPI library](https://github.com/doctea/TFT_eSPI) needed to fix bug with wrapping not working (leading to missing headers from menus?)
+- [Functional-Vlpp](https://registry.platformio.org/libraries/khoih-prog/Functional-Vlpp/installation) library for lambda support
 
 ## todo
 
