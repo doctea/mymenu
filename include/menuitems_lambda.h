@@ -9,14 +9,17 @@ template<class DataType>
 class LambdaNumberControl : public NumberControl<DataType> {
     public:
 
-    vl::Func<void(DataType)> setter_func;
-    vl::Func<DataType(void)> getter_func;
+    using setter_func_def = vl::Func<void(DataType)>;
+    using getter_func_def = vl::Func<DataType(void)>;
+
+    setter_func_def setter_func;
+    getter_func_def getter_func;
 
     bool direct = false;
 
     LambdaNumberControl(const char* label, 
-        vl::Func<void(DataType)> setter_func,
-        vl::Func<DataType(void)> getter_func,
+        setter_func_def setter_func,
+        getter_func_def getter_func,
         void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr,
         bool go_back_on_select = false
     ) : NumberControl<DataType>(label) {
@@ -31,8 +34,8 @@ class LambdaNumberControl : public NumberControl<DataType> {
         this->set_internal_value( this->getter_func() );
     }
     LambdaNumberControl(const char* label, 
-        vl::Func<void(DataType)> setter_func,
-        vl::Func<DataType(void)> getter_func,
+        setter_func_def setter_func,
+        getter_func_def getter_func,
         void (*on_change_handler)(DataType last_value, DataType new_value),
         DataType minimum_value,
         DataType maximum_value,
@@ -96,19 +99,22 @@ class LambdaNumberControl : public NumberControl<DataType> {
 
 class LambdaToggleControl : public MenuItem {
     public:
-        vl::Func<void(bool)> setter;
-        vl::Func<bool(void)> getter;
+        using setter_func_def = vl::Func<void(bool)>;
+        using getter_func_def = vl::Func<bool(void)>;
+
+        setter_func_def setter_func;
+        getter_func_def getter_func;
 
         void (*on_change_handler)(bool last_value, bool new_value) = nullptr;
 
         LambdaToggleControl(
             const char *label, 
-            vl::Func<void(bool)> setter,
-            vl::Func<bool(void)> getter,
+            setter_func_def setter,
+            getter_func_def getter,
             void (*on_change_handler)(bool last_value, bool new_value) = nullptr
         ) : MenuItem(label) {
-            this->setter = setter;
-            this->getter = getter;
+            this->setter_func = setter;
+            this->getter_func = getter;
             this->on_change_handler = on_change_handler;
         }
 
@@ -128,7 +134,7 @@ class LambdaToggleControl : public MenuItem {
 
         // render the current value at current position
         virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
-            const char *txt = this->getter() ? label_on : label_off;
+            const char *txt = this->getter_func() ? label_on : label_off;
             //bool use_small = strlen(txt) <= (max_character_width/2);
             //int textSize = use_small ? 2 : 1;
             int textSize = tft->get_textsize_for_width(txt, max_character_width*tft->characterWidth());
@@ -140,8 +146,8 @@ class LambdaToggleControl : public MenuItem {
 
         virtual bool action_opened() override {
             //if (this->debug) Serial.printf(F("LambdaToggleControl#action_opened on %s\n"), this->label);
-            bool value = !this->getter();
-            this->setter(value); 
+            bool value = !this->getter_func();
+            this->setter_func(value); 
             return false;   // don't 'open'
         }
 };
@@ -164,7 +170,7 @@ class LambdaActionItem : public MenuItem {
     setter_def setter = nullptr;
     setter_def_2 setter2 = nullptr;
     getter_def getter = nullptr;*/
-    using setter_2_def = vl::Func<void(void)>; 
+    using setter_2_def = vl::Func<void(void)>;  // callback with no parameters
     using getter_def = vl::Func<bool(void)>;
 
     //vl::Func<void(bool)>    setter_func;

@@ -64,7 +64,7 @@ class LambdaSelectorControl : public LambdaNumberControl<DataType> {
         /*static char value_label[MENU_C_MAX];
         sprintf(value_label, "%i", value);
         return value_label;*/
-        int index = get_index_for_value((SCALE)value);
+        int index = get_index_for_value((DataType)value);
         return this->get_label_for_index(index);
     }
     virtual const char*get_label_for_index(int index) {
