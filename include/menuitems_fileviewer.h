@@ -35,14 +35,15 @@ class FileViewerMenuItem : public ListViewerMenuItem {
     }
     void readFile() {
         ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-            bool debug = true;
-            Serial.println("readFile()...");
-            Serial.printf("Currently free RAM is %i\n", freeRam());
+            if (debug) {
+                Serial.println("readFile()..."); Serial_flush();
+                Serial.printf("Currently free RAM is %i\n", freeRam()); Serial_flush();
+            }
             list_contents->clear();
-            if (debug) Serial.println("readFile(): did list_contents->clear();"); Serial_flush();
+            if (debug) { Serial.println("readFile(): did list_contents->clear();"); Serial_flush(); }
             File f = SD.open(filename.c_str(), FILE_READ);
             // ^^ intermittent crashing here when auto_advancing...
-            if (debug) Serial.printf("readFile(): did SD.open(%s);", filename.c_str()); Serial_flush();
+            if (debug) { Serial.printf("readFile(): did SD.open(%s);", filename.c_str()); Serial_flush(); }
             f.setTimeout(0);
             if (!f) {
                 Serial.println("error loading file for viewing!"); Serial_flush();
@@ -53,7 +54,7 @@ class FileViewerMenuItem : public ListViewerMenuItem {
             while (f.available()) {
                 String line = f.readStringUntil('\n');
                 list_contents->add(line);
-                if (debug) Serial.println("readFile(): read a line;"); Serial_flush();
+                //if (debug) Serial.println("readFile(): read a line;"); Serial_flush();
             }
             if (debug) Serial.println("readFile(): closing.."); Serial_flush();
             f.close();
