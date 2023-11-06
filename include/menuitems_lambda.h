@@ -311,6 +311,31 @@ class LambdaActionConfirmItem : public LambdaActionItem {
 };
 
 
+class CallbackMenuItem : public MenuItem {
+    using label_callback_def = vl::Func<char*(void)>;
+    public:
+    label_callback_def callback_func;
+    CallbackMenuItem(const char *label = "Default", label_callback_def callback_func) : MenuItem(label), callback_func(callback_func) {}
+
+    virtual int display(Coord pos, bool selected, bool opened) override {
+        pos.y = header(this->callback_func(), pos, selected, opened);
+        tft->setCursor(pos.x,pos.y);
+
+        return tft->getCursorY();
+    }
+
+    virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
+        const char *txt = this->callback_func();
+        //bool use_small = strlen(txt) <= (max_character_width/2);
+        //int textSize = use_small ? 2 : 1;
+        int textSize = tft->get_textsize_for_width(txt, max_character_width*tft->characterWidth());
+        //if (this->debug) Serial.printf(F("%s:\trenderValue '%s' (len %i) with max_character_width %i got textSize %i\n"), this->label, txt, strlen(txt), max_character_width/2, textSize);
+        tft->setTextSize(textSize);
+        tft->println(txt);
+        return tft->getCursorY();
+    }
+};
+
 #include "menuitems_lambda_selector.h"
 
 #endif
