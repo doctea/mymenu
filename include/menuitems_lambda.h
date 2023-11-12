@@ -85,7 +85,7 @@ class LambdaNumberControl : public NumberControl<DataType> {
 
     // override in subclass if need to do something special eg getter/setter
     virtual void set_current_value(DataType value) override { 
-        if (this->debug) { Serial.printf(F("ObjectNumberControl#set_current_value(%i)\n"), value); Serial_flush(); }
+        if (this->debug) { Serial.printf("LambdaNumberControl#set_current_value(%i)\n", value); Serial_flush(); }
 
         this->setter_func(value);
 

@@ -41,6 +41,7 @@
     #include "display_ili9341_t3n.h"
 #endif
 bool save_screenshot(DisplayTranslator_Configured *display) {
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
     Serial.println(F("save_screenshot!"));
 
     #ifdef TFT_ST7789
@@ -59,6 +60,10 @@ bool save_screenshot(DisplayTranslator_Configured *display) {
     const int imgSize = w*h;
     //int px[w*h];                        // actual pixel data (grayscale - added programatically below)
     const uint16_t *px = screen->getFrameBuffer();
+    if (px==nullptr) {
+        Serial.println("error: framebuffer points to nullptr!");
+        return false;
+    }
 
     SdFile file;
 
@@ -88,10 +93,11 @@ bool save_screenshot(DisplayTranslator_Configured *display) {
     //img = (unsigned char *)malloc(3*imgSize);
 
     // create padding (based on the number of pixels in a row
-    unsigned char bmpPad[rowSize - 3*w];
-    for (unsigned int i=0; i<sizeof(bmpPad); i++) {         // fill with 0s
+    //unsigned char bmpPad[rowSize - 3*w];
+    unsigned char *bmpPad = (unsigned char*)calloc(rowSize - 3*w, 0);
+    /*for (unsigned int i=0; i<sizeof(bmpPad); i++) {         // fill with 0s
         bmpPad[i] = 0;
-    }
+    }*/
 
     // create file headers (also taken from StackOverflow example)
     unsigned char bmpFileHeader[14] = {            // file header (always starts with BM!)
@@ -134,10 +140,12 @@ bool save_screenshot(DisplayTranslator_Configured *display) {
     }
     file.close();                                        // close file when done writing
 
+    free(bmpPad);
+
     //if (debugPrint) {
         Serial.print("\n\n---\n");
     //}
-    
+    }
     return true;
 }
 #endif

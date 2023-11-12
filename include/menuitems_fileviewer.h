@@ -51,8 +51,9 @@ class FileViewerMenuItem : public ListViewerMenuItem {
                 f.close();
                 return;
             }
+            String line;
             while (f.available()) {
-                String line = f.readStringUntil('\n');
+                line = f.readStringUntil('\n');
                 list_contents->add(line);
                 //if (debug) Serial.println("readFile(): read a line;"); Serial_flush();
             }
