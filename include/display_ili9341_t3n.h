@@ -22,7 +22,7 @@
 
 #include "tft.h"
 
-#define SPI_SPEED 20000000  // todo: see if we can increase this without it becoming unreliable - 30000000
+#define SPI_SPEED 30000000  // todo: see if we can increase this without it becoming unreliable - 30000000
 
 class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
     public:
