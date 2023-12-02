@@ -30,6 +30,8 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
     ILI9341_t3n actual = ILI9341_t3n(TFT_CS, TFT_DC, TFT_RST, TFT_MOSI, TFT_SCLK, TFT_MISO);
     ILI9341_t3n *tft = &actual;
   
+    virtual int get_row_character_width() override { return (this->width() / ((this->default_textsize+1) * this->characterWidth())); }  // 
+
     DisplayTranslator_ILI9341_T3N() {
         //this->tft = &actual; //ST7789_t3(TFT_CS, TFT_DC, TFT_RST);
         //this->tft = new ILI9341_t3n(TFT_CS, TFT_DC, TFT_RST, 11, 13, 12);

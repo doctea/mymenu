@@ -93,7 +93,7 @@ int MenuItem::header(const char *text, Coord pos, bool selected, bool opened, in
     if (!this->show_header) return pos.y;
 
     tft->drawLine(pos.x, pos.y, tft->width(), pos.y, this->default_fg);
-    pos.y++;
+    pos.y+=2;
     tft->setCursor(pos.x, pos.y);
     colours(selected, this->default_fg, this->default_bg);
     tft->setTextSize(textSize);
@@ -147,6 +147,7 @@ int SeparatorMenuItem::header(const char *text, Coord pos, bool selected, bool o
     colours(false, this->default_fg, this->default_bg);
     //tft->drawLine(pos.x, pos.y, tft->width(), pos.y, this->default_fg);
     tft->setCursor(pos.x, pos.y+1);
+
     int end_x = (tft->width() - (tft->currentCharacterWidth() * strlen(text))) - 4;
     tft->drawLine(0, pos.y,   end_x, pos.y,   this->default_fg);
     tft->drawLine(0, pos.y+2, end_x, pos.y+2, this->default_fg);
@@ -158,10 +159,11 @@ int SeparatorMenuItem::header(const char *text, Coord pos, bool selected, bool o
     tft->printf((char*)tft->get_header_format(), (char*)text);
     // have to draw this after the text for some reason, otherwise it doesn't get drawn/gets wiped out??
     tft->drawLine(0, pos.y+6, end_x, pos.y+6, this->default_fg);
-
+    //tft->drawLine(0, pos.y+7, end_x, pos.y+7, tft->halfbright_565(this->default_fg));
+    //tft->drawLine(0, pos.y+8, end_x, pos.y+8, this->default_fg);
     //tft->drawLine(8, pos.y+8, end_x-1, pos.y+8, this->default_fg);
     //tft->drawLine(10, pos.y+10, end_x-1, pos.y+12, this->default_fg);
-    tft->setCursor(0, tft->getCursorY()+1);
+    tft->setCursor(0, tft->getCursorY()+2);
 
     //int ret_height = tft->getCursorY();
     /*if (ret_height==initial_position) {      // force display down a row if we haven't moved
