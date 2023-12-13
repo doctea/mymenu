@@ -315,7 +315,9 @@ class CallbackMenuItem : public MenuItem {
     using label_callback_def = vl::Func<char*(void)>;
     public:
     label_callback_def callback_func;
-    CallbackMenuItem(const char *label, label_callback_def callback_func) : MenuItem(label), callback_func(callback_func) {}
+    CallbackMenuItem(const char *label, label_callback_def callback_func) : MenuItem(label), callback_func(callback_func) {
+        this->selectable = false;
+    }
 
     virtual int display(Coord pos, bool selected, bool opened) override {
         pos.y = header(this->callback_func(), pos, selected, opened);
