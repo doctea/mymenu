@@ -40,7 +40,7 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
 
     uint16_t *allocate_framebuffer() {
         int CBALLOC = TFT_WIDTH*TFT_HEIGHT*sizeof(uint16_t);
-        uint16_t *_we_allocated_buffer = (uint16_t *)malloc(CBALLOC+32);
+        uint16_t *_we_allocated_buffer = (uint16_t *)extmem_malloc(CBALLOC+32);
         if (_we_allocated_buffer == NULL)
             return 0;	// failed 
         _we_allocated_buffer = (uint16_t*) (((uintptr_t)_we_allocated_buffer + 32) & ~ ((uintptr_t) (31)));
@@ -53,6 +53,9 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
         Serial.println(F("ili9341 setup()..")); Serial_flush();
         tft->begin(SPI_SPEED);
         tft->setRotation(SCREEN_ROTATION);
+        #ifndef DONT_USE_EXTMEM_FRAMEBUFFER
+            tft->setFrameBuffer(allocate_framebuffer());
+        #endif
         tft->useFrameBuffer(true);
 
         tft->setFrameRateControl(20);   // 20 to flicker less than 30!

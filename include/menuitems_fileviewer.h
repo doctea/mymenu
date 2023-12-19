@@ -22,8 +22,7 @@ class FileViewerMenuItem : public ListViewerMenuItem {
     //LinkedList<String> *file_contents = new LinkedList<String>();
 
     public:
-    FileViewerMenuItem(const char *label) : ListViewerMenuItem(label) {
-        this->list_contents = new LinkedList<String>();
+    FileViewerMenuItem(const char *label) : ListViewerMenuItem(label, new LinkedList<String>()) {
     }
     
     virtual void on_add() override {
@@ -55,7 +54,7 @@ class FileViewerMenuItem : public ListViewerMenuItem {
             while (f.available()) {
                 line = f.readStringUntil('\n');
                 list_contents->add(line);
-                //if (debug) Serial.println("readFile(): read a line;"); Serial_flush();
+                if (debug) { Serial.printf("readFile(): read a line '%s'\n", line.c_str()); Serial_flush(); }
             }
             if (debug) Serial.println("readFile(): closing.."); Serial_flush();
             f.close();

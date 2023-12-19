@@ -28,7 +28,6 @@ class ListViewerMenuItem : public MenuItem {
         this->height_lines = (tft->height() / tft->getRowHeight());
     }
 
-
     virtual int display(Coord pos, bool selected, bool opened) override {
         tft->setCursor(pos.x,pos.y);
         //char label[MENU_C_MAX];
