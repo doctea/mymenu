@@ -9,7 +9,7 @@ extern const char *sure_message;
 class ActionItem : public MenuItem {
     public:
 
-    char button_label[20] = "";
+    char button_label[MENU_C_MAX] = "";
     void(*on_open)() = nullptr;
 
     char *what_to_render = nullptr;
@@ -17,22 +17,25 @@ class ActionItem : public MenuItem {
     ActionItem(const char *label, void (*on_open)(), bool show_header = false) : MenuItem(label) {
         this->on_open = on_open;
         this->show_header = show_header;
-        snprintf(button_label, 20, ">> %s <<", label);
+        snprintf(button_label, MENU_C_MAX, ">> %s <<", label);
     }
 
     virtual int display(Coord pos, bool selected, bool opened) override {
         //int textSize = ((int)strlen(button_label)*tft->currentCharacterWidth() < tft->width()/2 );
         //int textSize = tft->get_textsize_for_width(button_label, tft->width()-1);
         //colours(opened, opened ? GREEN : this->default_fg, this->default_bg);
-        pos.y = header(button_label, pos, selected, opened); //, textSize);
+        int textSize = tft->get_textsize_for_width(button_label, tft->width());
+        pos.y = header(button_label, pos, selected, opened, textSize);
 
         //pos.y = this->renderValue(selected, opened, tft->width());
         // if doing full display, render button_label (with >> %s << etc)
-        int textSize = tft->get_textsize_for_width(button_label, tft->width());
+        //int textSize = tft->get_textsize_for_width(button_label, tft->width());
         tft->setTextSize(textSize);
-        tft->print(button_label);
+        if (selected) colours(true);
+        tft->printf(tft->header_format, button_label);
+        if (selected) colours(false);
+        //tft->setCursor(tft->getCursorX(), tft->getCursorY()+1);
 
-        tft->setCursor(tft->getCursorX(), tft->getCursorY()+1);
         //tft->setCursor(pos.x,pos.y);
 
         return tft->getCursorY();
