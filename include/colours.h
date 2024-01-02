@@ -1,6 +1,8 @@
 //#ifndef COLOURS__INCLUDED
 //#define COLOURS__INCLUDED
 
+// some colours taken from https://github.com/newdigate/rgb565_colors
+
 #undef MENU_C_MAX
 #define MENU_C_MAX 20
 
@@ -25,6 +27,15 @@
     #endif
     #ifdef GREY
         #undef GREY
+    #endif
+    #ifdef DARK_GREEN
+        #undef DARK_GREEN
+    #endif
+    #ifdef DARK_YELLOW
+        #undef DARK_YELLOW
+    #endif
+    #ifdef DARK_RED
+        #undef DARK_RED
     #endif
 #endif
 
@@ -58,6 +69,9 @@
     #define ORANGE  ST77XX_ORANGE
     #define PURPLE  ST77XX_MAGENTA
     #define GREY    (C_WHITE / 2)
+    #define DARK_RED    0x8800
+    #define DARK_GREEN  0x0320
+    #define DARK_YELLOW 0xB421
 
     #undef MENU_C_MAX
     #ifdef TFT_ST7789_T3_BIG
@@ -84,6 +98,9 @@
     #define ORANGE  TFT_ORANGE
     #define PURPLE  TFT_MAGENTA
     #define GREY    (C_WHITE / 2)
+    #define DARK_RED    0x8800
+    #define DARK_GREEN  0x0320
+    #define DARK_YELLOW 0xB421
 
     #undef MENU_C_MAX
     #define MENU_C_MAX 41
@@ -104,6 +121,9 @@
     #define ORANGE  ILI9341_ORANGE
     #define PURPLE  ILI9341_MAGENTA
     #define GREY    (ILI9341_WHITE / 2)
+    #define DARK_RED    0x8800
+    #define DARK_GREEN  0x0320
+    #define DARK_YELLOW 0xB421
     #undef MENU_C_MAX
     #define MENU_C_MAX 41
     #define MENU_MESSAGE_MAX (MENU_C_MAX*2)
