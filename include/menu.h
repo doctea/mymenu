@@ -490,8 +490,8 @@ class Menu {
             #endif
             #ifdef PIN_BUTTON_B
                 if (pushButtonB.update()) {
-                    if ( (!button_mode_rise_on_click && pushButtonA.fell()) ||
-                         ( button_mode_rise_on_click && pushButtonA.rose()) ) {
+                    if ( (!button_mode_rise_on_click && pushButtonB.fell()) ||
+                         ( button_mode_rise_on_click && pushButtonB.rose()) ) {
                         button_count++;
                         button_back();
                     } /*else if (pushButtonB.fell()) {
@@ -501,8 +501,8 @@ class Menu {
             #endif
             #ifdef PIN_BUTTON_C
                 if (pushButtonC.update()) {
-                    if ( (!button_mode_rise_on_click && pushButtonA.fell()) ||
-                         ( button_mode_rise_on_click && pushButtonA.rose()) ) {
+                    if ( (!button_mode_rise_on_click && pushButtonC.fell()) ||
+                         ( button_mode_rise_on_click && pushButtonC.rose()) ) {
                         button_count++;
                         button_right();
                     } /*else if (pushButtonC.fell()) {
