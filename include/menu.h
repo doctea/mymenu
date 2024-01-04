@@ -67,6 +67,8 @@ class Menu {
     bool profile_enable = false;
     char profile_string[MENU_C_MAX] = "profiler output";
 
+    bool button_mode_rise_on_click = false;
+
     public:
         bool debug = false;
         bool debug_times = false;
@@ -74,6 +76,15 @@ class Menu {
         bool auto_update = true;    // whether to send update to tft at end of every display() call, or to allow host app to decide
 
         bool recalculate_bottoms = false;
+
+        Menu(DisplayTranslator *dt, bool button_mode_rise_on_click = false) {
+            this->tft = dt;
+            this->pages = new LinkedList<page_t*>();
+            this->select_page(this->add_page("Main"));
+            this->screen_height_cutoff = (int)(0.75f*(float)tft->height());
+
+            this->button_mode_rise_on_click = button_mode_rise_on_click;
+        }
 
         void setDebugTimes(bool value) {
             this->debug_times = value;
@@ -251,14 +262,6 @@ class Menu {
 
         FLASHMEM int get_num_panels() {
             return this->selected_page->items->size();
-        }
-
-
-        Menu(DisplayTranslator *dt) {
-            this->tft = dt;
-            this->pages = new LinkedList<page_t*>();
-            this->select_page(this->add_page("Main"));
-            this->screen_height_cutoff = (int)(0.75f*(float)tft->height());
         }
 
         FLASHMEM
@@ -474,17 +477,21 @@ class Menu {
             #endif
             #ifdef PIN_BUTTON_A
                 if (pushButtonA.update()) {
-                    if (pushButtonA.fell()) {
+                    if ( (!button_mode_rise_on_click && pushButtonA.fell()) ||
+                         ( button_mode_rise_on_click && pushButtonA.rose()) ) {
                         button_count++;
                         button_select();
-                    } else if (pushButtonA.rose()) {
+                    } else if (
+                         (!button_mode_rise_on_click && pushButtonA.rose()) ||
+                         ( button_mode_rise_on_click && pushButtonA.fell()) ) {
                         button_select_released();
                     }
                 }
             #endif
             #ifdef PIN_BUTTON_B
                 if (pushButtonB.update()) {
-                    if (pushButtonB.fell()) {
+                    if ( (!button_mode_rise_on_click && pushButtonA.fell()) ||
+                         ( button_mode_rise_on_click && pushButtonA.rose()) ) {
                         button_count++;
                         button_back();
                     } /*else if (pushButtonB.fell()) {
@@ -494,7 +501,8 @@ class Menu {
             #endif
             #ifdef PIN_BUTTON_C
                 if (pushButtonC.update()) {
-                    if (pushButtonC.fell()) {
+                    if ( (!button_mode_rise_on_click && pushButtonA.fell()) ||
+                         ( button_mode_rise_on_click && pushButtonA.rose()) ) {
                         button_count++;
                         button_right();
                     } /*else if (pushButtonC.fell()) {
