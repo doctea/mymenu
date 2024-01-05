@@ -29,7 +29,7 @@
 //#include "menuitems_pinned.h"
 
 //FLASHMEM // causes a section type conflict with 'void Menu::add(LinkedList<MenuItem*>*, uint16_t)'
-void setup_menu();
+//void setup_menu(bool button_pressed_state = HIGH);
 
 #if defined(__arm__) && defined(CORE_TEENSY)
     extern unsigned long _heap_start;
@@ -67,7 +67,7 @@ class Menu {
     bool profile_enable = false;
     char profile_string[MENU_C_MAX] = "profiler output";
 
-    bool button_mode_rise_on_click = false;
+    bool button_mode_rise_on_click = true;
 
     public:
         bool debug = false;
@@ -83,7 +83,16 @@ class Menu {
             this->select_page(this->add_page("Main"));
             this->screen_height_cutoff = (int)(0.75f*(float)tft->height());
 
-            this->button_mode_rise_on_click = button_mode_rise_on_click;
+            //this->button_mode_rise_on_click = button_mode_rise_on_click;
+            #ifdef PIN_BUTTON_A
+                pushButtonA.setPressedState(button_mode_rise_on_click);
+            #endif
+            #ifdef PIN_BUTTON_B
+                pushButtonB.setPressedState(button_mode_rise_on_click);
+            #endif
+            #ifdef PIN_BUTTON_C
+                pushButtonC.setPressedState(button_mode_rise_on_click);
+            #endif
         }
 
         void setDebugTimes(bool value) {
@@ -226,8 +235,10 @@ class Menu {
             } 
             return true;
         }
+        bool back_held = false;
         bool button_back() {
             Debug_println(F("button_back()"));
+            back_held = false;
             if (opened_page_index==-1) {
                 // do nothing?
             } else if (selected_page->currently_opened!=-1 && !selected_page->items->get(selected_page->currently_opened)->button_back()) {
@@ -243,6 +254,25 @@ class Menu {
             }
             tft->clear(true);   // TOOD: don't rely on this
             return true;
+        }
+        bool button_back_longpress() {
+            if (!back_held) {
+                back_held = true;
+                Serial.println("BUTTON_BACK_LONGPRESS!");
+                
+                // todo: switch to 'quickjump' page
+                if (opened_page_index==-1 || selected_page->currently_opened==-1) {
+                    Serial.println("TODO: back longpress, no page open or no item selected, switch to quickjump page?");
+                } else if (selected_page->currently_opened!=-1) {
+                    button_back();
+                    Serial.printf("TODO: back_longpress, on currently_opened item %i (%s)\n", selected_page->currently_opened, selected_page->items->get(selected_page->currently_opened)->label);
+                } else {
+                    Serial.println("TODO: back longpress, other state?");
+                }
+            } /*else {
+                Serial.println("back_held, ignoring longpress");
+            }*/
+            return false;
         }
         bool button_right() {
             Debug_println(F("button_right()"));
@@ -477,32 +507,29 @@ class Menu {
             #endif
             #ifdef PIN_BUTTON_A
                 if (pushButtonA.update()) {
-                    if ( (!button_mode_rise_on_click && pushButtonA.fell()) ||
-                         ( button_mode_rise_on_click && pushButtonA.rose()) ) {
+                    if ( pushButtonA.pressed() ) {
                         button_count++;
                         button_select();
-                    } else if (
-                         (!button_mode_rise_on_click && pushButtonA.rose()) ||
-                         ( button_mode_rise_on_click && pushButtonA.fell()) ) {
+                    } else if ( pushButtonA.released() ) {
                         button_select_released();
                     }
                 }
             #endif
             #ifdef PIN_BUTTON_B
                 if (pushButtonB.update()) {
-                    if ( (!button_mode_rise_on_click && pushButtonB.fell()) ||
-                         ( button_mode_rise_on_click && pushButtonB.rose()) ) {
+                    if ( pushButtonB.released() ) {
                         button_count++;
                         button_back();
-                    } /*else if (pushButtonB.fell()) {
-                        button_back_released();
+                    } /*else if (pushButtonB.isPressed()) {
+                        Serial.printf("B button is pressed, duration is %i!\n", pushButtonB.currentDuration());
                     }*/
-                }
+                } else if ( pushButtonB.isPressed() && pushButtonB.currentDuration()>250 ) {
+                    button_back_longpress();
+                }                    
             #endif
             #ifdef PIN_BUTTON_C
                 if (pushButtonC.update()) {
-                    if ( (!button_mode_rise_on_click && pushButtonC.fell()) ||
-                         ( button_mode_rise_on_click && pushButtonC.rose()) ) {
+                    if ( pushButtonC.pressed() ) {
                         button_count++;
                         button_right();
                     } /*else if (pushButtonC.fell()) {

@@ -227,38 +227,5 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
     }*/
 };
 
-//void tft_print(const char *text);
-
-//#define MAX_KNOB 1024
-/*Encoder knob(ENCODER_KNOB_L, ENCODER_KNOB_R);
-Bounce pushButtonA = Bounce(PIN_BUTTON_A, 10); // 10ms debounce
-Bounce pushButtonB = Bounce(PIN_BUTTON_B, 10); // 10ms debounce
-Bounce pushButtonC = Bounce(PIN_BUTTON_C, 10); // 10ms debounce*/
-
-//#include "menu.h"
-
-
-/*void testdrawtext(char *text, uint16_t color) {
-  tft->setCursor(0, 0);
-  tft->setTextColor(color);
-  tft->setTextWrap(true);
-  tft->print(text);
-}
-
-// clear screen
-void tft_clear() {
-    tft->fillScreen(ST77XX_BLACK);
-}
-
-void tft_print (const char *text) {
-    tft->print(text);
-}
-
-void tft_header(ST7789_t3 *tft, const char *text) {
-    tft->setTextColor(ST77XX_WHITE,ST77XX_BLACK);
-    tft->setTextSize(0);
-    tft->println(text);
-}*/
-
 #endif
 #endif

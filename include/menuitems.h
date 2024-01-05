@@ -52,8 +52,9 @@ class MenuItem {
             return *this;
         }
 
-        MenuItem(const char *in_label) {
+        MenuItem(const char *in_label, bool selectable = true) {
             strncpy(label, in_label, MAX_LABEL_LENGTH);
+            this->selectable = selectable;
         }
         virtual void on_add();
         virtual void update_label(const char *new_label);
@@ -118,9 +119,7 @@ class PinnedPanelMenuItem : public MenuItem {
 class SeparatorMenuItem : public MenuItem {
     public:
         //int16_t colour = C_WHITE;
-        SeparatorMenuItem(const char *label) : MenuItem(label) {
-            this->selectable = false;
-        }
+        SeparatorMenuItem(const char *label) : MenuItem(label, false) {}
         SeparatorMenuItem(const char *label, uint16_t default_fg) : SeparatorMenuItem(label) {
             this->default_fg = default_fg;
         }
