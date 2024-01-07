@@ -262,12 +262,15 @@ class Menu {
                 
                 // todo: switch to 'quickjump' page
                 if (opened_page_index==-1 || selected_page->currently_opened==-1) {
-                    Serial.println("TODO: back longpress, no page open or no item selected, switch to quickjump page?");
+                    //Serial.println("TODO: back longpress, no page open or no item selected, switch to quickjump page?"); Serial.flush();
+                    select_page_quickjump();
                 } else if (selected_page->currently_opened!=-1) {
-                    button_back();
-                    Serial.printf("TODO: back_longpress, on currently_opened item %i (%s)\n", selected_page->currently_opened, selected_page->items->get(selected_page->currently_opened)->label);
+                    //Serial.printf("TODO: back_longpress, on currently_opened item %i (%s)\n", selected_page->currently_opened, selected_page->items->get(selected_page->currently_opened)->label);
+                    //Serial.printf("TODO: back_longpress, on currently_opened item %i\n", selected_page->currently_opened);
+                    //button_back();
+                    select_page_quickjump();
                 } else {
-                    Serial.println("TODO: back longpress, other state?");
+                    //Serial.println("TODO: back longpress, other state?");
                 }
             } /*else {
                 Serial.println("back_held, ignoring longpress");
@@ -337,6 +340,50 @@ class Menu {
             tft->start();
         }
 
+        static const int NUM_QUICK_PAGE_HISTORY = 10;
+        unsigned int quick_page_history_head = 0;
+        unsigned int quick_page_history_total = 0;
+        int quick_page_index = 0;
+        int quick_pages[NUM_QUICK_PAGE_HISTORY] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+        // add the page index to the 'visited history'
+        void remember_opened_page(int page_index) {
+            // don't store qjump page itself..
+            if (page_index==quick_page_index) 
+                return;
+
+            // don't add this item if it already exists
+            for (int i = 0 ; i < NUM_QUICK_PAGE_HISTORY ; i++) {    
+                if (this->quick_pages[i]==page_index)
+                    return;
+            }
+
+            // add the page to the rolling history
+            this->quick_pages[this->quick_page_history_head] = page_index;
+
+            // wrap history where necessary
+            quick_page_history_head++;
+            if (quick_page_history_head >= NUM_QUICK_PAGE_HISTORY)
+                quick_page_history_head = 0;
+
+            if (quick_page_history_total < NUM_QUICK_PAGE_HISTORY) 
+                quick_page_history_total++;
+        }
+        page_t *get_quick_page(unsigned int page_index) {
+            if (quick_pages[page_index]==-1)
+                return nullptr;
+            return pages->get(quick_pages[page_index]);
+        }
+        void setup_quickjump();
+        void select_page_quickjump() {
+            if (quick_page_index>=0) {
+                opened_page_index = -1;
+                //this->button_back();
+                this->select_page(this->quick_page_index);
+                this->open_page(this->quick_page_index);
+                this->selected_page->currently_selected = this->selected_page->currently_opened = 0;                  
+            }
+        }
+
         void select_next_page() {
             this->opened_page_index = -1;
             if (this->selected_page!=nullptr) 
@@ -369,9 +416,13 @@ class Menu {
             opened_page_index = page_index;
             //Serial.printf("opening page %i, currently_selected is %i\n", page_index, selected_page->currently_selected);
 
+            this->remember_opened_page(page_index);
+
             // select first selectable item 
             if (selected_page!=nullptr && selected_page->currently_selected==-1) {
                 this->knob_right(); 
+                if (selected_page->items->size()==1) // if there's only one item on the page, open it..! TODO: test this works like expected!!
+                    this->button_select_released(); 
             }
             //Serial.printf("=> currently_selected is now %i\n", selected_page->currently_selected);
         }       

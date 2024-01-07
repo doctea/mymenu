@@ -313,6 +313,15 @@ int Menu::display() {
     return y;
 }
 
+
+#include "menuitems_quickpage.h"
+
+void Menu::setup_quickjump() {
+    quick_page_index = add_page("QuickJump");
+    menu->add(new QuickPagesMenuItem("QuickJump history"));
+}
+
+
 void menu_set_last_message(const char *msg, int colour) {
     menu->set_last_message(msg);
     menu->set_message_colour(colour);
