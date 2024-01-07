@@ -320,14 +320,14 @@ class CallbackMenuItem : public MenuItem {
     }
 
     virtual int display(Coord pos, bool selected, bool opened) override {
-        pos.y = header(this->callback_func(), pos, selected, opened);
+        pos.y = header((const char*)this->callback_func(), pos, selected, opened);
         tft->setCursor(pos.x,pos.y);
 
         return tft->getCursorY();
     }
 
     virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
-        const char *txt = this->callback_func();
+        const char *txt = (const char*) this->callback_func();
         //bool use_small = strlen(txt) <= (max_character_width/2);
         //int textSize = use_small ? 2 : 1;
         int textSize = tft->get_textsize_for_width(txt, max_character_width*tft->characterWidth());
