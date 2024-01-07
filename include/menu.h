@@ -7,6 +7,8 @@
 #ifndef MENU_LIB_INCLUDED
 #define MENU_LIB_INCLUDED
 
+#define LONGPRESS_MILLIS 250    // how long is considered to be a 'long press' of button
+
 #define MENU_MESSAGE_MAX (MENU_C_MAX*2)
 
 #ifndef CORE_TEENSY
@@ -568,13 +570,13 @@ class Menu {
             #endif
             #ifdef PIN_BUTTON_B
                 if (pushButtonB.update()) {
-                    if ( pushButtonB.released() ) {
+                    if ( pushButtonB.released() && pushButtonB.previousDuration()<=LONGPRESS_MILLIS) {
                         button_count++;
                         button_back();
                     } /*else if (pushButtonB.isPressed()) {
                         Serial.printf("B button is pressed, duration is %i!\n", pushButtonB.currentDuration());
                     }*/
-                } else if ( pushButtonB.isPressed() && pushButtonB.currentDuration()>250 ) {
+                } else if ( pushButtonB.isPressed() && pushButtonB.currentDuration()>LONGPRESS_MILLIS ) {
                     button_back_longpress();
                 }                    
             #endif
