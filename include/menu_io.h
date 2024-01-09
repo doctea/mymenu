@@ -4,7 +4,19 @@
 #include <Encoder.h>
 #include <Bounce2.h>
 
-using Button = Bounce2::Button;
+// wrapper class to allow resetting of button's state change memory, to work around problem where
+// it thinks the back button has been held for 250ms when first powered on
+class ResettableButton : public Bounce2::Button {
+  public:
+    /**
+     * @brief Resets the 'last state change' time.
+     */
+    void resetStateChange() {
+      this->stateChangeLastTime = millis();
+    }  
+};
+
+using Button = ResettableButton;
 
 #ifdef ENCODER_KNOB_L
     #ifdef ENCODER_DURING_SETUP
