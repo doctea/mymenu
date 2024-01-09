@@ -1,5 +1,4 @@
-#ifndef MENU_IO__INCLUDED
-#define MENU_IO__INCLUDED
+#pragma once
 
 #include <Encoder.h>
 #include <Bounce2.h>
@@ -36,6 +35,4 @@ using Button = ResettableButton;
 #ifdef PIN_BUTTON_C
     //Bounce pushButtonC = Bounce(PIN_BUTTON_C, 10); // 10ms debounce
     extern Button pushButtonC;
-#endif
-
 #endif

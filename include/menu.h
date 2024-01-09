@@ -260,7 +260,7 @@ class Menu {
         bool button_back_longpress() {
             if (!back_held) {
                 back_held = true;
-                Serial.println("BUTTON_BACK_LONGPRESS!");
+                //Serial.println("BUTTON_BACK_LONGPRESS!");
                 
                 // todo: switch to 'quickjump' page
                 if (opened_page_index==-1 || selected_page->currently_opened==-1) {
@@ -434,7 +434,7 @@ class Menu {
         void add(LinkedList<MenuItem *> *items, uint16_t default_fg_colour = C_WHITE) {
             //Serial.println("starting add"); Serial.flush();
             if (items==nullptr) {
-                Serial.println("WARNING: nullptr list passed to menu#add, skipping!");
+                if (Serial) Serial.println("WARNING: nullptr list passed to menu#add, skipping!");
                 return;
             }
             //Serial.printf("passed items @%p\n", items);

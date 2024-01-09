@@ -27,6 +27,7 @@ class QuickPagesMenuItem : public MenuItem {
                 tft->println(page->title);
                 colours(C_WHITE);
             }
+            return pos.y;
         }
 
         virtual bool knob_left() override {
@@ -46,7 +47,7 @@ class QuickPagesMenuItem : public MenuItem {
         virtual bool button_select() override {
             if (selected_value_index<0)
                 return false;
-            Serial.printf("button_select for value %i (%i, %s)\n", selected_value_index, menu->quick_pages[selected_value_index], menu->get_quick_page(selected_value_index)->title);
+            if(Serial) Serial.printf("button_select for value %i (%i, %s)\n", selected_value_index, menu->quick_pages[selected_value_index], menu->get_quick_page(selected_value_index)->title);
             menu->select_page(menu->quick_pages[selected_value_index]);
             return true;
         }
