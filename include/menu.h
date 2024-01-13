@@ -585,7 +585,7 @@ class Menu {
                     if ( pushButtonC.pressed() ) {
                         button_count++;
                         button_right();
-                    } /*else if (pushButtonC.fell()) {
+                    } /*else if (pushBufttonC.fell()) {
                         button_right_released();
                     }*/
                 }

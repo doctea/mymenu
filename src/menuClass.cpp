@@ -5,6 +5,8 @@
 
 #include <string>
 
+bool debug_flag = false;
+
 #define MAX_KNOB 1024
 
 #ifndef CORE_TEENSY

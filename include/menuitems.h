@@ -15,6 +15,8 @@
 
 #define MAX_LABEL_LENGTH 40
 
+extern const char *fired_message;
+extern const char *sure_message;
 extern const char *set_message;
 extern const char *label_on;
 extern const char *label_off;
