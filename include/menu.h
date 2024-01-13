@@ -129,8 +129,11 @@ class Menu {
         uint32_t message_colour = C_WHITE;
         DisplayTranslator *tft;
 
-        bool is_opened() {
+        bool is_item_opened() {
             return this->selected_page->currently_opened!=-1;
+        }
+        bool is_page_opened() {
+            return this->opened_page_index!=-1;
         }
 
         // input-handling stuff
@@ -150,23 +153,24 @@ class Menu {
         }
         bool knob_left() {
             Debug_println(F("knob_left()"));
-            if (opened_page_index==-1) {
+            if (!is_page_opened()) {
                 selected_page_index--;
                 if (selected_page_index<0)
                     selected_page_index = pages->size() - 1;
                 select_page(selected_page_index);
-            } else if (selected_page->currently_opened!=-1) { // && items->get(currently_opened)->knob_left()) {
+            } else if (is_item_opened()) { // && items->get(currently_opened)->knob_left()) {
                 //Serial.printf(F("knob_left on currently_opened menuitem %i\n"), selected_page->currently_opened);
                 selected_page->items->get(selected_page->currently_opened)->knob_left();
             } else {
-                selected_page->currently_selected--;
+                /*selected_page->currently_selected--;
                 if (selected_page->currently_selected<0) 
                     selected_page->currently_selected = selected_page->items->size()-1;
                 //Serial.printf(F("selected %i aka %s\n"), selected_page->currently_selected, selected_page->items->get(selected_page->currently_selected)->label);
                 if (selected_page->currently_selected>=0 && selected_page->currently_selected < (int)selected_page->items->size() && !selected_page->items->get(selected_page->currently_selected)->is_selectable()) {
                     //Serial.println("?? extra knob_left because isn't selectable");
                     knob_left();
-                }
+                }*/
+                select_previous_selectable_item();
             }
             /*if (debug) {
                 char msg[tft->get_c_max()] = "";
@@ -177,23 +181,24 @@ class Menu {
         }
         bool knob_right() {
             Debug_println(F("knob_right()"));
-            if (opened_page_index==-1) {
+            if (!is_page_opened()) {
                 selected_page_index++;
                 if (selected_page_index>=(int)pages->size())
                     selected_page_index = 0;
                 select_page(selected_page_index);
-            } else if (selected_page->currently_opened!=-1) { //&& items->get(currently_opened)->knob_right()) {
+            } else if (is_item_opened()) { //&& items->get(currently_opened)->knob_right()) {
                 //Serial.printf(F("knob_right on currently_opened menuitem %i\n"), selected_page->currently_opened);
                 selected_page->items->get(selected_page->currently_opened)->knob_right();
             } else {
-                selected_page->currently_selected++;
+                select_next_selectable_item();
+                /*selected_page->currently_selected++;
                 if (selected_page->currently_selected >= (int)selected_page->items->size())
                     selected_page->currently_selected = 0;
                 //Serial.printf(F("selected %i aka %s\n"), selected_page->currently_selected, selected_page->items->get(selected_page->currently_selected)->label);
                 if (selected_page->currently_selected>=0 && selected_page->currently_selected < (int)selected_page->items->size() && !selected_page->items->get(selected_page->currently_selected)->is_selectable()) {
                     //Serial.println("?? extra knob_right because isn't selectable");
-                    knob_right();
-                }
+                    //knob_right();
+                }*/
             }
             /*if (debug) {
                 char msg[tft->get_c_max()] = "";
@@ -203,11 +208,94 @@ class Menu {
 
             return true;
         }
+
+        void select_first_selectable_item() {
+            this->selected_page->currently_selected = -1;
+            //this->select_next_selectable_item();
+            for (unsigned int i = 0 ; i < this->selected_page->items->size() ; i++) {
+                if (this->selected_page->items->get(i)->is_selectable()) {
+                    selected_page->currently_selected = i;
+                    if (this->selected_page->items->size()==1)
+                        selected_page->currently_opened = selected_page->currently_selected;
+                    break;
+                }
+            }
+        }
+        void select_next_selectable_item() {
+            int found = this->find_next_selectable_item();
+            //Serial.printf("select_next_selectable_item found %i\n", found); Serial_flush();
+            this->selected_page->currently_selected = found;
+        }
+        int find_next_selectable_item() {
+            int current = this->selected_page->currently_selected;
+            int size = this->selected_page->items->size();
+            //Serial.printf("find_next_selectable_item on page %i, starting with current=%i and size=%i..\n", this->opened_page_index, current, size);
+            for (int c = (current+1)%size ; c < size+current ; c++) {
+                //Serial.printf("find_next_selectable_item checking item at index %i..\n", c%size);
+                if (this->selected_page->items->get(c%size)->is_selectable())
+                    return c%size;
+            }
+
+            // nothing found selectable - but if currently selected is selectable then just use that
+            if (current>=0 && this->selected_page->items->get(current)->is_selectable())
+                return current;
+
+            //Serial.println("nothing selectable found, returning -1!");
+            return -1;
+        }
+        void select_previous_selectable_item() {
+            int found = this->find_previous_selectable_item();
+            this->selected_page->currently_selected = found;
+        }
+        int find_previous_selectable_item() {
+            int current = this->selected_page->currently_selected;
+            int size = this->selected_page->items->size();
+            //Serial.printf("find_previous_selectable_item starting at %i with size=%i...\n", current, size);
+            /*Serial.printf("find_previous_selectable_item starting at %i with size=%i...\n", current, size);
+            for (int c = (current-1)%size ; (c%size) != current ; c = ((c-1)%size+size)%size) {
+                if (c < 0) c = size+c;
+                Serial.printf("find_previous_selectable_item checking c=%i, c mod size=%i\n", c, c%size); Serial.flush();
+                if (this->selected_page->items->get(c%size)->is_selectable()) {
+                    Serial.printf("found at %i\n", c%size);
+                    return c%size;
+                }
+            }*/
+            int c = current;
+            do {
+                c--;
+                if (c<0)
+                    c = size-1;
+                if (this->selected_page->items->get(c%size)->is_selectable()) {
+                    //Serial.printf("found at %i\n", c);
+                    return c;
+                }
+            } while (c != current);
+
+            // nothing found selectable - but if currently selected is selectable then just use that
+            if (current>=0 && this->selected_page->items->get(current)->is_selectable())
+                return current;
+
+            //Serial.println("not found, returning -1");
+            return -1;
+        }
+
         bool button_select() {
             Debug_printf(F("Menu#button_select() on item %i\n"), selected_page->currently_selected);
-            if (opened_page_index==-1) {
+            if (!is_page_opened()) {
                 open_page(selected_page_index);
-            } else if (selected_page->currently_opened==-1) {
+                /*if (selected_page->items->size()==1 && selected_page->items->get(0)->is_selectable()) {
+                    // if there is only one item on the page, and its selectable, select+open it
+                    // todo: make this understand if there is only one SELECTABLE item on the page
+                    int next = find_next_selectable_item();
+                    if (next>=0) {
+                        knob_right();
+                        button_select();
+                    } else {
+                        // close the page if nothing to select
+                        opened_page_index = -1;
+                    }
+                }*/
+            } else if (!is_item_opened()) {
                 Debug_printf(F("button_select with currently_opened menuitem -1 - opening %i\n"), selected_page->currently_selected);
                 if (selected_page->items->get(selected_page->currently_selected)->action_opened()) {
                     selected_page->currently_opened = selected_page->currently_selected;
@@ -222,9 +310,9 @@ class Menu {
         }
         bool button_select_released() {
             Debug_printf(F("Menu#button_select_released() on item %i\n"), selected_page->currently_selected);
-            if (opened_page_index==-1) {
+            if (!is_page_opened()) {
                 // do nothing?
-            } else if (selected_page->currently_opened==-1) {
+            } else if (!is_item_opened()) {
                 /*Serial.printf(F("button_select_released with currently_opened menuitem -1 - opening %i\n"), currently_selected);
                 if (items->get(currently_selected)->action_opened()) {
                     currently_opened = currently_selected;
@@ -241,13 +329,20 @@ class Menu {
         bool button_back() {
             Debug_println(F("button_back()"));
             back_held = false;
-            if (opened_page_index==-1) {
-                // do nothing?
-            } else if (selected_page->currently_opened!=-1 && !selected_page->items->get(selected_page->currently_opened)->button_back()) {
+            if (!is_page_opened()) {
+                // alreayd at top level - do nothing?
+            } else if (is_item_opened() && !selected_page->items->get(selected_page->currently_opened)->button_back()) {
+                // an item is opened, and it responded false to button_back()
                 Debug_printf(F("back with currently_opened menuitem %i and no subhandling, setting to -1\n"), selected_page->currently_opened);
                 selected_page->currently_selected = selected_page->currently_opened;
                 selected_page->currently_opened = -1;
-            } else if (selected_page->currently_opened==-1) {
+                if (selected_page->items->size()==1) {
+                    // if there is only one item on this page, close the page too
+                    // todo: make this understand if there is only one SELECTABLE item on the page
+                    opened_page_index = -1;
+                }
+            } else if (!is_item_opened()) {
+                // no item is opened
                 Debug_printf(F("back pressed but already at top level with currently_opened menuitem %i\n"), selected_page->currently_opened); //setting to -1\n", currently_opened);
                 selected_page->currently_selected = -1;
                 opened_page_index = -1;
@@ -263,10 +358,10 @@ class Menu {
                 //Serial.println("BUTTON_BACK_LONGPRESS!");
                 
                 // todo: switch to 'quickjump' page
-                if (opened_page_index==-1 || selected_page->currently_opened==-1) {
+                if (!is_page_opened() || !is_item_opened()) {
                     //Serial.println("TODO: back longpress, no page open or no item selected, switch to quickjump page?"); Serial.flush();
                     select_page_quickjump();
-                } else if (selected_page->currently_opened!=-1) {
+                } else if (is_item_opened()) {
                     //Serial.printf("TODO: back_longpress, on currently_opened item %i (%s)\n", selected_page->currently_opened, selected_page->items->get(selected_page->currently_opened)->label);
                     //Serial.printf("TODO: back_longpress, on currently_opened item %i\n", selected_page->currently_opened);
                     //button_back();
@@ -281,9 +376,9 @@ class Menu {
         }
         bool button_right() {
             Debug_println(F("button_right()"));
-            if (opened_page_index==-1) {
+            if (!is_page_opened()) {
                 open_page(selected_page_index);
-            } else if (selected_page->currently_opened!=-1) {
+            } else if (is_item_opened()) {
                 if (selected_page->items->get(selected_page->currently_opened)->button_right()) {
                     Debug_printf(F("right with currently_opened menuitem %i subhandled!\n"), selected_page->currently_opened);
                 } else {
@@ -378,11 +473,12 @@ class Menu {
         void setup_quickjump();
         void select_page_quickjump() {
             if (quick_page_index>=0) {
-                opened_page_index = -1;
+                selected_page_index = opened_page_index = -1;
                 //this->button_back();
-                this->select_page(this->quick_page_index);
+                //this->select_page(this->quick_page_index);
                 this->open_page(this->quick_page_index);
-                this->selected_page->currently_selected = this->selected_page->currently_opened = 0;                  
+                //this->selected_page->currently_selected = this->selected_page->currently_opened = 0;                  
+                //knob_right();
             }
         }
 
@@ -402,6 +498,11 @@ class Menu {
         }
 
         void select_page(unsigned int p) {
+            // unselect current first
+            if (this->selected_page!=nullptr)
+                this->selected_page->currently_selected = this->selected_page->currently_opened = -1;
+
+            this->opened_page_index = -1;
             this->selected_page_index = p;
             if (selected_page_index >= (int)pages->size())
                 this->selected_page_index = 0;
@@ -414,18 +515,31 @@ class Menu {
             //Serial.printf("Selected page %i\n", selected_page_index);
         }
         void open_page(unsigned int page_index) {
+            //Serial.printf("open_page %i\n", page_index);
             page_index = constrain(page_index, (unsigned int)0, pages->size() - 1);
-            opened_page_index = page_index;
+
+            select_page(page_index);
+
             //Serial.printf("opening page %i, currently_selected is %i\n", page_index, selected_page->currently_selected);
 
+            // select first selectable item 
+            if (selected_page!=nullptr) {
+                opened_page_index = page_index;
+
+                select_first_selectable_item();
+                if (selected_page->currently_selected==-1)
+                    // close the page, as couldn't find a selectable item on it!
+                    this->opened_page_index = -1;
+                /*else if (selected_page->items->size()==1) {// if there's only one item on the page, open it..! TODO: test this works like expected!!
+                    //this->knob_right(); 
+                    this->button_select_released(); 
+                    }*/
+                //}
+            }
+
+            //if (is_page_opened())
             this->remember_opened_page(page_index);
 
-            // select first selectable item 
-            if (selected_page!=nullptr && selected_page->currently_selected==-1) {
-                this->knob_right(); 
-                if (selected_page->items->size()==1) // if there's only one item on the page, open it..! TODO: test this works like expected!!
-                    this->button_select_released(); 
-            }
             //Serial.printf("=> currently_selected is now %i\n", selected_page->currently_selected);
         }       
 
@@ -479,10 +593,12 @@ class Menu {
             pinned_panel = m;
         }
 
+        // set the LinkedList where to store the messages
         FLASHMEM void set_messages_log(LinkedList<String> *messages_log) {
             this->messages_log = messages_log;
         }
 
+        // add message to the message history
         void add_message(const char *msg) {
             if (this->messages_log!=nullptr) {
                 this->messages_log->add(String(msg));
@@ -502,6 +618,7 @@ class Menu {
             this->add_message(msg);
         }
 
+        // render the last message to screen in the correct colours etc
         int draw_message() {
             //tft.setCursor(0,0);
             // draw the last status message
@@ -519,8 +636,10 @@ class Menu {
         // draw the menu display
         int display();
 
+        // display the 'pinned' controls
         int display_pinned();
         
+        // call when ticks have updated, to notify all menuitem controls in case they need to do something
         void update_ticks(unsigned long ticks) {
             if (pinned_panel!=nullptr)
                 pinned_panel->update_ticks(ticks);
@@ -538,6 +657,7 @@ class Menu {
             //Serial.printf("updated_ticks %i\n", ticks);
         }
 
+        // check encoder and buttons and fire off events if necessary
         void update_inputs() {
             //static int button_count = 0;
             //int new_knob_read;
@@ -613,6 +733,7 @@ class Menu {
             return colours[index++];
         }
 
+    // tell the DisplayTranslator to display its buffer
     void updateDisplay() {
         tft->updateDisplay();
     }

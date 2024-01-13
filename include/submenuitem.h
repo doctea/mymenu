@@ -43,6 +43,10 @@ class SubMenuItem : public MenuItem {
             return MenuItem::action_opened();
         }
 
+        bool is_opened() {
+            return this->currently_opened!=-1;
+        }
+
         virtual void add(MenuItem *item) {
             if (item!=nullptr) {
                 item->tft = this->tft;
@@ -96,7 +100,7 @@ class SubMenuItem : public MenuItem {
             int y = header(this->label, pos, selected, opened);
             colours(false,this->default_fg,this->default_bg);
 
-            if (currently_opened>=0 && this->items->get(currently_opened)->allow_takeover())
+            if (is_opened() && this->items->get(currently_opened)->allow_takeover())
                 return this->items->get(currently_selected)->display(Coord(0,y), true, true);
 
             //int start_item = currently_selected>=0 ? currently_selected : 0;
@@ -147,7 +151,7 @@ class SubMenuItem : public MenuItem {
         }
 
         virtual bool knob_left() override {
-            if (currently_opened==-1) {
+            if (!is_opened()) {
                 currently_selected--;
                 if (currently_selected<0)
                     currently_selected = items->size()-1;
@@ -159,7 +163,7 @@ class SubMenuItem : public MenuItem {
             }
         }
         virtual bool knob_right() override {
-            if (currently_opened==-1) {
+            if (!is_opened()) {
                 currently_selected++;
                 if (currently_selected>=(int)items->size())
                     currently_selected = 0;
@@ -173,7 +177,7 @@ class SubMenuItem : public MenuItem {
 
         virtual bool button_select() override {
             //Serial.printf("SubMenuItem#button_select(), currently_opened is %i\n", currently_opened);
-            if (currently_opened==-1) {
+            if (!is_opened()) {
                 if (currently_selected>=0) {
                     if (items->get(currently_selected)->action_opened()) {
                         currently_opened = currently_selected;
@@ -203,11 +207,11 @@ class SubMenuItem : public MenuItem {
 
         virtual bool button_back() override {
             needs_redraw = true;    // force a redraw if we've selected
-            if (currently_opened!=-1 && !items->get(currently_opened)->button_back()) {
+            if (is_opened() && !items->get(currently_opened)->button_back()) {
                 //Serial.println("submenuitem#button_back() got a false back from the selected item's button_back, setting currently_opened etc then returning true");
                 currently_selected = currently_opened;
                 currently_opened = -1;
-            } else if (currently_opened==-1) {
+            } else if (!is_opened()) {
                 //Serial.println("submenuitem#button_back() nothing selected so settiong currently_selected then returning false");
                 //currently_opened = 0;                
                 currently_selected = -1;
@@ -217,7 +221,7 @@ class SubMenuItem : public MenuItem {
         }
 
         virtual bool button_right() override {
-            if (currently_opened!=-1) {
+            if (is_opened()) {
                 if (items->get(currently_opened)->button_right()) {
 
                 } else {

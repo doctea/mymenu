@@ -75,7 +75,7 @@ int Menu::display() {
 
     // now draw the menu
     //if (debug) { Serial.println("display()=> about to check display mode and branch.."); Serial_flush(); }
-    if (currently_opened>=0 && items->get(currently_opened)->allow_takeover()) {
+    if (is_item_opened() && items->get(currently_opened)->allow_takeover()) {
         //if (debug) { Serial.println("display()=> takeover branch"); Serial_flush(); }
         // takeover -- focus on this menu item only
         tft->setCursor(0, y);
@@ -321,6 +321,7 @@ int Menu::display() {
 void Menu::setup_quickjump() {
     quick_page_index = add_page("QuickJump");
     menu->add(new QuickPagesMenuItem("QuickJump history"));
+    menu->remember_opened_page(0);  // add the Main page to the quickjump list by default
 }
 
 
