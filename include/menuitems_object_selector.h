@@ -146,10 +146,10 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
         if (this->available_values == nullptr) 
             this->setup_available_values();
         available_values->add(option { .value = value, .label = label });
-        this->minimum_value = 0;
+        this->minimum_value = (DataType)0;
         //if (value>this->maximum_value)
         //    this->maximum_value = value;
-        this->maximum_value = available_values->size() - 1;
+        this->maximum_value = (DataType)(available_values->size() - 1);
     }
 
     virtual LinkedList<option> *get_available_values() {
