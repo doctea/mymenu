@@ -50,7 +50,7 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
 
     virtual void setup() {
         Debug_println(F("ili9341 setup()..")); Serial_flush();
-        Serial.println(F("ili9341 setup()..")); Serial_flush();
+        if (Serial) Serial.println(F("ili9341 setup()..")); Serial_flush();
         tft->begin(SPI_SPEED);
         tft->setRotation(SCREEN_ROTATION);
         #ifndef DONT_USE_EXTMEM_FRAMEBUFFER
@@ -58,7 +58,7 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
         #endif
         tft->useFrameBuffer(true);
 
-        tft->setFrameRateControl(20);   // 20 to flicker less than 30!
+        tft->setFrameRateControl(30);   // 20 to flicker less than 30!
         tft->initDMASettings();
         tft->updateChangedAreasOnly(true);
         //tft->endUpdateAsync
@@ -71,11 +71,11 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
         tft->println(F("DisplayTranslator_ILI9341 setup()!"));
         Debug_println(F("ili9341 did init()")); Serial_flush();
         Debug_println(F("ili9341 did fillscreen()")); Serial_flush();
-        delay(500);
+        //delay(500);
         // large block of text
         //testdrawtext("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa, fringilla sed malesuada et, malesuada sit amet turpis. Sed porttitor neque ut ante pretium vitae malesuada nunc bibendum. Nullam aliquet ultrices massa eu hendrerit. Ut sed nisi lorem. In vestibulum purus a tortor imperdiet posuere. ", ST77XX_WHITE);
         //tft->useFrameBuffer(true);
-        Serial.println("finishing setup()");
+        if (Serial) Serial.println("finishing setup()");
     }
     
     virtual void setCursor(int x, int y) override {

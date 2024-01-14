@@ -203,23 +203,22 @@ int Menu::display() {
         //tft->setCursor(0, new_y);
 
         tft->setTextSize(tab_textsize);
+
+        const int tft_width = tft->width();
+        const int current_character_width = tft->currentCharacterWidth();
+
         /////// draw tabs for the pages
         for (unsigned int i = selected_page_index ; i < pages->size() + selected_page_index ; i++) {
             int ci = i;
             if (ci >= (int)pages->size())        // wrap around to start of list if we get to the end
                 ci = ci % pages->size();
 
-            //if (tft->getCursorX() + (tft->characterWidth() * (strlen(pages->get(ci)->title)+1)) >= tft->width())
-            //    break;  // break if we'd go off the screen rendering this item TODO: draw the available characters
-
-            if ((int)i==selected_page_index)
+            if ((int)i==selected_page_index && !is_page_opened())
                 tft->setTextColor(BLACK, pages->get(ci)->colour);
             else
                 tft->setTextColor(pages->get(ci)->colour, BLACK);
 
-            int tft_width = tft->width();
             int cursor_x = tft->getCursorX();
-            int current_character_width = tft->currentCharacterWidth();
             //int characters_left = ((tft->width() - tft->getCursorX()) / tft->currentCharacterWidth()) - 1; // + (tft->characterWidth() * (strlen(pages->get(ci)->title)+1)));
             int characters_left = ((tft_width - cursor_x) / current_character_width) - 1;
             if (characters_left<2) {
@@ -248,10 +247,9 @@ int Menu::display() {
         tft->setTextSize(0);
         /// finished drawing tabs
 
-        // draw each menu item's panel
+        // draw each menu item
         //int start_y = 0;
         //if (debug) { Serial.println("display()=> about to start drawing the items.."); Serial_flush(); }
-
         for (unsigned int i = start_panel ; i < items->size() ; i++) {
             //if (debug) { Serial.printf("display()=> about to get item %i\n", i); Serial_flush(); }
             MenuItem *item = items->get(i);

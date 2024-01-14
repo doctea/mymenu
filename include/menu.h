@@ -162,14 +162,6 @@ class Menu {
                 //Serial.printf(F("knob_left on currently_opened menuitem %i\n"), selected_page->currently_opened);
                 selected_page->items->get(selected_page->currently_opened)->knob_left();
             } else {
-                /*selected_page->currently_selected--;
-                if (selected_page->currently_selected<0) 
-                    selected_page->currently_selected = selected_page->items->size()-1;
-                //Serial.printf(F("selected %i aka %s\n"), selected_page->currently_selected, selected_page->items->get(selected_page->currently_selected)->label);
-                if (selected_page->currently_selected>=0 && selected_page->currently_selected < (int)selected_page->items->size() && !selected_page->items->get(selected_page->currently_selected)->is_selectable()) {
-                    //Serial.println("?? extra knob_left because isn't selectable");
-                    knob_left();
-                }*/
                 select_previous_selectable_item();
             }
             /*if (debug) {
@@ -191,14 +183,6 @@ class Menu {
                 selected_page->items->get(selected_page->currently_opened)->knob_right();
             } else {
                 select_next_selectable_item();
-                /*selected_page->currently_selected++;
-                if (selected_page->currently_selected >= (int)selected_page->items->size())
-                    selected_page->currently_selected = 0;
-                //Serial.printf(F("selected %i aka %s\n"), selected_page->currently_selected, selected_page->items->get(selected_page->currently_selected)->label);
-                if (selected_page->currently_selected>=0 && selected_page->currently_selected < (int)selected_page->items->size() && !selected_page->items->get(selected_page->currently_selected)->is_selectable()) {
-                    //Serial.println("?? extra knob_right because isn't selectable");
-                    //knob_right();
-                }*/
             }
             /*if (debug) {
                 char msg[tft->get_c_max()] = "";
@@ -250,17 +234,8 @@ class Menu {
         int find_previous_selectable_item() {
             int current = this->selected_page->currently_selected;
             int size = this->selected_page->items->size();
-            //Serial.printf("find_previous_selectable_item starting at %i with size=%i...\n", current, size);
-            /*Serial.printf("find_previous_selectable_item starting at %i with size=%i...\n", current, size);
-            for (int c = (current-1)%size ; (c%size) != current ; c = ((c-1)%size+size)%size) {
-                if (c < 0) c = size+c;
-                Serial.printf("find_previous_selectable_item checking c=%i, c mod size=%i\n", c, c%size); Serial.flush();
-                if (this->selected_page->items->get(c%size)->is_selectable()) {
-                    Serial.printf("found at %i\n", c%size);
-                    return c%size;
-                }
-            }*/
             int c = current;
+
             do {
                 c--;
                 if (c<0)
@@ -283,18 +258,6 @@ class Menu {
             Debug_printf(F("Menu#button_select() on item %i\n"), selected_page->currently_selected);
             if (!is_page_opened()) {
                 open_page(selected_page_index);
-                /*if (selected_page->items->size()==1 && selected_page->items->get(0)->is_selectable()) {
-                    // if there is only one item on the page, and its selectable, select+open it
-                    // todo: make this understand if there is only one SELECTABLE item on the page
-                    int next = find_next_selectable_item();
-                    if (next>=0) {
-                        knob_right();
-                        button_select();
-                    } else {
-                        // close the page if nothing to select
-                        opened_page_index = -1;
-                    }
-                }*/
             } else if (!is_item_opened()) {
                 Debug_printf(F("button_select with currently_opened menuitem -1 - opening %i\n"), selected_page->currently_selected);
                 if (selected_page->items->get(selected_page->currently_selected)->action_opened()) {
@@ -325,7 +288,8 @@ class Menu {
             } 
             return true;
         }
-        bool back_held = false;
+
+        bool back_held = false; // variable for tracking whether a longpress is currently being processed, so that we don't continue to call longpress unnecessarily
         bool button_back() {
             Debug_println(F("button_back()"));
             back_held = false;
@@ -356,9 +320,9 @@ class Menu {
             if (!back_held) {
                 back_held = true;
                 //Serial.println("BUTTON_BACK_LONGPRESS!");
-                
-                // todo: switch to 'quickjump' page
-                if (!is_page_opened() || !is_item_opened()) {
+
+                select_page_quickjump();
+                /*if (!is_page_opened() || !is_item_opened()) {
                     //Serial.println("TODO: back longpress, no page open or no item selected, switch to quickjump page?"); Serial.flush();
                     select_page_quickjump();
                 } else if (is_item_opened()) {
@@ -368,7 +332,7 @@ class Menu {
                     select_page_quickjump();
                 } else {
                     //Serial.println("TODO: back longpress, other state?");
-                }
+                }*/
             } /*else {
                 Serial.println("back_held, ignoring longpress");
             }*/
@@ -440,10 +404,10 @@ class Menu {
         static const int NUM_QUICK_PAGE_HISTORY = 10;
         unsigned int quick_page_history_head = 0;
         unsigned int quick_page_history_total = 0;
-        int quick_page_index = 0;
-        int quick_pages[NUM_QUICK_PAGE_HISTORY] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+        int8_t quick_page_index = 0;
+        int8_t quick_pages[NUM_QUICK_PAGE_HISTORY] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
         // add the page index to the 'visited history'
-        void remember_opened_page(int page_index) {
+        void remember_opened_page(int8_t page_index) {
             // don't store qjump page itself..
             if (page_index==quick_page_index) 
                 return;
@@ -474,11 +438,7 @@ class Menu {
         void select_page_quickjump() {
             if (quick_page_index>=0) {
                 selected_page_index = opened_page_index = -1;
-                //this->button_back();
-                //this->select_page(this->quick_page_index);
                 this->open_page(this->quick_page_index);
-                //this->selected_page->currently_selected = this->selected_page->currently_opened = 0;                  
-                //knob_right();
             }
         }
 
@@ -508,10 +468,8 @@ class Menu {
                 this->selected_page_index = 0;
             else if (selected_page_index < 0 )
                 this->selected_page_index = pages->size() - 1;
+
             selected_page = pages->get(selected_page_index);
-            //this->tft->clear();
-            //if (pages->size()==1)
-            //    this->open_page(0);
             //Serial.printf("Selected page %i\n", selected_page_index);
         }
         void open_page(unsigned int page_index) {
