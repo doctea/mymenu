@@ -67,6 +67,10 @@ class MenuItem {
         virtual void update_ticks(unsigned long ticks) {
             // nothing to do by default
         };
+
+        virtual const char *get_label() {
+            return this->label;
+        }
         
         virtual int display(Coord pos, bool selected, bool opened);
         virtual int renderValue(bool selected, bool opened, uint16_t max_character_width);
