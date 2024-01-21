@@ -8,8 +8,8 @@ class SubMenuItemBar : public SubMenuItem {
 
     bool show_sub_headers = true;
 
-    SubMenuItemBar(const char *label) : SubMenuItem(label) {
-
+    SubMenuItemBar(const char *label, bool show_sub_headers = true) : SubMenuItem(label) {
+        this->show_sub_headers = show_sub_headers;
     }
 
     virtual int number_columns() {
@@ -35,7 +35,7 @@ class SubMenuItemColumns : public SubMenuItemBar {
     bool show_sub_headers = true;
     int columns = 1;
 
-    SubMenuItemColumns(const char *label, int columns = 1) : SubMenuItemBar(label) {
+    SubMenuItemColumns(const char *label, bool show_sub_headers = true, int columns = 1) : SubMenuItemBar(label, show_sub_headers) {
         this->columns = columns;
     }
 
@@ -57,7 +57,7 @@ class SubMenuItemColumns : public SubMenuItemBar {
 
 class DualMenuItem : public SubMenuItemColumns {
     public:
-        DualMenuItem(const char *label) : SubMenuItemColumns(label, 2) {
+        DualMenuItem(const char *label, bool show_sub_headers = true) : SubMenuItemColumns(label, show_sub_headers, 2) {
         }
 };
 
