@@ -39,6 +39,7 @@ int SubMenuItemBar::display(Coord pos, bool selected, bool opened) {
     for (uint_fast16_t item_index = 0 ; item_index < this->items->size() ; item_index++) {
         //tft->setTextSize(0);
         const uint_fast16_t width = this->get_max_pixel_width(item_index);
+        //const uint_fast16_t width = this->get_max_character_width(item_index);
         //if (this->debug) Serial.printf("about to small_display for item %i\n", item_index);
         const uint_fast16_t temp_y = this->small_display(
             item_index, 
@@ -63,12 +64,16 @@ int SubMenuItemBar::display(Coord pos, bool selected, bool opened) {
     return finish_y;//tft->getCursorY();
 }
 
+/*const char* SubMenuItemBar get_subitem_header_format(int max_display_width_characters) {
+
+}*/
+
 int SubMenuItemBar::small_display(int index, int x, int y, int width_in_pixels, bool is_selected, bool is_opened, bool outer_selected) {
     //if (this->debug) Serial.printf(F("\tSubMenuItemBar: start of small_display for index %i, passed in x,y=%i,%i and width=%i\n"), index, x, y, width_in_pixels);
 
     MenuItem *ctrl = items->get(index);
     //const uint_fast16_t character_width_in_pixels = tft->currentCharacterWidth(); // presumed font width
-    const uint_fast16_t max_display_width_characters = get_max_character_width(index);
+    const uint_fast16_t max_display_width_characters = width_in_pixels / tft->characterWidth(); //get_max_character_width(index);
     //if (index==this->number_columns()-1)
     //    max_display_width_characters-=1;   // for the last column, use one less character, to avoid wrapping unnecessarily
 

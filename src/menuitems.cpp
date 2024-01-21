@@ -1,7 +1,7 @@
 #include "menuitems.h"
 
 const char *fired_message = "Fired %s";
-const char *sure_message = "??? Sure ???";
+const char *sure_message = "Sure ???";
 const char *set_message = "Set %s to %s (%i)";
 const char *label_on    = "On";
 const char *label_off   = "Off";
