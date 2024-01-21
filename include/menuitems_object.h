@@ -273,6 +273,10 @@ class ObjectActionItem : public MenuItem {
 
         return false;   // don't 'open'
     }
+
+    virtual bool is_openable () {
+        return false;
+    }
 };
 
 

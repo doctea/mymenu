@@ -253,6 +253,10 @@ class LambdaActionItem : public MenuItem {
 
         return false;   // don't 'open'
     }
+
+    virtual bool is_openable () {
+        return false;
+    }
 };
 
 
@@ -312,7 +316,7 @@ class LambdaActionConfirmItem : public LambdaActionItem {
 
 
 class CallbackMenuItem : public MenuItem {
-    using label_callback_def = vl::Func<char*(void)>;
+    using label_callback_def = vl::Func<const char*(void)>;
     public:
     label_callback_def callback_func;
     CallbackMenuItem(const char *label, label_callback_def callback_func) : MenuItem(label), callback_func(callback_func) {

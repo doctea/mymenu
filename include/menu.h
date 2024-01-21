@@ -198,12 +198,19 @@ class Menu {
             //this->select_next_selectable_item();
             for (unsigned int i = 0 ; i < this->selected_page->items->size() ; i++) {
                 if (this->selected_page->items->get(i)->is_selectable()) {
+                    //if (Serial) Serial.printf("select_first_selectable_item on page %s found a selectable item at %i!\n", selected_page->title, i);
                     selected_page->currently_selected = i;
-                    if (this->selected_page->items->size()==1)
-                        selected_page->currently_opened = selected_page->currently_selected;
-                    break;
+                    if (this->selected_page->items->size()==1) {
+                        //if (Serial) Serial.printf("found only one item, so opening it too!\n", selected_page->title, i);
+                        //selected_page->currently_opened = selected_page->currently_selected;
+                        if (selected_page->items->get(i)->is_openable()) {
+                            button_select(); button_select_released();
+                        }
+                    }
+                    return;
                 }
             }
+            //if (Serial) Serial.println("select_first_selectable_item didn't find anything to select!");
         }
         void select_next_selectable_item() {
             int found = this->find_next_selectable_item();
@@ -298,7 +305,8 @@ class Menu {
             } else if (is_item_opened() && !selected_page->items->get(selected_page->currently_opened)->button_back()) {
                 // an item is opened, and it responded false to button_back()
                 Debug_printf(F("back with currently_opened menuitem %i and no subhandling, setting to -1\n"), selected_page->currently_opened);
-                selected_page->currently_selected = selected_page->currently_opened = -1;
+                //selected_page->currently_selected = 
+                selected_page->currently_opened = -1;
                 //selected_page->currently_opened = -1;
                 if (selected_page->items->size()==1) {
                     // if there is only one item on this page, close the page too
@@ -442,6 +450,10 @@ class Menu {
             }
         }
 
+        page_t *get_selected_page() {
+            return this->selected_page;
+        }
+
         void select_next_page() {
             this->opened_page_index = -1;
             if (this->selected_page!=nullptr) 
@@ -488,6 +500,9 @@ class Menu {
                 if (selected_page->currently_selected==-1)
                     // close the page, as couldn't find a selectable item on it!
                     this->opened_page_index = -1;
+                /*else if (selected_page->items->get(selected_page->currently_selected)->is_openable()) {
+                        selected_page->items->get(selected_page->currently_selected)->button_select();
+                }*/
                 /*else if (selected_page->items->size()==1) {// if there's only one item on the page, open it..! TODO: test this works like expected!!
                     //this->knob_right(); 
                     this->button_select_released(); 

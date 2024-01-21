@@ -67,6 +67,10 @@ class ActionItem : public MenuItem {
 
         return false;   // don't 'open'
     }
+
+    virtual bool is_openable () {
+        return false;
+    }
 };
 
 class ActionFeedbackItem : public MenuItem {

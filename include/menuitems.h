@@ -94,6 +94,10 @@ class MenuItem {
         virtual bool allow_takeover();
         // whether we should be allowed to hover over this one
         virtual bool is_selectable ();
+        // whether 'tis openable -- ie, that it can be 'opened' without having an effect, eg submenuitem... basically anything except an action?!
+        virtual bool is_openable () {
+            return true;
+        }
 };
 
 class FixedSizeMenuItem : public MenuItem {
