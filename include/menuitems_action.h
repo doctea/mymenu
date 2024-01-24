@@ -42,7 +42,7 @@ class ActionItem : public MenuItem {
     }
 
     virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
-        colours(opened, opened ? GREEN : this->default_fg, this->default_bg);
+        colours(selected, opened ? GREEN : this->default_fg, this->default_bg);
 
         // render bare label (without >> %s << etc) if using renderValue
         int textSize = tft->get_textsize_for_width(label, max_character_width*tft->characterWidth());
