@@ -11,6 +11,7 @@ class QuickPagesMenuItem : public MenuItem {
         QuickPagesMenuItem(const char *label) : MenuItem(label) {}
 
         int selected_value_index = -1;
+        //int start_at = 0;
 
         virtual int display(Coord pos, bool selected, bool opened) override {
             pos.y = header(label, pos, selected, opened);
@@ -20,12 +21,17 @@ class QuickPagesMenuItem : public MenuItem {
                 selected_value_index = 0;
             }
             for (int i = 0 ; i < menu->NUM_QUICK_PAGE_HISTORY ; i++) {
-                page_t *page = menu->get_quick_page(i);
+                int o = (i + selected_value_index) % menu->NUM_QUICK_PAGE_HISTORY;
+                page_t *page = menu->get_quick_page(o);
                 if (page==nullptr) 
                     continue;
-                colours(opened && i==selected_value_index, page->colour);
+
+                colours(opened && o==selected_value_index, page->colour);
                 tft->println(page->title);
                 colours(C_WHITE);
+
+                if (tft->getCursorY()>=tft->height())
+                    break;
             }
             return pos.y;
         }
