@@ -73,7 +73,8 @@ int SubMenuItemBar::small_display(int index, int x, int y, int width_in_pixels, 
 
     MenuItem *ctrl = items->get(index);
     //const uint_fast16_t character_width_in_pixels = tft->currentCharacterWidth(); // presumed font width
-    const uint_fast16_t max_display_width_characters = width_in_pixels / tft->characterWidth(); //get_max_character_width(index);
+    tft->setTextSize(0);
+    const uint_fast16_t max_display_width_characters = width_in_pixels / tft->currentCharacterWidth(); //get_max_character_width(index);
     //if (index==this->number_columns()-1)
     //    max_display_width_characters-=1;   // for the last column, use one less character, to avoid wrapping unnecessarily
 
