@@ -6,7 +6,7 @@
 #include "tft.h"
 
 void tft_print (const char *text) {
-    Serial.print(text);
+    if (Serial) Serial.print(text);
     //Serial_flush();
     #ifdef ENABLE_SCREEN
         if (menu!=nullptr && menu->tft!=nullptr)
