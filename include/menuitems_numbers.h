@@ -251,9 +251,9 @@ class NumberControl : public NumberControlBase {
                 return this->step;
 
             uint32_t time_since_changed = constrain(millis() - this->last_changed_at, 0, 200);
-            if      (time_since_changed>=150)  return (DataType)  this->step;
+            if      (time_since_changed>=200)  return (DataType)  this->step;
             else if (time_since_changed>=100)  return (DataType) (this->step * 2.0f);
-            else if (time_since_changed>=50)   return (DataType) (this->step * 4.0f);
+            //else if (time_since_changed>=100)  return (DataType) (this->step * 4.0f);
             else if (time_since_changed>=25 )  return (DataType) (this->step * 8.0f);
             else                               return (DataType) (this->step * 10.0f);
         }
