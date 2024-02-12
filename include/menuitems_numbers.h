@@ -37,6 +37,8 @@ class NumberControl : public NumberControlBase {
         bool readOnly = false;
         bool wrap = false;
 
+        uint32_t last_changed_at = 0;
+
         NumberControl(const char* label, bool go_back_on_select = false) : NumberControlBase(label) {
             this->step = this->get_default_step_for_type((DataType)0);    // setup default step based on our template DataType
             this->go_back_on_select = go_back_on_select;
@@ -71,7 +73,7 @@ class NumberControl : public NumberControlBase {
 
         // step value passed here doesn't matter -- we're just using the datatype overload to set the default
         constexpr DataType get_default_step_for_type(double step) {
-            return (DataType)0.05;
+            return (DataType)0.01;
         }
         constexpr DataType get_default_step_for_type(int step) {
             return (DataType)1;
@@ -243,28 +245,43 @@ class NumberControl : public NumberControlBase {
             //Serial.printf(F("%s: NumberControl.set_internal_value(%i)\twith constraint (%i:%i) resulted in %i\n"), this->label, value, (int)this->minimum_value, (int)this->maximum_value, this->internal_value);
         }
 
+        virtual DataType get_current_step() {
+            // do knob acceleration
+            if (last_changed_at==0)
+                return this->step;
+
+            uint32_t time_since_changed = constrain(millis() - this->last_changed_at, 0, 200);
+            if      (time_since_changed>=150)  return (DataType)  this->step;
+            else if (time_since_changed>=100)  return (DataType) (this->step * 2.0f);
+            else if (time_since_changed>=50)   return (DataType) (this->step * 4.0f);
+            else if (time_since_changed>=25 )  return (DataType) (this->step * 8.0f);
+            else                               return (DataType) (this->step * 10.0f);
+        }
+
         virtual void decrease_value() {
             if (this->get_internal_value()!=this->minimum_value)    // so that unsigned datatypes don't wrap back around when they try to go below 0
-                this->set_internal_value((DataType)(get_internal_value() - this->step));
+                this->set_internal_value((DataType)(get_internal_value() - get_current_step()));
             else if (wrap)
                 this->set_internal_value(this->maximum_value);
         }
         virtual void increase_value() {
             //Serial.printf("%s#increase_value with internal value %i and step %i makes %i\n", this->label, get_internal_value(), this->step, get_internal_value()+this->step);
             if (this->get_internal_value()!=this->maximum_value)
-                this->set_internal_value((DataType)(get_internal_value() + this->step));
+                this->set_internal_value((DataType)(get_internal_value() + get_current_step()));
             else if (wrap) 
                 this->set_internal_value(this->minimum_value);
         }
 
-        virtual bool knob_left() {
+        virtual bool knob_left() override {
             if (!this->readOnly)
                 decrease_value();
+            last_changed_at = millis();
             return true;
         }
-        virtual bool knob_right() {
+        virtual bool knob_right() override {
             if (!this->readOnly)
                 increase_value();
+            last_changed_at = millis();
             return true;
         }
 
@@ -342,6 +359,7 @@ class DirectNumberControl : public NumberControl<DataType> {
         this->change_value(this->internal_value);
         //Serial.printf(">------<\n");
 
+        this->last_changed_at = millis();
         return true;
     }
     virtual bool knob_right() override {
@@ -352,6 +370,7 @@ class DirectNumberControl : public NumberControl<DataType> {
         this->change_value(this->internal_value);
         //Serial.printf(F(">------<\n"));
 
+        this->last_changed_at = millis();
         return true;
     }
     virtual bool button_select() override {
