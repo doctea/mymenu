@@ -250,7 +250,7 @@ class NumberControl : public NumberControlBase {
             if (last_changed_at==0)
                 return this->step;
 
-            uint32_t time_since_changed = constrain(millis() - this->last_changed_at, 0, 200);
+            uint32_t time_since_changed = constrain(millis() - this->last_changed_at, (uint32_t)0, (uint32_t)200);
             if      (time_since_changed>=200)  return (DataType)  this->step;
             else if (time_since_changed>=100)  return (DataType) (this->step * 2.0f);
             //else if (time_since_changed>=100)  return (DataType) (this->step * 4.0f);
