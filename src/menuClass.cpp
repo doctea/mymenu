@@ -250,7 +250,8 @@ int Menu::display() {
         // draw each menu item
         //int start_y = 0;
         //if (debug) { Serial.println("display()=> about to start drawing the items.."); Serial_flush(); }
-        for (unsigned int i = start_panel ; i < items->size() ; i++) {
+        const uint_fast16_t size = items->size();
+        for (uint_fast16_t i = start_panel ; i < size ; i++) {
             //if (debug) { Serial.printf("display()=> about to get item %i\n", i); Serial_flush(); }
             MenuItem *item = items->get(i);
             /*if(item->label[0]=='T')

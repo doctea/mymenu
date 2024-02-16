@@ -7,6 +7,7 @@ class SubMenuItemBar : public SubMenuItem {
     public:
 
     bool show_sub_headers = true;
+    int_fast16_t cached_pixel_width_per_item = 0;
 
     SubMenuItemBar(const char *label, bool show_sub_headers = true) : SubMenuItem(label) {
         this->show_sub_headers = show_sub_headers;

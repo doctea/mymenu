@@ -13,12 +13,14 @@ uint_fast16_t SubMenuItemBar::get_max_character_width(int item_number) {
 }*/
 
 int SubMenuItemBar::get_max_pixel_width(int item_number) {
-    return this->tft->width() / this->number_columns();
+    if (this->cached_pixel_width_per_item==0)
+        this->cached_pixel_width_per_item = this->tft->width() / this->number_columns();
+    return this->cached_pixel_width_per_item - (item_number==number_columns()-1?3:0);
 }
 //int SubMenuItemBar::get_max_characters(int item_)
 
 uint_fast16_t SubMenuItemBar::get_max_character_width(int item_number) {
-    return (this->get_max_pixel_width(item_number) / (tft->characterWidth())) - (item_number==number_columns()-1?1:0);
+    return (this->get_max_pixel_width(item_number) / (tft->characterWidth()));// - (item_number==number_columns()-1?1:0);
 }
 
 int SubMenuItemBar::display(Coord pos, bool selected, bool opened) {
