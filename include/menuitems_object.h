@@ -325,7 +325,6 @@ class ObjectActionConfirmItem : public ObjectActionItem<TargetClass> {
 
     virtual bool button_select() override {
         //Serial.println(F("ActionConfirmItem#button_select"));
-
         this->on_open();
 
         char msg[MENU_MESSAGE_MAX];

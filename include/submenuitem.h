@@ -36,9 +36,15 @@ class SubMenuItem : public MenuItem {
             //if (this->allow_takeover())
             //    tft->clear();
             this->currently_selected = 0;
+            
+            // find first selectable item
+            while ((unsigned int)currently_selected < items->size() && !items->get(currently_selected)->is_selectable()) {
+                currently_selected++;
+            }
+
             if (!always_show) 
                 this->needs_redraw = true;
-                //this->tft->clear();
+
             Debug_println("calling MenuItem::action_opened"); Serial_flush();
             return MenuItem::action_opened();
         }

@@ -112,6 +112,8 @@ class SelectorControl : public MenuItem {
             }*/
             snprintf(label, max_character_width, src_label);
 
+            colours(!opened && selected, default_fg, BLACK);
+
             int textSize = tft->get_textsize_for_width(label, max_character_width * tft->characterWidth());
             tft->setTextSize(textSize);
             //tft->printf("%i:",textSize);
