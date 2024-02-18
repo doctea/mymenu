@@ -11,6 +11,8 @@
 
 #define MENU_MESSAGE_MAX (MENU_C_MAX*2)
 
+#define MAX_MESSAGE_LOG 20
+
 #ifndef CORE_TEENSY
     // if no FLASHMEM then we're probably not running on Teensy platform, so define it empty
     #ifndef FLASHMEM
@@ -23,8 +25,6 @@
 
 #include "mymenu.h"
 #include "menu_io.h"
-
-#define MAX_MESSAGE_LOG 20
 
 #include <LinkedList.h>
 #include "menuitems.h"
@@ -189,14 +189,14 @@ class Menu {
                 sprintf(msg, "knob_left to %i", selected_page->currently_selected);
                 set_last_message(msg);
             }*/
-
             return true;
         }
 
         void select_first_selectable_item() {
             this->selected_page->currently_selected = -1;
             //this->select_next_selectable_item();
-            for (unsigned int i = 0 ; i < this->selected_page->items->size() ; i++) {
+            const unsigned int size = this->selected_page->items->size();
+            for (unsigned int i = 0 ; i < size ; i++) {
                 if (this->selected_page->items->get(i)->is_selectable()) {
                     //if (Serial) Serial.printf("select_first_selectable_item on page %s found a selectable item at %i!\n", selected_page->title, i);
                     selected_page->currently_selected = i;
@@ -219,7 +219,7 @@ class Menu {
         }
         int find_next_selectable_item() {
             int current = this->selected_page->currently_selected;
-            int size = this->selected_page->items->size();
+            const int size = this->selected_page->items->size();
             //Serial.printf("find_next_selectable_item on page %i, starting with current=%i and size=%i..\n", this->opened_page_index, current, size);
             for (int c = (current+1)%size ; c < size+current ; c++) {
                 //Serial.printf("find_next_selectable_item checking item at index %i..\n", c%size);
@@ -240,7 +240,7 @@ class Menu {
         }
         int find_previous_selectable_item() {
             int current = this->selected_page->currently_selected;
-            int size = this->selected_page->items->size();
+            const int size = this->selected_page->items->size();
             int c = current;
 
             do {
@@ -301,13 +301,11 @@ class Menu {
             Debug_println(F("button_back()"));
             back_held = false;
             if (!is_page_opened()) {
-                // alreayd at top level - do nothing?
+                // already at top level - do nothing?
             } else if (is_item_opened() && !selected_page->items->get(selected_page->currently_opened)->button_back()) {
                 // an item is opened, and it responded false to button_back()
-                Debug_printf(F("back with currently_opened menuitem %i and no subhandling, setting to -1\n"), selected_page->currently_opened);
-                //selected_page->currently_selected = 
+                Debug_printf(F("back with currently_opened menuitem %i and no subhandling, setting to -1\n"), selected_page->currently_opened); 
                 selected_page->currently_opened = -1;
-                //selected_page->currently_opened = -1;
                 if (selected_page->items->size()==1) {
                     // if there is only one item on this page, close the page too
                     // todo: make this understand if there is only one SELECTABLE item on the page
@@ -327,23 +325,8 @@ class Menu {
         bool button_back_longpress() {
             if (!back_held) {
                 back_held = true;
-                //Serial.println("BUTTON_BACK_LONGPRESS!");
-
                 select_page_quickjump();
-                /*if (!is_page_opened() || !is_item_opened()) {
-                    //Serial.println("TODO: back longpress, no page open or no item selected, switch to quickjump page?"); Serial.flush();
-                    select_page_quickjump();
-                } else if (is_item_opened()) {
-                    //Serial.printf("TODO: back_longpress, on currently_opened item %i (%s)\n", selected_page->currently_opened, selected_page->items->get(selected_page->currently_opened)->label);
-                    //Serial.printf("TODO: back_longpress, on currently_opened item %i\n", selected_page->currently_opened);
-                    //button_back();
-                    select_page_quickjump();
-                } else {
-                    //Serial.println("TODO: back longpress, other state?");
-                }*/
-            } /*else {
-                Serial.println("back_held, ignoring longpress");
-            }*/
+            } 
             return false;
         }
         bool button_right() {
@@ -497,17 +480,10 @@ class Menu {
                 opened_page_index = page_index;
 
                 select_first_selectable_item();
-                if (selected_page->currently_selected==-1)
+                if (selected_page->currently_selected==-1) {
                     // close the page, as couldn't find a selectable item on it!
                     this->opened_page_index = -1;
-                /*else if (selected_page->items->get(selected_page->currently_selected)->is_openable()) {
-                        selected_page->items->get(selected_page->currently_selected)->button_select();
-                }*/
-                /*else if (selected_page->items->size()==1) {// if there's only one item on the page, open it..! TODO: test this works like expected!!
-                    //this->knob_right(); 
-                    this->button_select_released(); 
-                    }*/
-                //}
+                }
             }
 
             //if (is_page_opened())
@@ -579,7 +555,7 @@ class Menu {
                     messages_log->unlink(0);
                 }
             }
-        }        
+        }
 
         // set the colour of the message (ie red / green for error / success)
         void set_message_colour(uint32_t colour) {
@@ -601,10 +577,6 @@ class Menu {
             tft->setCursor(0,tft->getCursorY()+3);  // workaround for tab positions?
             return tft->getCursorY();
         }
-
-        //#ifdef PPQN
-        //#define LOOP_MARKERS
-        //#define LOOP_LENGTH (PPQN * BEATS_PER_BAR * BARS_PER_PHRASE)
 
         // draw the menu display
         int display();
