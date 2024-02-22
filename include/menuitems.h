@@ -100,6 +100,14 @@ class MenuItem {
         }
 };
 
+// TODO: verify that this is actually what happens!
+#define SELECT_EXIT true
+#define SELECT_DONTEXIT false
+
+// this IS actually what happens
+#define BACK_EXIT false
+#define BACK_DONTEXIT true
+
 class FixedSizeMenuItem : public MenuItem {
     public:
     int fixed_size = 0;

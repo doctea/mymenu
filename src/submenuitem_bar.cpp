@@ -24,9 +24,13 @@ uint_fast16_t SubMenuItemBar::get_max_character_width(int item_number) {
 }
 
 int SubMenuItemBar::display(Coord pos, bool selected, bool opened) {
-    //if (this->debug) Serial.printf("Start of display in SubMenuItemBar at %u, passed in %i,%i\n", millis(), pos.x, pos.y);
+    /*if (this->debug) {
+        Serial.printf("Start of display in SubMenuItemBar at %u, passed in %i,%i\n", millis(), pos.x, pos.y);
+        Serial.printf("rendering label @%p, ", label); Serial_flush();
+        Serial.printf("'%s'\n", label); Serial_flush();
+    }*/
     pos.y = header(label, pos, selected, opened);
-    //if (this->debug) Serial.printf(F("\tafter header, y=%i\n"), pos.y);
+    //if (this->debug) Serial.printf("\tafter header, y=%i\n", pos.y);    Serial_flush();
     tft->setCursor(pos.x, pos.y);
     //tft->setTextSize(1);
     colours(opened, opened ? GREEN : this->default_fg, this->default_bg);
@@ -38,11 +42,12 @@ int SubMenuItemBar::display(Coord pos, bool selected, bool opened) {
     //int width_per_item = this->tft->width() / (this->items->size() /*+1*/);
     uint_fast16_t start_x = 0;
     //Debug_printf(F("display in SubMenuItemBar got width_per_item=%i\tfrom tftwidth\t%i / itemsize\t%i\n"), width_per_item, this->tft->width(), this->items->size());
+    //if (this->debug) Serial.printf("\tstarting item index loop...\n");    Serial_flush();
     for (uint_fast16_t item_index = 0 ; item_index < this->items->size() ; item_index++) {
         //tft->setTextSize(0);
         const uint_fast16_t width = this->get_max_pixel_width(item_index);
         //const uint_fast16_t width = this->get_max_character_width(item_index);
-        //if (this->debug) Serial.printf("about to small_display for item %i\n", item_index);
+        //if (this->debug) Serial.printf("about to small_display for item %i\n", item_index); Serial_flush();
         const uint_fast16_t temp_y = this->small_display(
             item_index, 
             start_x, 

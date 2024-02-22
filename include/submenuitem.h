@@ -119,7 +119,7 @@ class SubMenuItem : public MenuItem {
                 //Serial.println("submenuitem#display opened or always_show"); Serial.flush();            
 
                 for (unsigned int i = start_item ; i < this->items->size() ; i++) {
-                    //if (this->debug) { Serial.printf("submenuitem#display rendering item %i..\n", i); Serial.flush(); }
+                    if (this->debug) { Serial.printf("submenuitem#display rendering item %i..\n", i); Serial.flush(); }
                     y = tft->getCursorY();
 
                     tft->setTextColor(this->default_fg, this->default_bg);

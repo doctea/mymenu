@@ -39,6 +39,16 @@ class SelectorControl : public MenuItem {
             return getFormattedValue(value);
         }
 
+        virtual DataType get_value_for_index(int index) {
+            if (index<0)
+                return -1;
+            if (available_values!=nullptr)
+                return available_values[index];
+            else
+                return index;
+        }
+
+
         SelectorControl(const char *label) : MenuItem(label) {};
         SelectorControl(const char *label, byte initial_selected_value_index) : 
             SelectorControl(label) {
@@ -59,11 +69,11 @@ class SelectorControl : public MenuItem {
 
             for (int i = 0 ; i < num_values ; i++) {
                 //bool is_current_value_selected = selected_value_index==i; //available_values[i]==currentValue;
-                bool is_current_value_selected = available_values[i]==current_value; //getter();
+                bool is_current_value_selected = get_value_for_index(i)==current_value; //getter();
                 int col = is_current_value_selected ? GREEN : C_WHITE;
                 colours(opened && selected_value_index==(int)i, col, BLACK);
 
-                const char *label = get_label_for_value(available_values[i]); 
+                const char *label = get_label_for_value(get_value_for_index(i)); 
                 tft->setTextSize(tft->get_textsize_for_width(label, tft->width()));
                 tft->printf((char*)label);
 
@@ -103,7 +113,7 @@ class SelectorControl : public MenuItem {
                 :
                 this->get_label_for_value(this->getter());*/
             const char *src_label = this->get_label_for_value(
-                opened ? available_values[selected_value_index] : this->getter()
+                opened ? get_value_for_index(selected_value_index) : this->getter()
             );
 
             //strcpy(label, get_label_for_value(available_values[opened ? selected_value_index : this->getter()]));
@@ -171,13 +181,13 @@ class SelectorControl : public MenuItem {
             //Serial.printf("button_select with selected_value_index %i\n", selected_value_index);
             //Serial.printf("that is available_values[%i] of %i\n", selected_value_index, available_values[selected_value_index]);
             if (this->f_setter!=nullptr)
-                this->f_setter(available_values[selected_value_index]);
+                this->f_setter(get_value_for_index(selected_value_index));
 
             char msg[MENU_MESSAGE_MAX];
             //Serial.printf("about to build msg string...\n");
             snprintf(msg, MENU_MESSAGE_MAX, set_message, 
                 label, 
-                get_label_for_value(available_values[selected_value_index]), 
+                get_label_for_value(get_value_for_index(selected_value_index)), 
                 //getFormattedValue(available_values[selected_value_index])
                 selected_value_index
             );
