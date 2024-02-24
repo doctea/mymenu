@@ -5,13 +5,13 @@
 
 // generic control for selecting one option from a selection of values
 // TODO: keep currently selected option centred in display and scroll through the rest
-template<class DataType = int>
+template<class DataType = int_least16_t>
 class SelectorControl : public MenuItem {
     public:
-        int num_values = 0;
-        int selected_value_index = 0;
+        int_least16_t num_values = 0;
+        int_least16_t selected_value_index = 0;
         DataType *available_values = nullptr;
-        int actual_value_index = -1;
+        int_least16_t actual_value_index = -1;
 
         void (*f_setter)(DataType) = nullptr;
         DataType (*f_getter)() = nullptr;
@@ -20,7 +20,7 @@ class SelectorControl : public MenuItem {
             if (f_setter!=nullptr)
                 this->f_setter(new_value);
         }
-        virtual int getter () {
+        virtual int_least16_t getter () {
             if (f_getter!=nullptr)
                 return this->f_getter();
             if (available_values==nullptr)
@@ -39,7 +39,7 @@ class SelectorControl : public MenuItem {
             return getFormattedValue(value);
         }
 
-        virtual DataType get_value_for_index(int index) {
+        virtual DataType get_value_for_index(int_least16_t index) {
             if (index<0)
                 return -1;
             if (available_values!=nullptr)
@@ -56,7 +56,7 @@ class SelectorControl : public MenuItem {
         }
 
         // used when needs to be told to update externally -- eg when ParameterInput mapping changes and need to tell its ParameterInputSelector
-        virtual void update_actual_index(int new_index) {
+        virtual void update_actual_index(int_least16_t new_index) {
             this->actual_value_index = new_index;
         }
 

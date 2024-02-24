@@ -4,9 +4,8 @@
 #include "functional-vlpp.h"
 #include "menuitems_lambda.h"
 
-template<class DataType>
+template<class DataType=int>
 class LambdaSelectorControl : public LambdaNumberControl<DataType> {
-
     public:
     
     struct option {
