@@ -2,7 +2,7 @@
 #define SUBMENUTITEMBAR__INCLUDED
 #include "submenuitem.h"
 
-// originally adapted from ParameterMenuItem
+// originally adapted from ParameterAmountControls
 class SubMenuItemBar : public SubMenuItem {
     public:
 

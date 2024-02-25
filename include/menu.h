@@ -392,11 +392,11 @@ class Menu {
             tft->start();
         }
 
-        static const int NUM_QUICK_PAGE_HISTORY = 10;
-        unsigned int quick_page_history_head = 0;
-        unsigned int quick_page_history_total = 0;
-        int8_t quick_page_index = 0;
-        int8_t quick_pages[NUM_QUICK_PAGE_HISTORY] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+        static const int_least8_t NUM_QUICK_PAGE_HISTORY = 10;
+        uint_least8_t quick_page_history_head = 0;
+        uint_least8_t quick_page_history_total = 0;
+        int_least8_t quick_page_index = 0;
+        int_least8_t quick_pages[NUM_QUICK_PAGE_HISTORY] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
         // add the page index to the 'visited history'
         void remember_opened_page(int8_t page_index) {
             // don't store qjump page itself..
@@ -492,7 +492,7 @@ class Menu {
             //Serial.printf("=> currently_selected is now %i\n", selected_page->currently_selected);
         }       
 
-        // add a linkedlist of menuitems; delete the object when finished!
+        // add a linkedlist of menuitems; delete the LinkedList object when finished!
         FLASHMEM 
         void add(LinkedList<MenuItem *> *items, uint16_t default_fg_colour = C_WHITE) {
             //Serial.println("starting add"); Serial.flush();

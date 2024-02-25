@@ -66,13 +66,15 @@ class SubMenuItem : public MenuItem {
             for (unsigned int i = 0 ; i < items->size() ; i++) {
                 this->add(items->get(i));
             }
+            items->clear();
+            delete items;
         }
 
         virtual void on_add() override {
             for (unsigned int i = 0 ; i < this->items->size() ; i++) {
                 this->items->get(i)->set_tft(this->tft);
                 this->items->get(i)->on_add();
-                this->items->get(i)->set_default_colours(this->default_fg, this->default_bg); // inherit colours .. but breaks when we set custom colours eg in ParameterMenuItem..
+                this->items->get(i)->set_default_colours(this->default_fg, this->default_bg); // inherit colours .. but breaks when we set custom colours eg in ParameterAmountControls..
             }
         }
 
