@@ -20,7 +20,7 @@ class SelectorControl : public MenuItem {
             if (f_setter!=nullptr)
                 this->f_setter(new_value);
         }
-        virtual int_least16_t getter () {
+        virtual DataType getter () {
             if (f_getter!=nullptr)
                 return this->f_getter();
             if (available_values==nullptr)
@@ -39,7 +39,7 @@ class SelectorControl : public MenuItem {
             return getFormattedValue(value);
         }
 
-        virtual DataType get_value_for_index(int_least16_t index) {
+        virtual DataType get_value_for_index(DataType index) {
             if (index<0)
                 return -1;
             if (available_values!=nullptr)
@@ -50,13 +50,13 @@ class SelectorControl : public MenuItem {
 
 
         SelectorControl(const char *label) : MenuItem(label) {};
-        SelectorControl(const char *label, byte initial_selected_value_index) : 
+        SelectorControl(const char *label, DataType initial_selected_value_index) : 
             SelectorControl(label) {
             this->selected_value_index = initial_selected_value_index;
         }
 
         // used when needs to be told to update externally -- eg when ParameterInput mapping changes and need to tell its ParameterInputSelector
-        virtual void update_actual_index(int_least16_t new_index) {
+        virtual void update_actual_index(DataType new_index) {
             this->actual_value_index = new_index;
         }
 
