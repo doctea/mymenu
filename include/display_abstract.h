@@ -122,10 +122,14 @@ class DisplayTranslator {
     virtual void updateDisplay() {};
 
     // by ktownsend from https://forums.adafruit.com/viewtopic.php?t=21536
+    // get a 565-format colour for an rgb value
     uint16_t rgb(uint8_t r, uint8_t g, uint8_t b);
     uint16_t rgb(uint32_t rgb);
     // take a 565 16-bit colour value and return a dimmed version of it
     uint16_t halfbright_565(uint16_t colour);
+    // dim_level should be 1-3, 1 = brightest, 3 = maximum dimming
+    uint16_t dim_565(uint16_t colour, int8_t dim_level);
+
     virtual bool will_x_rows_fit_to_height(int rows, int height = -1);
 
     // shapes + lines

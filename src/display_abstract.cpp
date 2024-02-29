@@ -41,6 +41,19 @@ uint16_t DisplayTranslator::halfbright_565(uint16_t colour) {
     return ret;
 }
 
+uint16_t DisplayTranslator::dim_565(uint16_t colour, int8_t dim_level) {
+    unsigned char red = (colour & 0xf800) >> 11;
+    unsigned char green = (colour & 0x07e0) >> 5;
+    unsigned char blue = colour & 0x001f;
+    //Serial.printf("halfbright took colour %04x and split into red=%i, green=%i, blue=%i ", colour, red, green, blue);
+    red = red >> min(3, dim_level);
+    green = green >> min(2, dim_level);
+    blue = green >> min(3, dim_level);
+    uint16_t ret = rgb(red<<3,green<<2,blue<<3);
+    //Serial.printf("and returning %04x\n", ret);
+    return ret;
+}
+
 bool DisplayTranslator::will_x_rows_fit_to_height(int rows, int height) {
     if (height==-1) height = this->height();
     int rowHeight = this->getRowHeight();
