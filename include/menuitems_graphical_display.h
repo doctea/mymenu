@@ -2,7 +2,7 @@
 
 #include "menuitems.h"
 
-#include "midihelpers.h"
+#include "midi_helpers.h"
 
 template<class DataType>
 class GraphicalValueDisplay : public MenuItem {
@@ -10,19 +10,19 @@ class GraphicalValueDisplay : public MenuItem {
 
     float *stored_values = nullptr;
     DataType *target_variable = nullptr;
-    DataType min, max;
+    DataType min_limit, max_limit;
     int head = 0, tail;
     int8_t height = 15;
-    int8_t memory = 100;
+    int16_t memory = BEATS_PER_BAR * PPQN;
 
     GraphicalValueDisplay(const char *label, DataType *target_variable, DataType min, DataType max, int height = 15) : MenuItem(label) {
         this->target_variable = target_variable;
         this->height = 15;
 
-        this->min = min;
-        this->max = max;
+        this->min_limit = min;
+        this->max_limit = max;
 
-        this->stored_values = calloc(TICKS_PER_PHRASE, sizeof(float));
+        this->stored_values = (float*)calloc(memory, sizeof(float));
     }
 
     virtual int display(Coord pos, bool selected, bool opened) override {
@@ -34,25 +34,62 @@ class GraphicalValueDisplay : public MenuItem {
     }
 
     virtual void update_ticks(uint32_t tick) override {
-        stored_values[head++] = (float)(*target_variable - min) / (float)max;
+        //float value = ((float)(*target_variable - min_limit)) / (float)max_limit;
+        float value;
+        
+        //if (tick % 192 > 96) {
+            value = *target_variable;
+            //if (Serial) Serial.printf("got variable value\t%3.3f\n", value);
+        /*} else {
+            value = (float)(tick%96)/96.0;
+            if (Serial) Serial.printf("got ticked value\t%3.3f\n", value);
+        }*/
+        //Serial.printf("update_ticks() got value %3.3f to store into %i\n", value, head);
+        stored_values[head++] = value;
         if (head>=memory)
             head = 0;
     }
+
+    int pixel_width = 0;
+    float mem_per_pixel = 0.0f;
 
     // render the current value at current position
     virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
         int start = head;
 
-        int pixel_width = max_character_width * tft->characterWidth();
-        int mem_per_pixel = pixel_width / memory;
+        if (pixel_width==0)
+            this->pixel_width = max_character_width * tft->characterWidth();
+        if (mem_per_pixel==0.0f)
+            mem_per_pixel = max((float)pixel_width / (float)memory, 1.0);
 
-        for (int i = 0 ; i < pixel_width ; i++) {
+        /*for (int i = 0 ; i < pixel_width ; i++) {
             int index = (head + i) % memory;
             float value = stored_values[index / mem_per_pixel];
             float last_value = i>0 ? stored_values[index-1 / mem_per_pixel] : stored_values[index / mem_per_pixel];
+            Serial.printf("i=%i, value=%3.3f, last_value=%3.3f\n", index, value, last_value);
             if (i>0)
-                tft->drawLine(i-1, last_value * (float)height, i, value, this->default_fg_colour);            
+                tft->drawLine(i-1, tft->getCursorY() + (last_value * (float)height), i, tft->getCursorY()+value, this->default_fg);
+        }*/
+
+        const int_fast16_t base_row = tft->getCursorY();
+
+        tft->drawLine(0, base_row, pixel_width, base_row, GREY);
+
+        int_fast16_t last_y = 0;
+        for (int screen_x = 0 ; screen_x < pixel_width ; screen_x++) {
+            //const int_fast16_t tick_for_screen_X = screen_x / mem_per_pixel; //ticks_to_memory_step((int)((float)screen_x * ticks_per_pixel)); // the tick corresponding to this screen position
+            const int_fast16_t tick_for_screen_X = (head + (int)((float)screen_x/mem_per_pixel)) % memory;
+            //Serial.printf("mem_per_pixel=%i: for screen_x=%i, got tick_for_screen_X=%i\n", mem_per_pixel, screen_x, tick_for_screen_X);
+            const float value = stored_values[tick_for_screen_X];
+            const int_fast16_t y = height - (value * height);
+            if (screen_x != 0) {
+                //int last_y = GRAPH_HEIGHT - (this->logged[tick_for_screen_X] * GRAPH_HEIGHT);
+                tft->drawLine(screen_x-1, base_row + last_y, screen_x, base_row + y, this->default_fg);                    
+            }
+            last_y = y;
         }
+
+        tft->drawLine(0, base_row+height, pixel_width, base_row+height, GREY);
 
         return tft->getCursorY();
     }
