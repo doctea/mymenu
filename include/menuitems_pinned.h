@@ -1,6 +1,3 @@
-#ifndef MENUITEM_PINNED__INCLUDED
-#define MENUITEM_PINNED__INCLUDED
+#pragma once
 
 #include "menuitems.h"
-
-#endif
