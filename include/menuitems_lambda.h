@@ -27,8 +27,8 @@ class LambdaNumberControl : public NumberControl<DataType> {
         this->setter_func = setter_func;
 
         this->on_change_handler = on_change_handler;
-        this->minimum_value = (DataType)0;
-        this->maximum_value = (DataType)100;
+        this->minimumDataValue = (DataType)0;
+        this->maximumDataValue = (DataType)100;
         this->go_back_on_select = go_back_on_select;
 
         this->set_internal_value( this->getter_func() );
@@ -37,13 +37,13 @@ class LambdaNumberControl : public NumberControl<DataType> {
         setter_func_def setter_func,
         getter_func_def getter_func,
         void (*on_change_handler)(DataType last_value, DataType new_value),
-        DataType minimum_value,
-        DataType maximum_value,
+        DataType minimumDataValue,
+        DataType maximumDataValue,
         bool go_back_on_select = false,
         bool direct = false
     ) : LambdaNumberControl<DataType>(label, setter_func, getter_func, on_change_handler, go_back_on_select) {
-        this->minimum_value = minimum_value;
-        this->maximum_value = maximum_value;
+        this->minimumDataValue = minimumDataValue;
+        this->maximumDataValue = maximumDataValue;
         this->direct = direct;
     }
 

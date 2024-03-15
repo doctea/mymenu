@@ -23,8 +23,8 @@ class ObjectNumberControl : public NumberControl<DataType> {
         this->getter = getter_func;
         this->setter = setter_func;
         this->on_change_handler = on_change_handler;
-        this->minimum_value = 0;
-        this->maximum_value = 100;
+        this->minimumDataValue = 0;
+        this->maximumDataValue = 100;
         this->go_back_on_select = go_back_on_select;
 
         if (this->target_object!=nullptr && this->getter!=nullptr) 
@@ -35,13 +35,13 @@ class ObjectNumberControl : public NumberControl<DataType> {
                         void(TargetClass::*setter_func)(DataType), 
                         DataType(TargetClass::*getter_func)(), 
                         void (*on_change_handler)(DataType last_value, DataType new_value),
-                        DataType minimum_value,
-                        DataType maximum_value,
+                        DataType minimumDataValue,
+                        DataType maximumDataValue,
                         bool go_back_on_select = false,
                         bool direct = false
                 ) : ObjectNumberControl<TargetClass,DataType>(label, target_object, setter_func, getter_func, on_change_handler, go_back_on_select) {
-        this->minimum_value = minimum_value;
-        this->maximum_value = maximum_value;
+        this->minimumDataValue = minimumDataValue;
+        this->maximumDataValue = maximumDataValue;
         this->direct = direct;
     }
 
@@ -69,8 +69,8 @@ class ObjectNumberControl : public NumberControl<DataType> {
 
     /*virtual void set_internal_value(DataType value) override {
         if (this->debug) Serial.printf("ObjectNumberControl.set_internal_value(%i)..\n", value);
-        this->internal_value = constrain(value, this->minimum_value, this->maximum_value);
-        if (this->debug) Serial.printf("constrained to %i (%i:%i)\n", this->internal_value, this->minimum_value, this->maximum_value);
+        this->internal_value = constrain(value, this->minimumDataValue, this->maximumDataValue);
+        if (this->debug) Serial.printf("constrained to %i (%i:%i)\n", this->internal_value, this->minimumDataValue, this->maximumDataValue);
     }*/
 
     virtual void change_value(DataType new_value) override {

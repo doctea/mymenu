@@ -26,8 +26,8 @@ class NumberControl : public NumberControlBase {
 
         DataType *target_variable = nullptr;
         DataType internal_value = (DataType)0;
-        DataType minimum_value = (DataType)0;
-        DataType maximum_value = (DataType)100;
+        DataType minimumDataValue = (DataType)0;
+        DataType maximumDataValue = (DataType)100;
         DataType step = this->get_default_step_for_type(internal_value);
 
         float float_mult = 100.0;
@@ -45,11 +45,11 @@ class NumberControl : public NumberControlBase {
         }
         NumberControl(const char* label, DataType start_value, DataType min_value, DataType max_value, bool go_back_on_select = false) 
             : NumberControl(label, go_back_on_select) 
-            //: internal_value(start_value), minimum_value(min_value), maximum_value(max_value)
+            //: internal_value(start_value), minimumDataValue(min_value), maximumDataValue(max_value)
             {
             this->internal_value = start_value;
-            this->minimum_value = min_value;
-            this->maximum_value = max_value;
+            this->minimumDataValue = min_value;
+            this->maximumDataValue = max_value;
         };
         NumberControl(const char* label, DataType *target_variable_, DataType start_value, DataType min_value, DataType max_value, bool go_back_on_select = false, void (*on_change_handler_)(DataType last_value, DataType new_value) = nullptr) 
             // : target_variable(target_variable_), on_change_handler(on_change_handler_) 
@@ -60,16 +60,23 @@ class NumberControl : public NumberControlBase {
         };
         NumberControl(const char* label, DataType (*getter_)(), void (*setter_)(DataType value), DataType min_value, DataType max_value, bool go_back_on_select = false, void (*on_change_handler_)(DataType last_value, DataType new_value) = nullptr) 
             : NumberControl(label, go_back_on_select) 
-            //: getter(getter_), setter(setter_), minimum_value(min_value), maximum_value(max_value), on_change_handler(on_change_handler_)
+            //: getter(getter_), setter(setter_), minimumDataValue(min_value), maximumDataValue(max_value), on_change_handler(on_change_handler_)
             {
             this->getter = getter_;
             this->setter = setter_;
 
             this->internal_value = getter();
-            this->minimum_value = min_value;
-            this->maximum_value = max_value;
+            this->minimumDataValue = min_value;
+            this->maximumDataValue = max_value;
             this->on_change_handler = on_change_handler_;
         };
+
+        virtual DataType getMinimumDataValue() {
+            return this->minimumDataValue;
+        }
+        virtual DataType getMaximumDataValue() {
+            return this->maximumDataValue;
+        }
 
         // step value passed here doesn't matter -- we're just using the datatype overload to set the default
         constexpr DataType get_default_step_for_type(double step) {
@@ -240,9 +247,9 @@ class NumberControl : public NumberControlBase {
 
         virtual void set_internal_value(DataType value) {
             //this->internal_value = value;
-            this->internal_value = constrain(value, this->minimum_value, this->maximum_value);
+            this->internal_value = constrain(value, this->getMinimumDataValue(), this->getMaximumDataValue());
             //if (this->debug) 
-            //Serial.printf(F("%s: NumberControl.set_internal_value(%i)\twith constraint (%i:%i) resulted in %i\n"), this->label, value, (int)this->minimum_value, (int)this->maximum_value, this->internal_value);
+            //Serial.printf(F("%s: NumberControl.set_internal_value(%i)\twith constraint (%i:%i) resulted in %i\n"), this->label, value, (int)this->minimumDataValue, (int)this->maximumDataValue, this->internal_value);
         }
 
         virtual DataType get_current_step() {
@@ -259,17 +266,17 @@ class NumberControl : public NumberControlBase {
         }
 
         virtual void decrease_value() {
-            if (this->get_internal_value()!=this->minimum_value)    // so that unsigned datatypes don't wrap back around when they try to go below 0
+            if (this->get_internal_value()!=this->getMinimumDataValue())    // so that unsigned datatypes don't wrap back around when they try to go below 0
                 this->set_internal_value((DataType)(get_internal_value() - get_current_step()));
             else if (wrap)
-                this->set_internal_value(this->maximum_value);
+                this->set_internal_value(this->getMaximumDataValue());
         }
         virtual void increase_value() {
             //Serial.printf("%s#increase_value with internal value %i and step %i makes %i\n", this->label, get_internal_value(), this->step, get_internal_value()+this->step);
-            if (this->get_internal_value()!=this->maximum_value)
+            if (this->get_internal_value()!=this->getMaximumDataValue())
                 this->set_internal_value((DataType)(get_internal_value() + get_current_step()));
             else if (wrap) 
-                this->set_internal_value(this->minimum_value);
+                this->set_internal_value(this->getMinimumDataValue());
         }
 
         virtual bool knob_left() override {

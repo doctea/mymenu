@@ -88,18 +88,18 @@ class LambdaSelectorControl : public LambdaNumberControl<DataType> {
             Serial.printf("%s: no index found for value %i!\n", this->label, this->get_internal_value());*/
         int idx = (int)this->get_internal_value();
         idx++;
-        if ((DataType)idx>=this->maximum_value) idx = this->maximum_value; //available_values->size();
+        if ((DataType)idx>=this->getMaximumDataValue()) idx = this->getMaximumDataValue(); //available_values->size();
         //Serial.printf("%s: increase_value got new idx %i (corresponding to value %s)\n", this->label, idx, this->get_label_for_index(idx));
         this->set_internal_value((DataType)idx);
     }
     virtual void decrease_value() override {
         ///int idx = this->get_index_for_value(this->get_internal_value());
         int idx = (int)this->get_internal_value();
-        if (idx==this->minimum_value)   // for protection against unsigned values wrapping around
+        if (idx==this->getMinimumDataValue())   // for protection against unsigned values wrapping around
             return;
         idx--;
-        if ((DataType)idx<this->minimum_value) 
-            idx = this->minimum_value;
+        if ((DataType)idx<this->getMinimumDataValue()) 
+            idx = this->getMinimumDataValue();
         //Serial.printf("%s: decrease_value got new idx %i (corresponding to value %s)\n", this->label, idx, this->get_label_for_index(idx));
         this->set_internal_value((DataType)idx);
     }
@@ -124,6 +124,7 @@ class LambdaSelectorControl : public LambdaNumberControl<DataType> {
         //if (this->debug) { Serial.printf(F("ObjectSelectorControl#set_current_value() passed value %i "), value); Serial_flush(); }
         //if (this->target_object!=nullptr && this->setter!=nullptr) {
             //Serial.printf("ObjectSelectorControl#set_current_value() with index %i ", value); Serial_flush(); 
+            // TODO: shouldn't this be get_index_for_value..?
             value = this->get_value_for_index(value);
             //Serial.printf(F("\tConverted to value_for_index %i\n"), value); Serial_flush(); 
             //(this->target_object->*this->setter)(value);
@@ -150,10 +151,10 @@ class LambdaSelectorControl : public LambdaNumberControl<DataType> {
         if (this->available_values == nullptr) 
             this->setup_available_values();
         available_values->add(option { .value = value, .label = label });
-        this->minimum_value = (DataType)0;
-        //if (value>this->maximum_value)
-        //    this->maximum_value = value;
-        this->maximum_value = (DataType)(available_values->size() - 1);
+        this->minimumDataValue = (DataType)0;
+        //if (value>this->maximumDataValue)
+        //    this->maximumDataValue = value;
+        this->maximumDataValue = (DataType)(available_values->size() - 1);
     }
 
     virtual LinkedList<option> *get_available_values() {
@@ -164,11 +165,11 @@ class LambdaSelectorControl : public LambdaNumberControl<DataType> {
     virtual void set_available_values(LinkedList<option> *available_values) {
         this->available_values = available_values;
         if (available_values!=nullptr) {
-            this->maximum_value = (DataType)(available_values->size() - 1);
+            this->maximumDataValue = (DataType)(available_values->size() - 1);
             /*DataType highest = 0;
             for (unsigned int i = 0 ; i < available_values->size() ; i++) {
                 if (available_values->get(i).value > highest)
-                    this->maximum_value = available_values->get(i).value;
+                    this->maximumDataValue = available_values->get(i).value;
             }*/
         }
     }
