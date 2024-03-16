@@ -35,7 +35,6 @@ class LambdaSelectorControl : public LambdaNumberControl<DataType> {
         this->internal_value = (DataType)this->get_index_for_value(this->getter_func());
         //Serial.printf("ObjectSelectorControl#action_opened, internal_value setting to %i (%s)\n", this->internal_value, getFormattedValue());
         return !LambdaNumberControl<DataType>::readOnly;
-        //return ObjectNumberControl<TargetClass,DataType>::action_opened();
     }
 
     virtual int get_index_for_value(DataType value) {
@@ -82,9 +81,6 @@ class LambdaSelectorControl : public LambdaNumberControl<DataType> {
 
     virtual void increase_value() override {
         //Serial.printf("%s: increase_value current internal_value is %i\n", this->label, this->get_internal_value());
-        /*int idx = this->get_index_for_value(this->get_internal_value());
-        if (idx==-1) 
-            Serial.printf("%s: no index found for value %i!\n", this->label, this->get_internal_value());*/
         int idx = (int)this->get_internal_value();
         idx++;
         if ((DataType)idx>=this->getMaximumDataValue()) idx = this->getMaximumDataValue(); //available_values->size();
@@ -92,7 +88,6 @@ class LambdaSelectorControl : public LambdaNumberControl<DataType> {
         this->set_internal_value((DataType)idx);
     }
     virtual void decrease_value() override {
-        ///int idx = this->get_index_for_value(this->get_internal_value());
         int idx = (int)this->get_internal_value();
         if (idx==this->getMinimumDataValue())   // for protection against unsigned values wrapping around
             return;
@@ -137,8 +132,6 @@ class LambdaSelectorControl : public LambdaNumberControl<DataType> {
             this->setup_available_values();
         available_values->add(option { .value = value, .label = label });
         this->minimumDataValue = (DataType)0;
-        //if (value>this->maximumDataValue)
-        //    this->maximumDataValue = value;
         this->maximumDataValue = (DataType)(available_values->size() - 1);
     }
 
@@ -151,11 +144,6 @@ class LambdaSelectorControl : public LambdaNumberControl<DataType> {
         this->available_values = available_values;
         if (available_values!=nullptr) {
             this->maximumDataValue = (DataType)(available_values->size() - 1);
-            /*DataType highest = 0;
-            for (unsigned int i = 0 ; i < available_values->size() ; i++) {
-                if (available_values->get(i).value > highest)
-                    this->maximumDataValue = available_values->get(i).value;
-            }*/
         }
     }
 
