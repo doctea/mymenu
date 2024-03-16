@@ -78,7 +78,7 @@ class LambdaSelectorControl : public LambdaNumberControl<DataType> {
         return this->get_label_for_index(this->get_internal_value());
     }
     virtual const char *getFormattedValue() override {
-        return this->get_label_for_value(this->get_current_value());
+        return this->get_label_for_index(this->get_current_value());
     }
 
     virtual void increase_value() override {
