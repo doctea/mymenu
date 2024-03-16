@@ -137,7 +137,7 @@ int Menu::display() {
 
         // find number of panels to offset in order to ensure that selected panel is on screen?
         int start_panel = 0;
-        if (currently_selected>0 && panel_bottom[currently_selected] >= screen_height_cutoff) {
+        if (this->selected_page->scrollable && panel_bottom[currently_selected] >= screen_height_cutoff) {
             start_panel = currently_selected - 1;
             //#ifdef OLD_SCROLL_METHOD
             // count backwards to find number of panels we have to go to fit currently_selected on screen...
@@ -178,7 +178,8 @@ int Menu::display() {
         //    start_panel = currently_selected - 1;
 
         #ifndef ALT_MENU_POSITIONING
-            start_panel = constrain(start_panel-2, 0, (int)items->size()-1);
+            if(this->selected_page->scrollable)
+                start_panel = constrain(start_panel-2, 0, (int)items->size()-1);
             // ^^^ whether this is useful appears to depend on what menus we're on... disabled it for better behaviour on the ParameterInput pages on Microlidian
             // TODO: fix this behaviour once and for all
         #endif

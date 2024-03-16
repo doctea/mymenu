@@ -48,6 +48,7 @@ struct page_t {
     int *panel_bottom = nullptr;
     int num_panels = 0;
     LinkedList<MenuItem*> *items = nullptr;
+    bool scrollable = true;
 };
 
 class Menu {
@@ -360,19 +361,20 @@ class Menu {
         }
 
         // FLASHMEM // void setup_menu() causes a section type conflict with int Menu::add_page(const char*, uint16_t)
-        int add_page(const char *title, uint16_t colour = C_WHITE) {
+        int add_page(const char *title, uint16_t colour = C_WHITE, bool scrollable = true) {
             //Serial.printf("add_page(%s) has current size of %i\n", title, this->pages->size());
-            return insert_page(title, this->pages->size()>0 ? this->pages->size() : 0, colour);
+            return insert_page(title, this->pages->size()>0 ? this->pages->size() : 0, colour, scrollable);
         }
         //FLASHMEM //causes a section type conflict with 'virtual void DeviceBehaviour_Keystep::setup_callbacks()'
-        int insert_page(const char *title, unsigned int position, uint16_t colour = C_WHITE) {
+        int insert_page(const char *title, unsigned int position, uint16_t colour = C_WHITE, bool scrollable = true) {
             //Serial.printf("insert_page() passed position %i\n", position);
             if (position > this->pages->size()) 
                 position = this->pages->size();
 
             this->pages->add(position, new page_t {
                 .title = (new String(title))->c_str(),
-                .colour = colour
+                .colour = colour,
+                .scrollable = scrollable
             });
 
             this->select_page(position);
