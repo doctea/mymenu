@@ -41,9 +41,8 @@ class LambdaSelectorControl : public LambdaNumberControl<DataType> {
     virtual int get_index_for_value(DataType value) {
         if (this->available_values == nullptr) return 0;
 
-        const unsigned int size = available_values->size();
-
-        for (unsigned int i = 0 ; i < size ; i++) {
+        const uint8_fast_t size = available_values->size();
+        for (uint8_fast_t i = 0 ; i < size ; i++) {
             if (available_values->get(i).value==value) {
                 //Serial.printf("get_index_for_value(%i) returning %i\n", value, i);
                 return i;
@@ -103,20 +102,6 @@ class LambdaSelectorControl : public LambdaNumberControl<DataType> {
         //Serial.printf("%s: decrease_value got new idx %i (corresponding to value %s)\n", this->label, idx, this->get_label_for_index(idx));
         this->set_internal_value((DataType)idx);
     }
-
-    // override in subclass if need to do something special eg getter/setter
-    /*virtual DataType get_current_value() override {
-        if (this->target_object!=nullptr && this->getter!=nullptr) {
-            if (this->debug) { Serial.printf("ObjectNumberControl#get_current_value in %s about to call getter\n", this->label); Serial_flush(); }
-            DataType v = (this->target_object->*this->getter)();
-            Serial.printf("get_current_value from getter got %i, returning index %i\n", v, this->get_index_for_value(v));
-            if (this->debug) { Serial.println("Called getter!"); Serial_flush(); }
-
-            return this->get_index_for_value(v);
-        }
-        
-        return 0;
-    }*/
 
     // override in subclass if need to do something special eg getter/setter
     virtual void set_current_value(DataType value) override { 
