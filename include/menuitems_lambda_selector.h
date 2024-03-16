@@ -54,10 +54,10 @@ class LambdaSelectorControl : public LambdaNumberControl<DataType> {
 
         if (index<0 || index>=(int)available_values->size())
             return (DataType)0;
-        //Serial.printf("get_value_for_index(%i) returning %i\n", index, available_values.get(index).value);
+        //Serial.printf("get_value_for_index(%i) returning %i/%3.3f\n", index, available_values->get(index).value, available_values->get(index).value);
         return available_values->get(index).value;
     }
-    virtual const char*get_label_for_value(int value) {
+    virtual const char*get_label_for_value(DataType value) {
         /*static char value_label[MENU_C_MAX];
         sprintf(value_label, "%i", value);
         return value_label;*/
@@ -76,7 +76,7 @@ class LambdaSelectorControl : public LambdaNumberControl<DataType> {
         return this->get_label_for_index(this->get_internal_value());
     }
     virtual const char *getFormattedValue() override {
-        return this->get_label_for_index(this->get_current_value());
+        return this->get_label_for_value(this->get_current_value());
     }
 
     virtual void increase_value() override {
@@ -99,25 +99,26 @@ class LambdaSelectorControl : public LambdaNumberControl<DataType> {
     }
 
     // override in subclass if need to do something special eg getter/setter
-    virtual void set_current_value(DataType value) override { 
+    virtual void set_current_value(DataType index) override { 
         //this->internal_value = value;
         //if (this->debug) { Serial.printf(F("ObjectSelectorControl#set_current_value() passed value %i "), value); Serial_flush(); }
-        //if (this->target_object!=nullptr && this->setter!=nullptr) {
-            //Serial.printf("ObjectSelectorControl#set_current_value() with index %i ", value); Serial_flush(); 
-            // TODO: shouldn't this be get_index_for_value..?
-            value = this->get_value_for_index(value);
-            //Serial.printf(F("\tConverted to value_for_index %i\n"), value); Serial_flush(); 
-            //(this->target_object->*this->setter)(value);
-            this->setter_func(value);
+        if (this->debug) { 
+            Serial.printf("LambdaSelectorControl '%s'#set_current_value() passed index argument %i/%3.3f", this->label, index, index); Serial_flush(); 
+            Serial.printf("\tconverted to value: %i/%3.3f\n", this->get_value_for_index(index), this->get_value_for_index(index));
+        }
+        //Serial.printf("ObjectSelectorControl#set_current_value() with index %i ", value); Serial_flush(); 
+        // TODO: shouldn't this be get_index_for_value..?
+        DataType value = this->get_value_for_index(index);
+        //Serial.printf(F("\tConverted to value_for_index %i\n"), value); Serial_flush(); 
+        this->setter_func(value);
 
-            char msg[MENU_MESSAGE_MAX];
-            //Serial.printf("about to build msg string...\n");
-            // todo: fix compiler warning / type of value, may need to override or just only print FormattedValue to the message and not the real value
-            snprintf(msg, MENU_MESSAGE_MAX, "Set %8s to %s (%i)", this->label, get_label_for_value(value), value);
-            //Serial.printf("about to set_last_message!");
-            //msg[this->tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
-            menu_set_last_message(msg,GREEN);
-        //}
+        char msg[MENU_MESSAGE_MAX];
+        //Serial.printf("about to build msg string...\n");
+        // todo: fix compiler warning / type of value, may need to override or just only print FormattedValue to the message and not the real value
+        snprintf(msg, MENU_MESSAGE_MAX, "Set %8s to %s (%i)", this->label, get_label_for_value(value), index);
+        //Serial.printf("about to set_last_message!");
+        //msg[this->tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
+        menu_set_last_message(msg,GREEN);
         if (this->debug) { Serial.println(F("Done.")); Serial_flush(); }
     }
 
