@@ -41,8 +41,8 @@ class LambdaSelectorControl : public LambdaNumberControl<DataType> {
     virtual int get_index_for_value(DataType value) {
         if (this->available_values == nullptr) return 0;
 
-        const uint8_fast_t size = available_values->size();
-        for (uint8_fast_t i = 0 ; i < size ; i++) {
+        const uint_fast8_t size = available_values->size();
+        for (uint_fast8_t i = 0 ; i < size ; i++) {
             if (available_values->get(i).value==value) {
                 //Serial.printf("get_index_for_value(%i) returning %i\n", value, i);
                 return i;
