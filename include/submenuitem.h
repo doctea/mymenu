@@ -41,6 +41,8 @@ class SubMenuItem : public MenuItem {
             while ((unsigned int)currently_selected < items->size() && !items->get(currently_selected)->is_selectable()) {
                 currently_selected++;
             }
+            if (items->size()==1)   // if there's only one item, open it
+                button_select();
 
             if (!always_show) 
                 this->needs_redraw = true;
@@ -219,6 +221,8 @@ class SubMenuItem : public MenuItem {
                 //Serial.println("submenuitem#button_back() got a false back from the selected item's button_back, setting currently_opened etc then returning true");
                 currently_selected = currently_opened;
                 currently_opened = -1;
+                if (items->size()==1)       // if there's only one item, exit out of the submenu
+                    return button_back();
             } else if (!is_opened()) {
                 //Serial.println("submenuitem#button_back() nothing selected so settiong currently_selected then returning false");
                 //currently_opened = 0;                
