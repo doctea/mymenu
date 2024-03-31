@@ -234,6 +234,10 @@ class NumberControl : public NumberControlBase {
             //byte textSize = (strlen(tmp) > max_character_width/2) ? 1 : 2;
             //byte textSize = (strlen(tmp) / max_character_width) + 1;
             //Serial.printf("%s\t#renderValue string is \t%s (length=%i), max_character_width is\t%i, setting text size to\t%i\n", this->label, tmp, strlen(tmp), max_character_width, textSize);
+            if (this->debug) {
+                Serial.printf("%s\t#renderValue string is \t'%s'\t(length=%i), max_character_width is\t%i, current text width is %i, setting text size to\t%i\n", this->label, tmp, strlen(tmp), max_character_width, tft->currentCharacterWidth(), tft->get_textsize_for_width(tmp, max_character_width*tft->currentCharacterWidth()));
+                Serial_flush();
+            }
             byte textSize = tft->get_textsize_for_width(tmp, max_character_width*tft->currentCharacterWidth());
             tft->setTextSize(textSize);
 

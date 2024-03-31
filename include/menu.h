@@ -139,7 +139,7 @@ class Menu {
 
         // input-handling stuff
         void knob_turned(int knob_position) {
-            Debug_printf(F("knob_turned %i\n"), knob_position);
+            Debug_printf("knob_turned %i\n", knob_position);
             //tft->setCursor(0,0);
             //tft->printf("knob %i", knob_position);
             if (knob_position < last_knob_position) {
@@ -153,7 +153,7 @@ class Menu {
             // do some action when knob is turned
         }
         bool knob_left() {
-            Debug_println(F("knob_left()"));
+            Debug_println("knob_left()");
             if (!is_page_opened()) {
                 selected_page_index--;
                 if (selected_page_index<0)
@@ -173,7 +173,7 @@ class Menu {
             return true;
         }
         bool knob_right() {
-            Debug_println(F("knob_right()"));
+            Debug_println("knob_right()");
             if (!is_page_opened()) {
                 selected_page_index++;
                 if (selected_page_index>=(int)pages->size())
@@ -263,24 +263,24 @@ class Menu {
         }
 
         bool button_select() {
-            Debug_printf(F("Menu#button_select() on item %i\n"), selected_page->currently_selected);
+            Debug_printf("Menu#button_select() on item %i\n", selected_page->currently_selected);
             if (!is_page_opened()) {
                 open_page(selected_page_index);
             } else if (!is_item_opened()) {
-                Debug_printf(F("button_select with currently_opened menuitem -1 - opening %i\n"), selected_page->currently_selected);
+                Debug_printf("button_select with currently_opened menuitem -1 - opening %i\n", selected_page->currently_selected);
                 if (selected_page->items->get(selected_page->currently_selected)->action_opened()) {
                     selected_page->currently_opened = selected_page->currently_selected;
                     return false;
                 }
             } else {
-                Debug_printf(F("Menu#button_select() subselecting already-opened %i (%s)\n"), selected_page->currently_opened, selected_page->items->get(selected_page->currently_opened)->label);
+                Debug_printf("Menu#button_select() subselecting already-opened %i (%s)\n", selected_page->currently_opened, selected_page->items->get(selected_page->currently_opened)->label);
                 if (selected_page->items->get(selected_page->currently_opened)->button_select()) 
                     button_back();
             } 
             return true;
         }
         bool button_select_released() {
-            Debug_printf(F("Menu#button_select_released() on item %i\n"), selected_page->currently_selected);
+            Debug_printf("Menu#button_select_released() on item %i\n", selected_page->currently_selected);
             if (!is_page_opened()) {
                 // do nothing?
             } else if (!is_item_opened()) {
@@ -290,7 +290,7 @@ class Menu {
                     return false;
                 }*/
             } else {
-                Debug_printf(F("Menu#button_select_released() subselecting already-opened %i (%s)\n"), selected_page->currently_opened, selected_page->items->get(selected_page->currently_opened)->label);
+                Debug_printf("Menu#button_select_released() subselecting already-opened %i (%s)\n", selected_page->currently_opened, selected_page->items->get(selected_page->currently_opened)->label);
                 if (selected_page->items->get(selected_page->currently_opened)->button_select_released()) 
                     button_back();
             } 
@@ -305,7 +305,7 @@ class Menu {
                 // already at top level - do nothing?
             } else if (is_item_opened() && !selected_page->items->get(selected_page->currently_opened)->button_back()) {
                 // an item is opened, and it responded false to button_back()
-                Debug_printf(F("back with currently_opened menuitem %i and no subhandling, setting to -1\n"), selected_page->currently_opened); 
+                Debug_printf("back with currently_opened menuitem %i and no subhandling, setting to -1\n", selected_page->currently_opened); 
                 selected_page->currently_opened = -1;
                 if (selected_page->items->size()==1) {
                     // if there is only one item on this page, close the page too
@@ -314,11 +314,11 @@ class Menu {
                 }
             } else if (!is_item_opened()) {
                 // no item is opened
-                Debug_printf(F("back pressed but already at top level with currently_opened menuitem %i\n"), selected_page->currently_opened); //setting to -1\n", currently_opened);
+                Debug_printf("back pressed but already at top level with currently_opened menuitem %i\n", selected_page->currently_opened); //setting to -1\n", currently_opened);
                 selected_page->currently_selected = -1;
                 opened_page_index = -1;
             } else {
-                Debug_printf(F("back with currently_opened menuitem %i, handled by selected\n"), selected_page->currently_opened); //setting to -1\n", currently_opened);
+                Debug_printf("back with currently_opened menuitem %i, handled by selected\n", selected_page->currently_opened); //setting to -1\n", currently_opened);
             }
             tft->clear(true);   // TOOD: don't rely on this
             return true;
@@ -331,17 +331,17 @@ class Menu {
             return false;
         }
         bool button_right() {
-            Debug_println(F("button_right()"));
+            Debug_println("button_right()");
             if (!is_page_opened()) {
                 open_page(selected_page_index);
             } else if (is_item_opened()) {
                 if (selected_page->items->get(selected_page->currently_opened)->button_right()) {
-                    Debug_printf(F("right with currently_opened menuitem %i subhandled!\n"), selected_page->currently_opened);
+                    Debug_printf("right with currently_opened menuitem %i subhandled!\n", selected_page->currently_opened);
                 } else {
-                    Debug_printf(F("right with currently_opened menuitem %i not subhandled!\n"), selected_page->currently_opened);
+                    Debug_printf("right with currently_opened menuitem %i not subhandled!\n", selected_page->currently_opened);
                 }
             } else {
-                Debug_printf(F("right with nothing currently_opened\n")); //setting to -1\n", currently_opened);
+                Debug_printf("right with nothing currently_opened\n"); //setting to -1\n", currently_opened);
             }
             return true;
         }
@@ -383,9 +383,9 @@ class Menu {
         }
 
         FLASHMEM void setup_display() {
-            Debug_println(F("setup_display about to do tft->setup()..")); Serial_flush();
+            Debug_println("setup_display about to do tft->setup().."); Serial_flush();
             tft->setup();
-            Debug_println(F("tft->setup() done!")); Serial_flush();
+            Debug_println("tft->setup() done!"); Serial_flush();
         }
         #ifndef GDB_DEBUG
         FLASHMEM 

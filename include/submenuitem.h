@@ -41,7 +41,7 @@ class SubMenuItem : public MenuItem {
             while ((unsigned int)currently_selected < items->size() && !items->get(currently_selected)->is_selectable()) {
                 currently_selected++;
             }
-            if (items->size()==1)   // if there's only one item, open it
+            if (items->size()==1 && items->get(0)->is_openable())   // if there's only one item, open it
                 button_select();
 
             if (!always_show) 
