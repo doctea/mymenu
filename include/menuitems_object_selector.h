@@ -19,8 +19,9 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
         void(TargetClass::*setter_func)(DataType), 
         DataType(TargetClass::*getter_func)(), 
         void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr,
-        bool go_back_on_select = false
-    ) : ObjectNumberControl<TargetClass,DataType>(label, target_object, setter_func, getter_func, on_change_handler, go_back_on_select) {
+        bool go_back_on_select = false,
+        bool direct = false
+    ) : ObjectNumberControl<TargetClass,DataType>(label, target_object, setter_func, getter_func, on_change_handler, go_back_on_select, direct) {
         if (this->target_object!=nullptr && this->getter!=nullptr)
             this->set_internal_value (this->get_index_for_value( (this->target_object->*this->getter)() ));
         //this->debug = true;
@@ -79,26 +80,32 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
     }
 
     virtual void increase_value() override {
-        //Serial.printf("%s: increase_value current internal_value is %i\n", this->label, this->get_internal_value());
-        /*int idx = this->get_index_for_value(this->get_internal_value());
-        if (idx==-1) 
-            Serial.printf("%s: no index found for value %i!\n", this->label, this->get_internal_value());*/
         int idx = this->get_internal_value();
+
+        if ((DataType)idx>=this->getMaximumDataValue()) 
+            return; //idx = this->getMaximumDataValue(); //available_values->size();
+
         idx++;
-        if ((DataType)idx>=this->maximumDataValue) idx = this->maximumDataValue; //available_values->size();
+
         //Serial.printf("%s: increase_value got new idx %i (corresponding to value %s)\n", this->label, idx, this->get_label_for_index(idx));
-        this->set_internal_value(idx);
+        this->set_internal_value((DataType)idx);
+        if (this->direct) 
+            this->set_current_value(this->get_value_for_index(idx));
     }
     virtual void decrease_value() override {
-        ///int idx = this->get_index_for_value(this->get_internal_value());
         int idx = this->get_internal_value();
-        if (idx==this->minimumDataValue)   // for protection against unsigned values wrapping around
+
+        if (idx==this->getMinimumDataValue())   // for protection against unsigned values wrapping around
             return;
+
         idx--;
-        if ((DataType)idx<this->minimumDataValue) 
-            idx = this->minimumDataValue;
-        //Serial.printf("%s: decrease_value got new idx %i (corresponding to value %s)\n", this->label, idx, this->get_label_for_index(idx));
-        this->set_internal_value(idx);
+
+        if ((DataType)idx<this->getMinimumDataValue()) 
+            idx = this->getMinimumDataValue();
+
+        this->set_internal_value((DataType)idx);
+        if (this->direct) 
+            this->set_current_value(this->get_value_for_index(idx));
     }
 
     // override in subclass if need to do something special eg getter/setter

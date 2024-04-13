@@ -20,8 +20,9 @@ class LambdaSelectorControl : public LambdaNumberControl<DataType> {
         vl::Func<void(DataType)> setter_func,
         vl::Func<DataType(void)> getter_func,
         void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr,
-        bool go_back_on_select = false
-    ) : LambdaNumberControl<DataType>(label, setter_func, getter_func, on_change_handler, go_back_on_select) {
+        bool go_back_on_select = false,
+        bool direct = false
+    ) : LambdaNumberControl<DataType>(label, setter_func, getter_func, on_change_handler, go_back_on_select, direct) {
         //if (this->target_object!=nullptr && this->getter!=nullptr)
         //    this->set_internal_value (this->get_index_for_value( (this->target_object->*this->getter)() ));
         this->set_internal_value ( this->getter_func() );
@@ -80,22 +81,36 @@ class LambdaSelectorControl : public LambdaNumberControl<DataType> {
     }
 
     virtual void increase_value() override {
-        //Serial.printf("%s: increase_value current internal_value is %i\n", this->label, this->get_internal_value());
-        int idx = (int)this->get_internal_value();
+        int idx = this->get_internal_value();
+
+        if ((DataType)idx>=this->getMaximumDataValue()) 
+            return; //idx = this->getMaximumDataValue(); //available_values->size();
+
         idx++;
-        if ((DataType)idx>=this->getMaximumDataValue()) idx = this->getMaximumDataValue(); //available_values->size();
+
         //Serial.printf("%s: increase_value got new idx %i (corresponding to value %s)\n", this->label, idx, this->get_label_for_index(idx));
         this->set_internal_value((DataType)idx);
+        if (this->direct) {
+            if (this->debug) Serial.printf("%s: increase_value got new idx %i (corresponding to label %s and value %i)\n", this->label, idx, this->get_label_for_index(idx), this->get_value_for_index(idx));
+            this->set_current_value((DataType)idx);
+        }
     }
     virtual void decrease_value() override {
-        int idx = (int)this->get_internal_value();
+        int idx = this->get_internal_value();
+
         if (idx==this->getMinimumDataValue())   // for protection against unsigned values wrapping around
             return;
+
         idx--;
+
         if ((DataType)idx<this->getMinimumDataValue()) 
             idx = this->getMinimumDataValue();
-        //Serial.printf("%s: decrease_value got new idx %i (corresponding to value %s)\n", this->label, idx, this->get_label_for_index(idx));
+
         this->set_internal_value((DataType)idx);
+        if (this->direct) {
+            if (this->debug) Serial.printf("%s: decrease_value got new idx %i (corresponding to label %s and value %i)\n", this->label, idx, this->get_label_for_index(idx), this->get_value_for_index(idx));
+            this->set_current_value((DataType)idx);
+        }
     }
 
     // override in subclass if need to do something special eg getter/setter

@@ -10,22 +10,21 @@ class ObjectNumberControl : public NumberControl<DataType> {
     DataType(TargetClass::*getter)() = nullptr;
     //void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr;
     TargetClass *target_object = nullptr;
-    bool direct = false;
 
     ObjectNumberControl(const char* label, 
                         TargetClass *target_object, 
                         void(TargetClass::*setter_func)(DataType), 
                         DataType(TargetClass::*getter_func)(), 
                         void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr,
-                        bool go_back_on_select = false
-                ) : NumberControl<DataType>(label) {
+                        bool go_back_on_select = false, 
+                        bool direct = false
+                ) : NumberControl<DataType>(label, go_back_on_select, direct) {
         this->target_object = target_object;
         this->getter = getter_func;
         this->setter = setter_func;
         this->on_change_handler = on_change_handler;
         this->minimumDataValue = 0;
         this->maximumDataValue = 100;
-        this->go_back_on_select = go_back_on_select;
 
         if (this->target_object!=nullptr && this->getter!=nullptr) 
             this->set_internal_value( (this->target_object->*getter)() );
@@ -39,10 +38,9 @@ class ObjectNumberControl : public NumberControl<DataType> {
                         DataType maximumDataValue,
                         bool go_back_on_select = false,
                         bool direct = false
-                ) : ObjectNumberControl<TargetClass,DataType>(label, target_object, setter_func, getter_func, on_change_handler, go_back_on_select) {
+                ) : ObjectNumberControl<TargetClass,DataType>(label, target_object, setter_func, getter_func, on_change_handler, go_back_on_select, direct) {
         this->minimumDataValue = minimumDataValue;
         this->maximumDataValue = maximumDataValue;
-        this->direct = direct;
     }
 
     virtual void on_add() override {
@@ -51,17 +49,13 @@ class ObjectNumberControl : public NumberControl<DataType> {
             this->set_internal_value( (this->target_object->*getter)() );
     }
 
-    virtual void increase_value() override {
+    /*virtual void increase_value() override {
         NumberControl<DataType>::increase_value();
-        if (direct)
-            this->change_value(this->internal_value);
     }
 
     virtual void decrease_value() override {
         NumberControl<DataType>::decrease_value();
-        if (direct)
-            this->change_value(this->internal_value);
-    }
+    }*/
 
     /*virtual DataType get_internal_value() override {
         return this->internal_value;

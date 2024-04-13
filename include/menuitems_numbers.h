@@ -37,29 +37,32 @@ class NumberControl : public NumberControlBase {
         bool readOnly = false;
         bool wrap = false;
 
+        bool direct = false;
+
         uint32_t last_changed_at = 0;
 
-        NumberControl(const char* label, bool go_back_on_select = false) : NumberControlBase(label) {
+        NumberControl(const char* label, bool go_back_on_select = false, bool direct = false) : NumberControlBase(label) {
             this->step = this->get_default_step_for_type((DataType)0);    // setup default step based on our template DataType
             this->go_back_on_select = go_back_on_select;
+            this->direct = direct;
         }
-        NumberControl(const char* label, DataType start_value, DataType min_value, DataType max_value, bool go_back_on_select = false) 
-            : NumberControl(label, go_back_on_select) 
+        NumberControl(const char* label, DataType start_value, DataType min_value, DataType max_value, bool go_back_on_select = false, bool direct = false) 
+            : NumberControl(label, go_back_on_select, direct) 
             //: internal_value(start_value), minimumDataValue(min_value), maximumDataValue(max_value)
             {
             this->internal_value = start_value;
             this->minimumDataValue = min_value;
             this->maximumDataValue = max_value;
         };
-        NumberControl(const char* label, DataType *target_variable_, DataType start_value, DataType min_value, DataType max_value, bool go_back_on_select = false, void (*on_change_handler_)(DataType last_value, DataType new_value) = nullptr) 
+        NumberControl(const char* label, DataType *target_variable_, DataType start_value, DataType min_value, DataType max_value, bool go_back_on_select = false, bool direct = false, void (*on_change_handler_)(DataType last_value, DataType new_value) = nullptr) 
             // : target_variable(target_variable_), on_change_handler(on_change_handler_) 
-            : NumberControl(label, start_value, min_value, max_value, go_back_on_select)
+            : NumberControl(label, start_value, min_value, max_value, go_back_on_select, direct)
             {
             this->target_variable = target_variable_;
             this->on_change_handler = on_change_handler_;
         };
-        NumberControl(const char* label, DataType (*getter_)(), void (*setter_)(DataType value), DataType min_value, DataType max_value, bool go_back_on_select = false, void (*on_change_handler_)(DataType last_value, DataType new_value) = nullptr) 
-            : NumberControl(label, go_back_on_select) 
+        NumberControl(const char* label, DataType (*getter_)(), void (*setter_)(DataType value), DataType min_value, DataType max_value, bool go_back_on_select = false, bool direct = false, void (*on_change_handler_)(DataType last_value, DataType new_value) = nullptr) 
+            : NumberControl(label, go_back_on_select, direct) 
             //: getter(getter_), setter(setter_), minimumDataValue(min_value), maximumDataValue(max_value), on_change_handler(on_change_handler_)
             {
             this->getter = getter_;
@@ -270,29 +273,35 @@ class NumberControl : public NumberControlBase {
         }
 
         virtual void decrease_value() {
-            if (this->get_internal_value()!=this->getMinimumDataValue())    // so that unsigned datatypes don't wrap back around when they try to go below 0
+            if (this->get_internal_value()!=this->getMinimumDataValue()) {   // so that unsigned datatypes don't wrap back around when they try to go below 0
                 this->set_internal_value((DataType)(get_internal_value() - get_current_step()));
-            else if (wrap)
+                last_changed_at = millis();
+            } else if (wrap) {
                 this->set_internal_value(this->getMaximumDataValue());
+            }
+            if (direct)
+                this->change_value(this->get_internal_value());
         }
         virtual void increase_value() {
-            //Serial.printf("%s#increase_value with internal value %i and step %i makes %i\n", this->label, get_internal_value(), this->step, get_internal_value()+this->step);
-            if (this->get_internal_value()!=this->getMaximumDataValue())
+            //Serial.printf("NumberControl '%s'#increase_value with internal value %3.3f and step %3.3f makes %3.3f\n", this->label, get_internal_value(), this->get_current_step(), get_internal_value()+this->get_current_step());
+            if (this->get_internal_value()!=this->getMaximumDataValue()) {
                 this->set_internal_value((DataType)(get_internal_value() + get_current_step()));
-            else if (wrap) 
+                last_changed_at = millis();
+            } else if (wrap) {
                 this->set_internal_value(this->getMinimumDataValue());
+            }
+            if (direct)
+                this->change_value(this->get_internal_value());
         }
 
         virtual bool knob_left() override {
             if (!this->readOnly)
                 decrease_value();
-            last_changed_at = millis();
             return true;
         }
         virtual bool knob_right() override {
             if (!this->readOnly)
                 increase_value();
-            last_changed_at = millis();
             return true;
         }
 
@@ -348,29 +357,28 @@ class NumberControl : public NumberControlBase {
 
 };
 
+// todo: deprecate DirectNumberControl, in favour of NumberControl with direct = true
 template<class DataType = int>
 class DirectNumberControl : public NumberControl<DataType> {
     public:
 
     DirectNumberControl(const char* label) : NumberControl<DataType>(label) {};
     DirectNumberControl(const char* label, DataType *target_variable, DataType start_value, DataType min_value, DataType max_value, void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr) 
-            : NumberControl<DataType>(label, target_variable, start_value, min_value, max_value, on_change_handler) {
-                this->go_back_on_select = true;
+            : NumberControl<DataType>(label, target_variable, start_value, min_value, max_value, true, true, on_change_handler) {
     }
     DirectNumberControl(const char* label, DataType (*getter)(), void (*setter)(DataType value), DataType min_value, DataType max_value, void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr)
-            : NumberControl<DataType>(label, getter, setter, min_value, max_value, on_change_handler) {
-                this->go_back_on_select = true;
+            : NumberControl<DataType>(label, getter, setter, min_value, max_value, true, true, on_change_handler) {
     }
 
-    virtual bool knob_left() override {
+    /*virtual bool knob_left() override {
         if (this->readOnly) return false;
         //Serial.printf("------ DirectNumberControl#knob_left, internal_value=%f\n", (double)this->internal_value);
         this->decrease_value();
         //Serial.printf("------ DirectNumberControl#knob_left, about to call change_value(%f)\n", (double)this->internal_value);
-        this->change_value(this->internal_value);
+        //this->change_value(this->internal_value);
         //Serial.printf(">------<\n");
 
-        this->last_changed_at = millis();
+        //this->last_changed_at = millis();
         return true;
     }
     virtual bool knob_right() override {
@@ -378,20 +386,21 @@ class DirectNumberControl : public NumberControl<DataType> {
         //Serial.printf(F("------ DirectNumberControl#knob_right, internal_value=%f\n"), (double)this->internal_value);
         this->increase_value();
         //Serial.printf(F("------ DirectNumberControl#knob_right, about to call change_value(%f)\n"), (double)this->internal_value);
-        this->change_value(this->internal_value);
+        //this->change_value(this->internal_value);
         //Serial.printf(F(">------<\n"));
 
-        this->last_changed_at = millis();
+        //this->last_changed_at = millis();
         return true;
     }
     virtual bool button_select() override {
         if (this->readOnly) return true;
 
-        this->internal_value = this->get_current_value();
-        this->change_value(this->internal_value);
+        //Serial.printf("DirectNumberControl#button_select() in %s - value is %i (%3.3f)\n", this->label, this->get_current_value(), this->get_current_value());
+
+        this->change_value(this->get_internal_value());
 
         return this->go_back_on_select;
-    }
+    }*/
 };
 
 #endif

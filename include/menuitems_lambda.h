@@ -15,21 +15,20 @@ class LambdaNumberControl : public NumberControl<DataType> {
     setter_func_def setter_func;
     getter_func_def getter_func;
 
-    bool direct = false;
-
     LambdaNumberControl(const char* label, 
         setter_func_def setter_func,
         getter_func_def getter_func,
         void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr,
-        bool go_back_on_select = false
-    ) : NumberControl<DataType>(label) {
+        bool go_back_on_select = false,
+        bool direct = false
+    ) : NumberControl<DataType>(label, go_back_on_select, direct) {
         this->getter_func = getter_func;
         this->setter_func = setter_func;
 
         this->on_change_handler = on_change_handler;
         this->minimumDataValue = (DataType)0;
         this->maximumDataValue = (DataType)100;
-        this->go_back_on_select = go_back_on_select;
+        //this->go_back_on_select = go_back_on_select;
 
         this->set_internal_value( this->getter_func() );
     }
@@ -41,10 +40,9 @@ class LambdaNumberControl : public NumberControl<DataType> {
         DataType maximumDataValue,
         bool go_back_on_select = false,
         bool direct = false
-    ) : LambdaNumberControl<DataType>(label, setter_func, getter_func, on_change_handler, go_back_on_select) {
+    ) : LambdaNumberControl<DataType>(label, setter_func, getter_func, on_change_handler, go_back_on_select, direct) {
         this->minimumDataValue = minimumDataValue;
         this->maximumDataValue = maximumDataValue;
-        this->direct = direct;
     }
 
     virtual void on_add() override {
@@ -52,26 +50,22 @@ class LambdaNumberControl : public NumberControl<DataType> {
         this->set_internal_value( this->getter_func() );
     }
 
-    virtual void increase_value() override {
+    /*virtual void increase_value() override {
         NumberControl<DataType>::increase_value();
-        if (direct)
-            this->change_value(this->internal_value);
     }
 
     virtual void decrease_value() override {
         NumberControl<DataType>::decrease_value();
-        if (direct)
-            this->change_value(this->internal_value);
-    }
+    }*/
 
     virtual void change_value(DataType new_value) override {
         if (this->readOnly) return;
-        //if (this->debug) { Serial.printf(F("ObjectNumberControl#change_value(%i)..\n"), new_value); Serial_flush(); }
+        //if (this->debug) { Serial.printf(F("LambdaNumberControl#change_value(%i)..\n"), new_value); Serial_flush(); }
         DataType last_value = this->get_current_value();
-        //Serial.println("ObjectNumberControl#change_value about to call set_current_value");
+        //Serial.println("LambdaNumberControl#change_value about to call set_current_value");
         this->set_current_value(new_value);
         if (this->on_change_handler!=nullptr) {
-            //if (this->debug)  { Serial.println(F("ObjectNumberControl calling on_change_handler")); Serial_flush(); }
+            //if (this->debug)  { Serial.println(F("LambdaNumberControl calling on_change_handler")); Serial_flush(); }
             (this->on_change_handler)(last_value, this->internal_value);
         }
     }
@@ -241,7 +235,7 @@ class LambdaActionItem : public MenuItem {
     }
 
     virtual bool action_opened() override {
-        //Serial.println(F("ObjectActionItem#action_opened"));
+        //Serial.println(F("LambdaActionItem#action_opened"));
         this->on_open();
 
         char msg[MENU_MESSAGE_MAX];
@@ -271,7 +265,7 @@ class LambdaActionConfirmItem : public LambdaActionItem {
     };
 
     virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
-        //Serial.println("ObjectActionConfirmItem#renderValue..");
+        //Serial.println("LambdaActionConfirmItem#renderValue..");
         const char *button_label = opened ? sure_message : this->label;
 
         this->colours(selected);
