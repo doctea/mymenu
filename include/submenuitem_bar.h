@@ -9,7 +9,7 @@ class SubMenuItemBar : public SubMenuItem {
     bool show_sub_headers = true;
     int_fast16_t cached_pixel_width_per_item = 0;
 
-    SubMenuItemBar(const char *label, bool show_sub_headers = true) : SubMenuItem(label) {
+    SubMenuItemBar(const char *label, bool show_sub_headers = true, bool show_header = true) : SubMenuItem(label, show_header) {
         this->show_sub_headers = show_sub_headers;
     }
 
@@ -36,7 +36,7 @@ class SubMenuItemColumns : public SubMenuItemBar {
     bool show_sub_headers = true;
     int columns = 1;
 
-    SubMenuItemColumns(const char *label, int columns = 1, bool show_sub_headers = true) : SubMenuItemBar(label, show_sub_headers) {
+    SubMenuItemColumns(const char *label, int columns = 1, bool show_sub_headers = true, bool show_header = true) : SubMenuItemBar(label, show_sub_headers, show_header) {
         this->columns = columns;
     }
 
@@ -58,7 +58,7 @@ class SubMenuItemColumns : public SubMenuItemBar {
 
 class DualMenuItem : public SubMenuItemColumns {
     public:
-        DualMenuItem(const char *label, bool show_sub_headers = true) : SubMenuItemColumns(label, 2, show_sub_headers) {
+        DualMenuItem(const char *label, bool show_sub_headers = true, bool show_header = true) : SubMenuItemColumns(label, 2, show_sub_headers, show_header) {
         }
 };
 
