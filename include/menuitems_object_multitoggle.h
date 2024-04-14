@@ -22,6 +22,9 @@ class MultiToggleItemBase {
             this->label = label;
         }
         const char *label;
+        inline virtual const char *get_label() {
+            return this->label;
+        }
         virtual bool do_getter() = 0;
         virtual void do_setter(bool value) = 0;
 };
@@ -69,6 +72,7 @@ class MultiToggleItemFunction : public MultiToggleItemBase {
 };
 
 // actual menuitem that holds multi-toggle items
+// TODO: multi-column mode
 class ObjectMultiToggleControl : public MenuItem {
     public:
         bool all_option = false;    // whether to add an 'all' toggle option
@@ -114,7 +118,7 @@ class ObjectMultiToggleControl : public MenuItem {
             int x = 0;
             int start_y = pos.y;
 
-            const uint8_t items_size = items.size();// + (all_option ? 1 : 0);
+            const uint_fast8_t items_size = items.size();
 
             bool all_selected = false;
 
@@ -140,7 +144,7 @@ class ObjectMultiToggleControl : public MenuItem {
             //Serial.printf("so got width_per_item %i\n", width_per_item);
             //width_per_item = constrain(width_per_item, 1, tft->width()/FONT_WIDTH);
             
-            for (int i = 0 ; i < (int)items_size ; i++) {
+            for (uint_fast8_t i = 0 ; i < (uint_fast8_t)items_size ; i++) {
                 MultiToggleItemBase *item = items.get(i);
                 //Serial.printf("processing item %s\n", item->label);
 
@@ -153,10 +157,11 @@ class ObjectMultiToggleControl : public MenuItem {
                 if (last_length>1 && i+1==items_size)    // cheeky little mod to use all the remaining space if we get to the end
                     last_length = ((tft->width() - tft->getCursorX()) / FONT_WIDTH) - 1;
 
-                for (unsigned int segment_start = 0 ; segment_start < strlen(item->label) ; segment_start += last_length) {
-                    if (item->label[segment_start]==' ' && last_length>1)   // if the first character is a space, and column is wider than 1, skip the space to improve alignment
+                const char *item_label = item->get_label();
+                for (unsigned int segment_start = 0 ; segment_start < strlen(item_label) ; segment_start += last_length) {
+                    if (item_label[segment_start]==' ' && last_length>1)   // if the first character is a space, and column is wider than 1, skip the space to improve alignment
                         segment_start++;
-                    strncpy(tmp, &item->label[segment_start], last_length);
+                    strncpy(tmp, &item_label[segment_start], last_length);
                     last_length = min(last_length, strlen(tmp));
                     tft->setCursor(x, tft->getCursorY());
                     tmp[last_length] = '\0';
@@ -247,5 +252,82 @@ class ObjectMultiToggleControl : public MenuItem {
             return this->switch_all(!all_status);
         }
 };
+
+class ObjectMultiToggleColumnControl : public ObjectMultiToggleControl {
+    public:
+
+        ObjectMultiToggleColumnControl(const char *label ) : ObjectMultiToggleControl(label) {}
+        ObjectMultiToggleColumnControl(const char *label, bool enable_all_option) : ObjectMultiToggleColumnControl(label) {
+            this->all_option = enable_all_option;
+        }
+
+        char fmt[MENU_C_MAX] = "-";
+        virtual int display(Coord pos, bool selected, bool opened) override {
+            pos.y = header(label, pos, selected, opened);
+            tft->setCursor(pos.x,pos.y);
+
+            pos.y = tft->getCursorY();
+
+            colours(opened, opened ? GREEN : this->default_fg, this->default_bg);
+            tft->setTextSize(1);
+
+            uint_fast16_t max_height_reached = 0;
+            uint_fast16_t x = 0;
+            uint_fast16_t start_y = pos.y;
+
+            const uint_fast8_t num_columns = 2;
+            const uint_fast8_t items_size = items.size();
+
+            bool all_selected = false;
+
+            int effectively_selected = 0;
+
+            const char *all_label = all_status ? "[*]" : "[-]"; 
+
+            if (all_option) {
+                effectively_selected = currently_selected - 1;
+                if (currently_selected==0) all_selected = true;
+                colours(all_selected && opened, all_status ? GREEN : RED, this->default_bg);
+                tft->setCursor(x, pos.y);
+                tft->println(all_label);
+                x += ((strlen(all_label)+1) * tft->currentCharacterWidth());
+                tft->setCursor(x, pos.y);
+                tft->println();
+            }
+
+            const int width_per_item = (tft->width() / num_columns);
+            const int items_per_column = items_size / num_columns;
+
+            if (fmt[0]=='-')
+                snprintf(fmt, MENU_C_MAX, "%%-%is\n\0", width_per_item/tft->currentCharacterWidth()); // becomes eg "%-6s\n"
+            //tft->printf("got column width %i and format '%s'\n", width_per_item, fmt);
+
+            start_y = tft->getCursorY();
+
+            for (uint_fast8_t i = 0 ; i < (uint_fast8_t)items_size ; i++) {
+                MultiToggleItemBase *item = items.get(i);
+                // move to next column if we need to
+                if (i == items_per_column) {
+                    if (tft->getCursorY()>max_height_reached)                
+                        max_height_reached = tft->getCursorY(); // remember how far down the screen we've drawn
+
+                    tft->setCursor(width_per_item, start_y);
+                } else if (i > items_per_column) {
+                    tft->setCursor(tft->width()/num_columns, pos.y);
+                }
+
+                // green or red according to whether underlying item is on or off, inverted if widget opened and item selected
+                colours((i==effectively_selected) && opened, item->do_getter() ? GREEN : RED, this->default_bg);
+
+                //tft->printf((const char*)fmt, (char*)item->get_label());  // limits size but is LOADS 7fps slower!
+                tft->println(item->get_label());
+
+                pos.y = tft->getCursorY();
+            }
+            
+            return max_height_reached; //tft->getCursorY();
+        }
+};
+
 
 #endif
