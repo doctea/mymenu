@@ -97,7 +97,7 @@
     #define YELLOW  TFT_YELLOW
     #define ORANGE  TFT_ORANGE
     #define PURPLE  TFT_MAGENTA
-    #define GREY    (C_WHITE / 2)
+    #define GREY    TFT_DARKGREY
     #define DARK_RED    0x8800
     #define DARK_GREEN  0x0320
     #define DARK_YELLOW 0xB421

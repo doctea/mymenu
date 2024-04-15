@@ -64,14 +64,14 @@ class MultiToggleItemClass : public MultiToggleItemBase {
 
 // version of class that calls the underlying target item to get the "activated" colour - used by eg Pattern and Output selectors
 template<class TargetClass>
-class MultiToggleColourItemClass : public MultiToggleItemClass {
+class MultiToggleColourItemClass : public MultiToggleItemClass<TargetClass> {
     public:
         MultiToggleColourItemClass(const char *label, TargetClass *target, void(TargetClass::*setter)(bool), bool(TargetClass::*getter)(), bool invert_colours = false) 
-            : MultiToggleItemClass(label, target, setter, getter, invert_colours) 
+            : MultiToggleItemClass<TargetClass>(label, target, setter, getter, invert_colours) 
             {}
 
         virtual uint16_t get_colour() {
-            return invert_colours ? 
+            return this->invert_colours ? 
                 (this->do_getter() ? GREY : this->target->get_colour()) :
                 (this->do_getter() ? this->target->get_colour() : GREY)
                 ;
@@ -343,7 +343,7 @@ class ObjectMultiToggleColumnControl : public ObjectMultiToggleControl {
                 }
 
                 // green or red according to whether underlying item is on or off, inverted if widget opened and item selected
-                colours((i==effectively_selected) && opened, item->do_getter() ? item->get_colour(), this->default_bg);
+                colours((i==effectively_selected) && opened, item->get_colour(), this->default_bg);
 
                 //tft->printf((const char*)fmt, (char*)item->get_label());  // limits size but is LOADS 7fps slower!
                 tft->println(item->get_label());
