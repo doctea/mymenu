@@ -323,6 +323,7 @@ class ObjectMultiToggleColumnControl : public ObjectMultiToggleControl {
 
             const int width_per_item = (tft->width() / num_columns);
             const int items_per_column = items_size / num_columns;
+            const int chars_per_column = width_per_item / tft->currentCharacterWidth();
 
             if (fmt[0]=='-')
                 snprintf(fmt, MENU_C_MAX, "%%-%is\n\0", width_per_item/tft->currentCharacterWidth()); // becomes eg "%-6s\n"
@@ -346,7 +347,13 @@ class ObjectMultiToggleColumnControl : public ObjectMultiToggleControl {
                 colours((i==effectively_selected) && opened, item->get_colour(), this->default_bg);
 
                 //tft->printf((const char*)fmt, (char*)item->get_label());  // limits size but is LOADS 7fps slower!
-                tft->println(item->get_label());
+                //tft->println(item->get_label());
+                char tmp[MENU_C_MAX];
+                strcpy(tmp, item->get_label()); //, MENU_C_MAX);
+                //tmp[chars_per_column] = '\n';
+                tmp[chars_per_column] = '\0';
+                tft->println(tmp);
+                //tft->println();
 
                 pos.y = tft->getCursorY();
             }
