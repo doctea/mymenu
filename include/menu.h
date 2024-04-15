@@ -371,11 +371,12 @@ class Menu {
             if (position > this->pages->size()) 
                 position = this->pages->size();
 
-            this->pages->add(position, new page_t {
-                .title = (new String(title))->c_str(),
-                .colour = colour,
-                .scrollable = scrollable
-            });
+            page_t *p = new page_t;
+            p->title = (new String(title))->c_str();
+            p->colour = colour;
+            p->scrollable = scrollable;
+
+            this->pages->add(position, p);
 
             this->select_page(position);
             selected_page->items = new LinkedList<MenuItem*>();

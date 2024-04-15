@@ -140,15 +140,15 @@ class ObjectMultiToggleControl : public MenuItem {
             colours(opened, opened ? GREEN : this->default_fg, this->default_bg);
             tft->setTextSize(1);
 
-            int max_height_reached = 0;
-            int x = 0;
-            int start_y = pos.y;
+            uint max_height_reached = 0;
+            uint x = 0;
+            uint start_y = pos.y;
 
             const uint_fast8_t items_size = items.size();
 
             bool all_selected = false;
 
-            int effectively_selected = 0;
+            uint effectively_selected = 0;
 
             //const char *all_label = all_status ? "[*]" : "[-]"; //"[ALL]";
             const char *all_label = all_status ? "*" : "-"; //"[ALL]";
@@ -197,7 +197,7 @@ class ObjectMultiToggleControl : public MenuItem {
                 }
  
                 // remember how far down the screen we've drawn
-                if (tft->getCursorY()>max_height_reached)
+                if (tft->getCursorY()>(int)max_height_reached)
                     max_height_reached = tft->getCursorY();
 
                 x += (width_per_item * FONT_WIDTH); // move to the start of the next item along
@@ -306,7 +306,7 @@ class ObjectMultiToggleColumnControl : public ObjectMultiToggleControl {
 
             bool all_selected = false;
 
-            int effectively_selected = 0;
+            uint effectively_selected = 0;
 
             const char *all_label = all_status ? "[*]" : "[-]"; 
 
@@ -321,12 +321,12 @@ class ObjectMultiToggleColumnControl : public ObjectMultiToggleControl {
                 tft->println();
             }
 
-            const int width_per_item = (tft->width() / num_columns);
-            const int items_per_column = items_size / num_columns;
-            const int chars_per_column = width_per_item / tft->currentCharacterWidth();
+            const uint width_per_item = (tft->width() / num_columns);
+            const uint items_per_column = items_size / num_columns;
+            const uint chars_per_column = width_per_item / tft->currentCharacterWidth();
 
             if (fmt[0]=='-')
-                snprintf(fmt, MENU_C_MAX, "%%-%is\n\0", width_per_item/tft->currentCharacterWidth()); // becomes eg "%-6s\n"
+                snprintf(fmt, MENU_C_MAX, "%%-%is\n", width_per_item/tft->currentCharacterWidth()); // becomes eg "%-6s\n"
             //tft->printf("got column width %i and format '%s'\n", width_per_item, fmt);
 
             start_y = tft->getCursorY();
@@ -335,7 +335,7 @@ class ObjectMultiToggleColumnControl : public ObjectMultiToggleControl {
                 MultiToggleItemBase *item = items.get(i);
                 // move to next column if we need to
                 if (i == items_per_column) {
-                    if (tft->getCursorY()>max_height_reached)                
+                    if (tft->getCursorY()>(int)max_height_reached)                
                         max_height_reached = tft->getCursorY(); // remember how far down the screen we've drawn
 
                     tft->setCursor(width_per_item, start_y);

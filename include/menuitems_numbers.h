@@ -273,7 +273,9 @@ class NumberControl : public NumberControlBase {
         }
 
         virtual void decrease_value() {
-            if (this->get_internal_value()!=this->getMinimumDataValue()) {   // so that unsigned datatypes don't wrap back around when they try to go below 0
+            if (this->get_internal_value()>this->getMinimumDataValue() 
+                && get_internal_value() - get_current_step() < this->getMaximumDataValue()
+            ) {   // so that unsigned datatypes don't wrap back around when they try to go below 0
                 this->set_internal_value((DataType)(get_internal_value() - get_current_step()));
                 last_changed_at = millis();
             } else if (wrap) {
