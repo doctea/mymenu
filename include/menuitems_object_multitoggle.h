@@ -18,8 +18,11 @@
 // base multi-toggle sub-select item
 class MultiToggleItemBase {
     public:
-        MultiToggleItemBase(const char *label) {
+        bool invert_colours = false;
+
+        MultiToggleItemBase(const char *label, bool invert_colours = false) {
             this->label = label;
+            this->invert_colours = invert_colours;
         }
         const char *label;
         inline virtual const char *get_label() {
@@ -27,17 +30,25 @@ class MultiToggleItemBase {
         }
         virtual bool do_getter() = 0;
         virtual void do_setter(bool value) = 0;
+        inline virtual uint16_t get_colour() {
+            return do_getter() ? 
+                invert_colours ? RED : GREEN 
+                : 
+                invert_colours ? GREEN : RED;
+        }
 };
 
 // multi-toggle item that targts getters & setters on an object
 template<class TargetClass>
-class MultiToggleItemClass : public MultiToggleItemBase{
+class MultiToggleItemClass : public MultiToggleItemBase {
     public:
         TargetClass *target;
         void(TargetClass::*setter)(bool);
         bool(TargetClass::*getter)();
 
-        MultiToggleItemClass(const char *label, TargetClass *target, void(TargetClass::*setter)(bool), bool(TargetClass::*getter)()) : MultiToggleItemBase(label) {
+        MultiToggleItemClass(const char *label, TargetClass *target, void(TargetClass::*setter)(bool), bool(TargetClass::*getter)(), bool invert_colours = false) 
+            : MultiToggleItemBase(label, invert_colours) 
+        {
             this->target = target;
             this->setter = setter;
             this->getter = getter;
@@ -51,13 +62,29 @@ class MultiToggleItemClass : public MultiToggleItemBase{
         }
 };
 
+// version of class that calls the underlying target item to get the "activated" colour - used by eg Pattern and Output selectors
+template<class TargetClass>
+class MultiToggleColourItemClass : public MultiToggleItemClass {
+    public:
+        MultiToggleColourItemClass(const char *label, TargetClass *target, void(TargetClass::*setter)(bool), bool(TargetClass::*getter)(), bool invert_colours = false) 
+            : MultiToggleItemClass(label, target, setter, getter, invert_colours) 
+            {}
+
+        virtual uint16_t get_colour() {
+            return invert_colours ? 
+                (this->do_getter() ? GREY : this->target->get_colour()) :
+                (this->do_getter() ? this->target->get_colour() : GREY)
+                ;
+        }
+};
+
 // multi-toggle item that targets a getter & setter function
 class MultiToggleItemFunction : public MultiToggleItemBase {
     public:
         void(*setter)(bool) = nullptr;
         bool(*getter)() = nullptr;
 
-        MultiToggleItemFunction(char *label, void(*setter)(bool), bool(*getter)()) : MultiToggleItemBase(label) {
+        MultiToggleItemFunction(char *label, void(*setter)(bool), bool(*getter)(), bool invert_colours = false) : MultiToggleItemBase(label, invert_colours) {
             this->setter = setter;
             this->getter = getter;
         }
@@ -72,7 +99,6 @@ class MultiToggleItemFunction : public MultiToggleItemBase {
 };
 
 // actual menuitem that holds multi-toggle items
-// TODO: multi-column mode
 class ObjectMultiToggleControl : public MenuItem {
     public:
         bool all_option = false;    // whether to add an 'all' toggle option
@@ -149,7 +175,7 @@ class ObjectMultiToggleControl : public MenuItem {
                 //Serial.printf("processing item %s\n", item->label);
 
                 // green or red according to whether underlying item is on or off, inverted if widget opened and item selected
-                colours((i==effectively_selected) && opened, item->do_getter() ? GREEN : RED, this->default_bg);
+                colours((i==effectively_selected) && opened, item->get_colour(), this->default_bg);
 
                 // segment the label of the item up over multiple lines of `width_per_item` chars each
                 char tmp[width_per_item+1];
@@ -317,7 +343,7 @@ class ObjectMultiToggleColumnControl : public ObjectMultiToggleControl {
                 }
 
                 // green or red according to whether underlying item is on or off, inverted if widget opened and item selected
-                colours((i==effectively_selected) && opened, item->do_getter() ? GREEN : RED, this->default_bg);
+                colours((i==effectively_selected) && opened, item->do_getter() ? item->get_colour(), this->default_bg);
 
                 //tft->printf((const char*)fmt, (char*)item->get_label());  // limits size but is LOADS 7fps slower!
                 tft->println(item->get_label());
