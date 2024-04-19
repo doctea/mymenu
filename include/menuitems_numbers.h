@@ -39,7 +39,7 @@ class NumberControl : public NumberControlBase {
 
         bool direct = false;
 
-        uint32_t last_changed_at = 0;
+        uint32_t last_changed_at_decreased = 0, last_changed_at_increased = 0;
 
         NumberControl(const char* label, bool go_back_on_select = false, bool direct = false) : NumberControlBase(label) {
             this->step = this->get_default_step_for_type((DataType)0);    // setup default step based on our template DataType
@@ -259,12 +259,25 @@ class NumberControl : public NumberControlBase {
             //Serial.printf(F("%s: NumberControl.set_internal_value(%i)\twith constraint (%i:%i) resulted in %i\n"), this->label, value, (int)this->minimumDataValue, (int)this->maximumDataValue, this->internal_value);
         }
 
-        virtual DataType get_current_step() {
+        virtual DataType get_current_step_down() {
             // do knob acceleration
-            if (last_changed_at==0)
+            if (last_changed_at_decreased==0)
                 return this->step;
 
-            uint32_t time_since_changed = constrain(millis() - this->last_changed_at, (uint32_t)0, (uint32_t)200);
+            uint32_t time_since_changed = constrain(millis() - this->last_changed_at_decreased, (uint32_t)0, (uint32_t)200);
+            if      (time_since_changed>=200)  return (DataType)  this->step;
+            else if (time_since_changed>=100)  return (DataType) (this->step * 2.0f);
+            //else if (time_since_changed>=100)  return (DataType) (this->step * 4.0f);
+            else if (time_since_changed>=25 )  return (DataType) (this->step * 8.0f);
+            else                               return (DataType) (this->step * 10.0f);
+        }
+
+        virtual DataType get_current_step_up() {
+            // do knob acceleration
+            if (last_changed_at_increased==0)
+                return this->step;
+
+            uint32_t time_since_changed = constrain(millis() - this->last_changed_at_increased, (uint32_t)0, (uint32_t)200);
             if      (time_since_changed>=200)  return (DataType)  this->step;
             else if (time_since_changed>=100)  return (DataType) (this->step * 2.0f);
             //else if (time_since_changed>=100)  return (DataType) (this->step * 4.0f);
@@ -274,10 +287,11 @@ class NumberControl : public NumberControlBase {
 
         virtual void decrease_value() {
             if (this->get_internal_value()>this->getMinimumDataValue() 
-                && get_internal_value() - get_current_step() < this->getMaximumDataValue()
+                && get_internal_value() - get_current_step_down() < this->getMaximumDataValue()
             ) {   // so that unsigned datatypes don't wrap back around when they try to go below 0
-                this->set_internal_value((DataType)(get_internal_value() - get_current_step()));
-                last_changed_at = millis();
+                this->set_internal_value((DataType)(get_internal_value() - get_current_step_down()));
+                last_changed_at_decreased = millis();
+                last_changed_at_increased = 0;
             } else if (wrap) {
                 this->set_internal_value(this->getMaximumDataValue());
             }
@@ -287,8 +301,9 @@ class NumberControl : public NumberControlBase {
         virtual void increase_value() {
             //Serial.printf("NumberControl '%s'#increase_value with internal value %3.3f and step %3.3f makes %3.3f\n", this->label, get_internal_value(), this->get_current_step(), get_internal_value()+this->get_current_step());
             if (this->get_internal_value()!=this->getMaximumDataValue()) {
-                this->set_internal_value((DataType)(get_internal_value() + get_current_step()));
-                last_changed_at = millis();
+                this->set_internal_value((DataType)(get_internal_value() + get_current_step_up()));
+                last_changed_at_increased = millis();
+                last_changed_at_decreased = 0;
             } else if (wrap) {
                 this->set_internal_value(this->getMinimumDataValue());
             }
