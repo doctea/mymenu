@@ -22,7 +22,7 @@
 
 #include "tft.h"
 
-#define SPI_SPEED 30000000  // todo: see if we can increase this without it becoming unreliable - 30000000
+#define SPI_SPEED 50000000  // todo: see if we can increase this without it becoming unreliable - 30000000
 
 class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
     public:
@@ -58,7 +58,7 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
         #endif
         tft->useFrameBuffer(true);
 
-        tft->setFrameRateControl(30);   // 20 to flicker less than 30!
+        tft->setFrameRateControl(20);   // 20 to flicker less than 30!
         tft->initDMASettings();
         tft->updateChangedAreasOnly(true);
         //tft->endUpdateAsync

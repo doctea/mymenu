@@ -324,14 +324,15 @@ class NumberControl : public NumberControlBase {
         // return true if should exit back to main menu
         virtual bool button_select() override {
             if (readOnly) return true;
-            change_value(this->get_internal_value());
+            //Serial.printf("NumberControl#button_select calling change_value(%3.3f)\n", this->get_internal_value());
+            this->change_value((DataType)this->get_internal_value());
 
             return go_back_on_select;
         }
 
         virtual bool action_opened() override {
             if (!readOnly) {
-                this->set_internal_value(this->get_current_value());
+                this->set_internal_value((DataType)this->get_current_value());
             }
             return !readOnly;
         }

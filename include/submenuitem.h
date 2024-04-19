@@ -199,7 +199,7 @@ class SubMenuItem : public MenuItem {
                     }
                 }
             } else {
-                //Serial.printf("in submenuitem(%s)#button_select() on currently_opened=%i (%s)\n", this->label, currently_opened, items.get(currently_opened)->label);
+                //Serial.printf("in submenuitem(%s)#button_select() on currently_opened=%i (%s)\n", this->get_label(), currently_opened, items->get(currently_opened)->get_label());
                 // an item is currently opened, so call select on that item
                 if (items->get(currently_opened)->button_select()) {
                     //Serial.println("\tbutton_select returned true! setting currently_opened=-1 and returning false..");
