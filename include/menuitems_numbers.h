@@ -259,18 +259,13 @@ class NumberControl : public NumberControlBase {
             //Serial.printf(F("%s: NumberControl.set_internal_value(%i)\twith constraint (%i:%i) resulted in %i\n"), this->label, value, (int)this->minimumDataValue, (int)this->maximumDataValue, this->internal_value);
         }
 
-        // todo: consolidate this logic
         virtual DataType get_current_step_down() {
             // do knob acceleration
             if (last_changed_at_decreased==0)
                 return this->step;
 
             uint32_t time_since_changed = constrain(millis() - this->last_changed_at_decreased, (uint32_t)0, (uint32_t)200);
-            if      (time_since_changed>=200)  return (DataType)  this->step;
-            else if (time_since_changed>=100)  return (DataType) (this->step * 2.0f);
-            //else if (time_since_changed>=100)  return (DataType) (this->step * 4.0f);
-            else if (time_since_changed>=25 )  return (DataType) (this->step * 8.0f);
-            else                               return (DataType) (this->step * 10.0f);
+            return this->get_current_step_generic(time_since_changed);
         }
         virtual DataType get_current_step_up() {
             // do knob acceleration
@@ -278,12 +273,17 @@ class NumberControl : public NumberControlBase {
                 return this->step;
 
             uint32_t time_since_changed = constrain(millis() - this->last_changed_at_increased, (uint32_t)0, (uint32_t)200);
+            return this->get_current_step_generic(time_since_changed);
+        }
+
+        virtual DataType get_current_step_generic(uint32_t time_since_changed) {           
             if      (time_since_changed>=200)  return (DataType)  this->step;
             else if (time_since_changed>=100)  return (DataType) (this->step * 2.0f);
             //else if (time_since_changed>=100)  return (DataType) (this->step * 4.0f);
             else if (time_since_changed>=25 )  return (DataType) (this->step * 8.0f);
             else                               return (DataType) (this->step * 10.0f);
         }
+
 
         virtual void decrease_value() {
             if (this->get_internal_value()>this->getMinimumDataValue() 
