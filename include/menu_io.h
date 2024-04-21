@@ -15,7 +15,62 @@ class ResettableButton : public Bounce2::Button {
     }  
 };
 
-using Button = ResettableButton;
+class InterruptButton : public ResettableButton {
+
+    public:
+    int my_interrupt = -1;
+    bool current_state = false;
+
+    static InterruptButton *isr_target[3];
+
+    static int num_interrupts;
+    static void isr_0_change () {
+        InterruptButton::isr_target[0]->current_state = digitalRead(InterruptButton::isr_target[0]->pin);
+    }
+    static void isr_1_change () {
+        InterruptButton::isr_target[1]->current_state = digitalRead(InterruptButton::isr_target[1]->pin);
+    }
+    static void isr_2_change () {
+        InterruptButton::isr_target[2]->current_state = digitalRead(InterruptButton::isr_target[2]->pin);
+    }
+
+    InterruptButton() {}
+    InterruptButton(uint8_t pin, unsigned long interval_millis) : InterruptButton() {
+        this->pin = pin;
+        attach(pin);
+        interval(interval_millis);
+    }
+
+    void attach(int pin, int mode = INPUT) {
+        this->pin = pin;
+        setPinMode(pin, mode);
+        
+        my_interrupt = InterruptButton::num_interrupts;
+        switch (my_interrupt) {
+            case 0:
+                attachInterrupt(digitalPinToInterrupt(pin), InterruptButton::isr_0_change,  CHANGE);
+                break;
+            case 1:
+                attachInterrupt(digitalPinToInterrupt(pin), InterruptButton::isr_1_change,  CHANGE);
+                break;
+            case 2:
+                attachInterrupt(digitalPinToInterrupt(pin), InterruptButton::isr_2_change,  CHANGE);
+                break;
+        }
+
+        InterruptButton::isr_target[my_interrupt] = this;
+
+        num_interrupts++;
+    }
+
+    protected:
+        virtual bool readCurrentState() override {
+            return this->current_state;
+        }
+
+};
+
+using Button = InterruptButton;
 
 #ifdef ENCODER_KNOB_L
     #ifdef ENCODER_DURING_SETUP

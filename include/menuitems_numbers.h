@@ -259,6 +259,7 @@ class NumberControl : public NumberControlBase {
             //Serial.printf(F("%s: NumberControl.set_internal_value(%i)\twith constraint (%i:%i) resulted in %i\n"), this->label, value, (int)this->minimumDataValue, (int)this->maximumDataValue, this->internal_value);
         }
 
+        // todo: consolidate this logic
         virtual DataType get_current_step_down() {
             // do knob acceleration
             if (last_changed_at_decreased==0)
@@ -271,7 +272,6 @@ class NumberControl : public NumberControlBase {
             else if (time_since_changed>=25 )  return (DataType) (this->step * 8.0f);
             else                               return (DataType) (this->step * 10.0f);
         }
-
         virtual DataType get_current_step_up() {
             // do knob acceleration
             if (last_changed_at_increased==0)

@@ -38,8 +38,8 @@
 
 //extern DisplayTranslator tft;
 
-#include <Encoder.h>
-#include <Bounce2.h>
+//#include <Encoder.h>
+//#include <Bounce2.h>
 
 //#include "mymenu.h"
 
