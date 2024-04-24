@@ -11,15 +11,23 @@ class ResettableButton : public Bounce2::Button {
      * @brief Resets the 'last state change' time.
      */
     void resetStateChange() {
+      //this->stateChangeLastTime = 0; //millis();
+      this->durationOfPreviousState = 0;
       this->stateChangeLastTime = millis();
-    }  
+      this->update();
+    }
 };
 
 class InterruptButton : public ResettableButton {
 
     public:
     int my_interrupt = -1;
-    bool current_state = false;
+    bool current_state = !stateForPressed;
+
+    inline void setPressedState(bool state) {
+        Button::setPressedState(state);
+        this->current_state = !state;
+    }
 
     static InterruptButton *isr_target[3];
 
