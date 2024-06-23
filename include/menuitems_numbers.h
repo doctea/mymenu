@@ -6,7 +6,7 @@
 #include "menu.h"
 #include "colours.h"
 
-// type agnostic ancestor
+// type-agnostic ancestor
 class NumberControlBase : public MenuItem {
     public:
         NumberControlBase(const char *label) : MenuItem(label) {};
@@ -192,10 +192,11 @@ class NumberControl : public NumberControlBase {
 
             const char *tmp;
             tmp = this->getFormattedExtra();
-            if (tmp!=nullptr)
+            if (tmp!=nullptr) {
                 tft->printf(tmp);
-            //tft->setTextColor(C_WHITE, BLACK); tft->print((char*)"   ");    // cheap blank
-            tft->println();
+                //tft->setTextColor(C_WHITE, BLACK); tft->print((char*)"   ");    // cheap blank
+                tft->println();
+            }
             //if (this->debug) { Serial.printf(F("NumberControl base display finished in %s\n"), label); }
 
             return tft->getCursorY();
@@ -241,10 +242,15 @@ class NumberControl : public NumberControlBase {
                 Serial.printf("%s\t#renderValue string is \t'%s'\t(length=%i), max_character_width is\t%i, current text width is %i, setting text size to\t%i\n", this->label, tmp, strlen(tmp), max_character_width, tft->currentCharacterWidth(), tft->get_textsize_for_width(tmp, max_character_width*tft->currentCharacterWidth()));
                 Serial_flush();
             }
-            byte textSize = tft->get_textsize_for_width(tmp, max_character_width*tft->currentCharacterWidth());
+            int pixel_width = max_character_width*tft->currentCharacterWidth();
+            byte textSize = tft->get_textsize_for_width(tmp, pixel_width);
             tft->setTextSize(textSize);
-
             tft->println(tmp);
+
+            /*tft->printf("tmp is length %i\n", strlen(tmp));
+            tft->printf("pixel_width=%i, tft width=%i\n", pixel_width, tft->width());
+            tft->printf("tmp='%s'\n", (char*)tmp);
+            tft->println("123456789ABCDEF123456789ABCDEF");*/
             return tft->getCursorY();
         }
 

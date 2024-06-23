@@ -436,6 +436,14 @@ class Menu {
             }
         }
 
+        // get the index of a page based on title string; returns -1 if not found
+        int get_page_index_for_name(const char *title) {
+            for (unsigned int i = 0 ; i < pages->size() ; i++) 
+                if (strcmp(pages->get(i)->title, title)==0)
+                    return i;
+            return -1;
+        }
+
         page_t *get_selected_page() {
             return this->selected_page;
         }
@@ -469,6 +477,9 @@ class Menu {
 
             selected_page = pages->get(selected_page_index);
             //Serial.printf("Selected page %i\n", selected_page_index);
+        }
+        void select_page_for_name(const char *name) {
+            select_page(get_page_index_for_name(name));
         }
         void open_page(unsigned int page_index) {
             //Serial.printf("open_page %i\n", page_index);

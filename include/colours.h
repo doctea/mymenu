@@ -37,6 +37,9 @@
     #ifdef DARK_RED
         #undef DARK_RED
     #endif
+    #ifdef DARK_BLUE
+        #undef DARK_BLUE
+    #endif
 #endif
 
 #ifdef TFT_SSOLED
@@ -72,6 +75,7 @@
     #define DARK_RED    0x8800
     #define DARK_GREEN  0x0320
     #define DARK_YELLOW 0xB421
+    #define DARK_BLUE   0x02D9
 
     #undef MENU_C_MAX
     #ifdef TFT_ST7789_T3_BIG
@@ -101,6 +105,7 @@
     #define DARK_RED    0x8800
     #define DARK_GREEN  0x0320
     #define DARK_YELLOW 0xB421
+    #define DARK_BLUE   0x02D9
 
     #undef MENU_C_MAX
     #define MENU_C_MAX 41
@@ -121,9 +126,11 @@
     #define ORANGE  ILI9341_ORANGE
     #define PURPLE  ILI9341_MAGENTA
     #define GREY    (ILI9341_WHITE / 2)
+    // https://github.com/newdigate/rgb565_colors
     #define DARK_RED    0x8800
     #define DARK_GREEN  0x0320
     #define DARK_YELLOW 0xB421
+    #define DARK_BLUE   0x02D9
     #undef MENU_C_MAX
     #define MENU_C_MAX 41
     #define MENU_MESSAGE_MAX (MENU_C_MAX*2)
