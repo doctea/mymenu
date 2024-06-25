@@ -48,21 +48,9 @@
     #define SCREEN_ROTATION 0
 #endif
 
-//Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
-
-/*#define C_WHITE ST77XX_WHITE
-#define BLACK   ST77XX_BLACK
-#define RED     ST77XX_RED
-#define GREEN   ST77XX_GREEN
-#define BLUE    ST77XX_BLUE
-#define YELLOW  ST77XX_YELLOW*/
-
 class DisplayTranslator_Bodmer : public DisplayTranslator {
     public:
-    //Adafruit_ST7789 actual_tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
-    //Adafruit_GFX_Buffer<Adafruit_ST7789> actual = Adafruit_GFX_Buffer<Adafruit_ST7789>(135, 240, actual_tft);
 
-    //#define MAX_CHARACTER_WIDTH (SCREEN_WIDTH/MAX_CHARACTER_WIDTH)
     #ifdef BODMER_BUFFERED
         TFT_eSPI    actual = TFT_eSPI();
         Adafruit_GFX_Buffer<TFT_eSPI> *tft = new Adafruit_GFX_Buffer<TFT_eSPI>(240, 135, actual);
@@ -82,25 +70,13 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         #endif        
     #endif
 
-    //Adafruit_ST7789 tft_direct = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
-    //Adafruit_GFX_Buffer<Adafruit_ST7789> *tft = new Adafruit_GFX_Buffer<Adafruit_ST7789>(SCREEN_WIDTH, SCREEN_HEIGHT, tft_direct); //Adafruit_ST77(TFT_CS, TFT_DC, TFT_RST));
-    //Adafruit_GFX_Buffer<Adafruit_ST7789> *tft = nullptr; 
-
     /*virtual const char *get_message_format() { return "[%-39.39s]"; }
     virtual const char *get_header_format() { return "%-41s"; }
     virtual const char *get_header_open_format() { return ">>>%-38s"; }
     virtual const char *get_header_selected_format() { return "%-41s"; }*/
 
     DisplayTranslator_Bodmer() {
-        //this->tft = &actual; //ST7789_t3(TFT_CS, TFT_DC, TFT_RST);
-        //this->setup();
-    }
 
-    virtual void setTextWrap(bool enable_wrap) {
-        this->tft->setTextWrap(enable_wrap);
-    }
-    virtual bool isTextWrap() {
-        return this->tft->getTextWrap();
     }
 
     // for this translator (Adafruit GFX + GFX_Buffer), we seem to need to initialise dynamically instead of statically
@@ -149,9 +125,7 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         #endif
         //tft->setRotation(1);
         tft->fillScreen(BLACK);
-        tft->setTextWrap(true);
-        real_actual_espi->setTextWrap(true);
-        actual->setTextWrap(true);
+        this->setTextWrap(true);
         tft->setCursor(0,0);
         tft->println(F("DisplayTranslator init()!"));
 
@@ -161,6 +135,20 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         // large block of text
         //testdrawtext("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa, fringilla sed malesuada et, malesuada sit amet turpis. Sed porttitor neque ut ante pretium vitae malesuada nunc bibendum. Nullam aliquet ultrices massa eu hendrerit. Ut sed nisi lorem. In vestibulum purus a tortor imperdiet posuere. ", ST77XX_WHITE);
         //tft->useFrameBuffer(true);
+    }
+
+
+    // bodmer library doesn't expose the textwrap status, so remember it here instead
+    bool enable_text_wrap = false;
+    virtual void setTextWrap(bool enable_wrap) override {
+        this->enable_text_wrap = enable_wrap;
+
+        tft->setTextWrap(true);
+        real_actual_espi->setTextWrap(true);
+        actual->setTextWrap(true);
+    }
+    virtual bool isTextWrap() override {
+        return this->enable_text_wrap;
     }
 
     virtual void setCursor(int x, int y) override {
