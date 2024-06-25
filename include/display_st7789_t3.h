@@ -47,6 +47,13 @@ class DisplayTranslator_STeensy : public DisplayTranslator {
         this->setup();
     }
 
+    virtual void setTextWrap(bool enable_wrap) {
+        this->tft->setTextWrap(enable_wrap);
+    }
+    virtual bool isTextWrap() {
+        return this->tft->getTextWrap();
+    }
+
     virtual void setup() {
         Debug_println(F("steensy setup()..")); Serial_flush();
         tft->init(135, 240);           // Init ST7789 240x135

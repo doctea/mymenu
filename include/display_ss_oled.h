@@ -1,3 +1,6 @@
+// TOOD: this hasn't been tested in a couple of years, API likely to have changed a lot!
+// TODO: update this so that it still works!
+
 #ifndef DISPLAY_SS_OLED__INCLUDED
 #define DISPLAY_SS_OLED__INCLUDED
 

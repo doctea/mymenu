@@ -242,15 +242,23 @@ class NumberControl : public NumberControlBase {
                 Serial.printf("%s\t#renderValue string is \t'%s'\t(length=%i), max_character_width is\t%i, current text width is %i, setting text size to\t%i\n", this->label, tmp, strlen(tmp), max_character_width, tft->currentCharacterWidth(), tft->get_textsize_for_width(tmp, max_character_width*tft->currentCharacterWidth()));
                 Serial_flush();
             }
+            bool original_wrap_status = tft->isTextWrap();
             int pixel_width = max_character_width*tft->currentCharacterWidth();
             byte textSize = tft->get_textsize_for_width(tmp, pixel_width);
             tft->setTextSize(textSize);
+            tft->setTextWrap(false);
             tft->println(tmp);
+            tft->setTextWrap(original_wrap_status);
 
-            /*tft->printf("tmp is length %i\n", strlen(tmp));
-            tft->printf("pixel_width=%i, tft width=%i\n", pixel_width, tft->width());
-            tft->printf("tmp='%s'\n", (char*)tmp);
-            tft->println("123456789ABCDEF123456789ABCDEF");*/
+            /*if (this->debug) {
+                int characterwidth = tft->currentCharacterWidth();
+                tft->setTextSize(0);
+                tft->printf("tmp is length %i\n", strlen(tmp));
+                tft->printf("pixel_width=%i, tft width=%i\n", pixel_width, tft->width());
+                tft->printf("char_width=%i\n", characterwidth);
+                tft->printf("tmp='%s'\n", (char*)tmp);
+                //tft->println("123456789ABCDEF123456789ABCDEF");
+            }*/
             return tft->getCursorY();
         }
 

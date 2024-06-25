@@ -96,6 +96,13 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         //this->setup();
     }
 
+    virtual void setTextWrap(bool enable_wrap) {
+        this->tft->setTextWrap(enable_wrap);
+    }
+    virtual bool isTextWrap() {
+        return this->tft->getTextWrap();
+    }
+
     // for this translator (Adafruit GFX + GFX_Buffer), we seem to need to initialise dynamically instead of statically
     virtual void init() override {
         this->setup();

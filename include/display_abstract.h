@@ -47,6 +47,9 @@ class DisplayTranslator {
     virtual const char *get_header_open_format()     { return header_open_format; }
     virtual const char *get_header_selected_format() { return header_selected_format; }
 
+    virtual void setTextWrap(bool enable_wrap);
+    virtual bool isTextWrap();
+
     // set the base textsize to use (and recreate the string formats based on that size)
     virtual void set_default_textsize(unsigned int textsize) {
         this->default_textsize = textsize;

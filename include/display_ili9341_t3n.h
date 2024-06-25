@@ -62,7 +62,7 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
         tft->initDMASettings();
         tft->updateChangedAreasOnly(true);
         //tft->endUpdateAsync
-        tft->setTextWrap(true);
+        this->setTextWrap(true);
 
         tft->setFontAdafruit();
 
@@ -76,6 +76,13 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
         //testdrawtext("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa, fringilla sed malesuada et, malesuada sit amet turpis. Sed porttitor neque ut ante pretium vitae malesuada nunc bibendum. Nullam aliquet ultrices massa eu hendrerit. Ut sed nisi lorem. In vestibulum purus a tortor imperdiet posuere. ", ST77XX_WHITE);
         //tft->useFrameBuffer(true);
         if (Serial) Serial.println("finishing setup()");
+    }
+
+    virtual void setTextWrap(bool enable_wrap) {
+        this->tft->setTextWrap(enable_wrap);
+    }
+    virtual bool isTextWrap() {
+        return this->tft->getTextWrap();
     }
     
     virtual void setCursor(int x, int y) override {
