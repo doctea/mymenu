@@ -143,13 +143,23 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
     virtual void setTextWrap(bool enable_wrap) override {
         this->enable_text_wrap = enable_wrap;
 
-        tft->setTextWrap(true);
-        real_actual_espi->setTextWrap(true);
-        actual->setTextWrap(true);
+        tft->setTextWrap(enable_wrap);
+        real_actual_espi->setTextWrap(enable_wrap);
+        actual->setTextWrap(enable_wrap);
     }
     virtual bool isTextWrap() override {
         return this->enable_text_wrap;
     }
+
+    // this should work if this patch is ever accepted to the TFT_eSPI library: https://github.com/Bodmer/TFT_eSPI/pull/3380
+    /*virtual bool setTextWrap(bool enable_wrap) override {
+        tft->setTextWrap(enable_wrap);
+        real_actual_espi->setTextWrap(enable_wrap);
+        actual->setTextWrap(enable_wrap);
+    }
+    virtual bool isTextWrap() override {
+        return tft->getTextWrap();
+    }*/
 
     virtual void setCursor(int x, int y) override {
         tft->setCursor(x,y);
