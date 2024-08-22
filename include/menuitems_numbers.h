@@ -39,6 +39,8 @@ class NumberControl : public NumberControlBase {
 
         bool direct = false;
 
+        bool horiz_label = false;
+
         uint32_t last_changed_at_decreased = 0, last_changed_at_increased = 0;
 
         NumberControl(const char* label, bool go_back_on_select = false, bool direct = false) : NumberControlBase(label) {
@@ -177,7 +179,12 @@ class NumberControl : public NumberControlBase {
                 Serial.println(F("NumberControl#display starting!")); Serial_flush();
                 Serial.printf(F("NumberControl#display in %s starting\n"), this->label); Serial_flush();
             }*/
-            pos.y = header(label, pos, selected, opened);
+            if (horiz_label) {
+                header(label, pos, selected, opened);
+                pos.x = tft->currentCharacterWidth() * (strlen(label) + 1) ;
+            } else {
+                pos.y = header(label, pos, selected, opened);
+            }
             //if (this->debug) { Serial.println(F("did header")); Serial_flush(); }
             tft->setCursor(pos.x,pos.y);
             //if (this->debug) { Serial.println(F("did setcursor")); Serial_flush(); }
