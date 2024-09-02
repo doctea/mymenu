@@ -126,6 +126,7 @@
     #define ORANGE  ILI9341_ORANGE
     #define PURPLE  ILI9341_MAGENTA
     #define GREY    (ILI9341_WHITE / 2)
+    #define TFT_CYAN    ILI9341_CYAN
     // https://github.com/newdigate/rgb565_colors
     #define DARK_RED    0x8800
     #define DARK_GREEN  0x0320
