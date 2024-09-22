@@ -313,7 +313,7 @@ class CallbackMenuItem : public MenuItem {
     using label_callback_def = vl::Func<const char*(void)>;
     public:
     label_callback_def callback_func;
-    CallbackMenuItem(const char *label, label_callback_def callback_func) : MenuItem(label), callback_func(callback_func) {
+    CallbackMenuItem(const char *label, label_callback_def callback_func, bool show_header = true) : MenuItem(label, false, show_header), callback_func(callback_func) {
         this->selectable = false;
     }
 
