@@ -1,9 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
-
 #include "menuitems.h"
-
 #include "menu.h"
 
 class QuickPagesMenuItem : public MenuItem {
@@ -73,7 +71,7 @@ class CustomQuickPagesMenuItem : virtual public QuickPagesMenuItem {
         //int start_at = 0;
 
         virtual void add_page(page_t *p) {
-            for (int i =0 ; i < pages->size() ; i++) {
+            for (uint_fast8_t i = 0 ; i < pages->size() ; i++) {
                 if (pages->get(i)==p)   // already exists 
                     return;
             }
@@ -84,13 +82,13 @@ class CustomQuickPagesMenuItem : virtual public QuickPagesMenuItem {
             pos.y = header(label, pos, selected, opened);
             tft->setTextSize(2);
 
-            uint8_t size = pages->size();
+            uint_fast8_t size = pages->size();
 
             if (selected_value_index<0 && size>0) {
                 selected_value_index = 0;
             }
-            for (int i = 0 ; i < size ; i++) {
-                int o = (i + selected_value_index) % size;
+            for (uint_fast8_t i = 0 ; i < size ; i++) {
+                uint_fast8_t o = (i + selected_value_index) % size;
                 page_t *page = pages->get(o);
                 if (page==nullptr) 
                     continue;
