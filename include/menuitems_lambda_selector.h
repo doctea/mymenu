@@ -81,7 +81,7 @@ class LambdaSelectorControl : public LambdaNumberControl<DataType> {
     }
 
     virtual void increase_value() override {
-        int idx = this->get_internal_value();
+        DataType idx = this->get_internal_value();
 
         if ((DataType)idx>=this->getMaximumDataValue()) 
             return; //idx = this->getMaximumDataValue(); //available_values->size();
@@ -96,9 +96,9 @@ class LambdaSelectorControl : public LambdaNumberControl<DataType> {
         }
     }
     virtual void decrease_value() override {
-        int idx = this->get_internal_value();
+        DataType idx = this->get_internal_value();
 
-        if (idx==this->getMinimumDataValue())   // for protection against unsigned values wrapping around
+        if ((DataType)idx==this->getMinimumDataValue())   // for protection against unsigned values wrapping around
             return;
 
         idx--;
