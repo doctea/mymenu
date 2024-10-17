@@ -8,7 +8,7 @@
 template<class DataType = int_least16_t>
 class SelectorControl : public MenuItem {
     public:
-        int_least16_t num_values = 0;
+        uint_least16_t num_values = 0;
         int_least16_t selected_value_index = 0;
         DataType *available_values = nullptr;
         int_least16_t actual_value_index = -1;
