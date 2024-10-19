@@ -58,11 +58,19 @@ class DisplayTranslator {
     virtual unsigned int get_default_textsize() {
         return this->default_textsize;
     }
+    virtual void set_maximum_textsize(unsigned int textsize) {
+        this->maximum_textsize = textsize;
+        this->setup_formats();
+    }
 
     virtual unsigned int get_textsize_for_width(const char *text, unsigned int pixel_width) {
         //((int)strlen(text_to_render)*tft->currentCharacterWidth() < tft->width()/2);
         //return constrain(pixel_width / (characterWidth() * strlen(text)), default_textsize, 3);
-        return constrain(pixel_width / (characterWidth() * strlen(text)), (unsigned int)0, default_textsize+maximum_textsize);
+        return constrain(
+            pixel_width / (characterWidth() * strlen(text)), 
+            (unsigned int)0, 
+            default_textsize+maximum_textsize
+        );
     }
 
     virtual uint8_t get_c_max() {
@@ -81,6 +89,7 @@ class DisplayTranslator {
     virtual void setup() {};
     virtual void start() {
         this->set_default_textsize(this->default_textsize);
+        this->set_maximum_textsize((this->default_textsize+1) * 2);
     };
     virtual void clear(bool force = false) {};
 
