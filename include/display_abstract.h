@@ -4,8 +4,7 @@
     #pragma GCC diagnostic ignored "-Wstringop-truncation"
 #endif
 
-#ifndef DISPLAYABSTRACT__INCLUDED
-#define DISPLAYABSTRACT__INCLUDED
+#pragma once
 
 #include <Arduino.h>
 
@@ -145,18 +144,14 @@ class DisplayTranslator {
     virtual bool will_x_rows_fit_to_height(int rows, int height = -1);
 
     // shapes + lines
-    virtual void drawLine(int x0, int y0, int x1, int y1, uint16_t color) {};
+    virtual void drawLine(int x0, int y0, int x1, int y1, uint16_t color) = 0;
     virtual void drawFastVLine(int x, int y, int height, uint16_t colour) = 0;
     virtual void drawFastHLine(int x, int y, int width, uint16_t colour) = 0;
-    virtual void fillRect(int x, int y, int w, int h, uint16_t color) {};
-    virtual void drawRect(int x, int y, int w, int h, uint16_t color) {};
-    virtual void drawRoundRect(int x, int y, int w, int h, int radius, int color) { Serial.println(F("TODO: unimplemented drawRoundRect())")); };
-    virtual void fillRoundRect(int x, int y, int w, int h, int radius, int color) { Serial.println(F("TODO: unimplemented fillRoundRect())")); };
+    virtual void fillRect(int x, int y, int w, int h, uint16_t color) = 0;
+    virtual void drawRect(int x, int y, int w, int h, uint16_t color) = 0;
+    virtual void drawRoundRect(int x, int y, int w, int h, int radius, int color) = 0; //{ Serial.println(F("TODO: unimplemented drawRoundRect())")); };
+    virtual void fillRoundRect(int x, int y, int w, int h, int radius, int color) = 0; //{ Serial.println(F("TODO: unimplemented fillRoundRect())")); };
     virtual void fillCircle(int x, int y, int radius, uint16_t colour) = 0;
 
 };
 
-
-//DisplayTranslator::~DisplayTranslator() {}
-
-#endif

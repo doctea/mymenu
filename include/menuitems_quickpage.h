@@ -93,7 +93,7 @@ class CustomQuickPagesMenuItem : virtual public QuickPagesMenuItem {
                 if (page==nullptr) 
                     continue;
 
-                colours(opened && o==selected_value_index, page->colour);
+                colours(opened && ((int)o)==selected_value_index, page->colour);
                 tft->println(page->title);
                 colours(C_WHITE);
 

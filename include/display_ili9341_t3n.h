@@ -1,6 +1,4 @@
-#ifndef DISPLAY_ILI9341_T3N__INCLUDED
-#define DISPLAY_ILI9341_T3N__INCLUDED
-
+#pragma once
 //#define ENABLE_ST77XX_FRAMEBUFFER
 
 #ifdef TFT_ILI9341_T3N
@@ -234,5 +232,4 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
     }*/
 };
 
-#endif
 #endif
