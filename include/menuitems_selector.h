@@ -1,5 +1,4 @@
-#ifndef MENUITEM_SELECTOR__INCLUDED
-#define MENUITEM_SELECTOR__INCLUDED
+#pragma once
 
 #include "menuitems.h"
 
@@ -10,11 +9,12 @@ class SelectorControl : public MenuItem {
     public:
         uint_least16_t num_values = 0;
         int_least16_t selected_value_index = 0;
-        DataType *available_values = nullptr;
-        int_least16_t actual_value_index = -1;
 
         void (*f_setter)(DataType) = nullptr;
         DataType (*f_getter)() = nullptr;
+
+        DataType *available_values = nullptr;
+        int_least16_t actual_value_index = -1;
 
         virtual void setter (DataType new_value) {
             if (f_setter!=nullptr)
@@ -25,7 +25,7 @@ class SelectorControl : public MenuItem {
                 return this->f_getter();
             if (available_values==nullptr)
                 return -1;
-            if (this->selected_value_index<0 || this->selected_value_index>=num_values)
+            if (this->selected_value_index<0 || this->selected_value_index>=get_num_values())
                 return -1;
             return available_values[this->selected_value_index];
         }
@@ -67,7 +67,7 @@ class SelectorControl : public MenuItem {
 
             DataType current_value = this->getter(); //f_getter!=nullptr ? this->f_getter() : available_values[this->selected_value_index];
 
-            for (int i = 0 ; i < num_values ; i++) {
+            for (int i = 0 ; i < get_num_values() ; i++) {
                 //bool is_current_value_selected = selected_value_index==i; //available_values[i]==currentValue;
                 bool is_current_value_selected = get_value_for_index(i)==current_value; //getter();
                 int col = is_current_value_selected ? GREEN : C_WHITE;
@@ -80,7 +80,7 @@ class SelectorControl : public MenuItem {
                 //this->renderValue(selected, opened, MENU_C_MAX);
 
                 tft->setTextColor(BLACK,BLACK);
-                if (i<num_values-1) 
+                if (i<get_num_values()-1) 
                     tft->printf(" ");
             }
             if (tft->getCursorX()>0) // if we haven't wrapped onto next line then do it manually
@@ -163,16 +163,20 @@ class SelectorControl : public MenuItem {
             return tft->getCursorY();
         }*/
 
+        virtual int get_num_values() {
+            return num_values;
+        }
+
         virtual bool knob_left() override {
             selected_value_index--;
             if (selected_value_index < 0)
-                selected_value_index = num_values-1;
+                selected_value_index = get_num_values()-1;
             return true;
         }
 
         virtual bool knob_right() override {
             selected_value_index++;
-            if (selected_value_index >= (int)num_values)
+            if (selected_value_index >= (int)get_num_values())
                 selected_value_index = 0;
             return true;
         }
@@ -200,6 +204,3 @@ class SelectorControl : public MenuItem {
 
 };
 
-
-
-#endif
