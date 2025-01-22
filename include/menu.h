@@ -673,6 +673,7 @@ class Menu {
 
         uint16_t get_next_colour() {
             static int index = 0;
+            // https://rgbcolorpicker.com/565/table
             static const uint16_t colours[] = {
                 tft->rgb(255,200,200),  // bright pastel colours
                 tft->rgb(200,255,200),
@@ -682,7 +683,7 @@ class Menu {
                 tft->rgb(255,255,200),
                 tft->rgb(255,100,100),
                 tft->rgb(100,255,100),
-                tft->rgb(100,100,255),
+                0x867d, // skyblue //tft->rgb(117, 117, 255),
                 tft->rgb(255,100,100),
                 tft->rgb(255,100,255),
                 tft->rgb(100,255,255),
