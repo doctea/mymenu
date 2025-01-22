@@ -18,7 +18,7 @@ class NumberControlBase : public MenuItem {
 template<class DataType = int>
 class NumberControl : public NumberControlBase {
     public:
-        bool debug = false;
+        //bool debug = false;
         void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr;
 
         DataType (*getter)() = nullptr;
@@ -119,17 +119,17 @@ class NumberControl : public NumberControlBase {
         virtual const char *getFormattedValue(int value) {
             static char fmt[15] = "      ";
             if (this->debug)
-                snprintf(fmt, 15, "%-5i [int]", value);
+                snprintf(fmt, 14, "%-5i [int]", value);
             else
-                snprintf(fmt, 15, "%-5i%c", value, this->int_unit);
+                snprintf(fmt, 14, "%-5i%c", value, this->int_unit);
             return fmt;
         }
         virtual const char *getFormattedValue(uint32_t value) {
             static char fmt[15] = "      ";
             if (this->debug)
-                snprintf(fmt, 15, "%-5u [ulong]", (unsigned int) value);
+                snprintf(fmt, 14, "%-5u [ulong]", (unsigned int) value);
             else
-                snprintf(fmt, 15, "%-5u%c", (unsigned int) value, this->int_unit);
+                snprintf(fmt, 14, "%-5u%c", (unsigned int) value, this->int_unit);
             return fmt;
         }
         /*virtual const char *getFormattedValue(unsigned long long value) {
@@ -143,9 +143,9 @@ class NumberControl : public NumberControlBase {
         virtual const char *getFormattedValue(int32_t value) {
             static char fmt[15] = "      ";
             if (this->debug)
-                snprintf(fmt, 15, "%-5i [long]", (int)value);
+                snprintf(fmt, 14, "%-5i [long]", (int)value);
             else
-                snprintf(fmt, 15, "%-5i%c", (int)value, this->int_unit);
+                snprintf(fmt, 14, "%-5i%c", (int)value, this->int_unit);
             return fmt;
         }
         virtual const char *getFormattedValue(double value) {
@@ -154,19 +154,21 @@ class NumberControl : public NumberControlBase {
                 snprintf(fmt, 20, "%-3.2f [double]", value);
             else {
                 if (this->float_unit != '\0')
-                    snprintf(fmt, 20, "%-3.0f%c", value*this->float_mult, this->float_unit);
+                    snprintf(fmt, 19, "%-3.0f%c", value*this->float_mult, this->float_unit);
                 else
-                    snprintf(fmt, 20, "%-3.0f", value*this->float_mult);
+                    snprintf(fmt, 19, "%-3.0f", value*this->float_mult);
             }
             return fmt;
         }
 
         virtual const char *getFormattedValue() {
+            if (this->debug) Serial.printf("%s:\tNumberControl#getFormattedValue() returning get_current_value=%3.3f\n", this->label, (float)this->get_current_value());
             return this->getFormattedValue((DataType)this->get_current_value());
         }
         virtual const char *getFormattedInternalValue() {
             static char tmp[MAX_LABEL_LENGTH];
-            snprintf(tmp, MAX_LABEL_LENGTH, "%s", this->getFormattedValue((DataType)this->get_internal_value()));
+            snprintf(tmp, MAX_LABEL_LENGTH-1, "%s", this->getFormattedValue((DataType)this->get_internal_value()));
+            if (this->debug) { Serial.printf("%s:\tNumberControl#getFormattedInternalValue() returning '%s'\n", this->label, tmp); Serial_flush(); }
             return tmp;
         }
 
@@ -175,6 +177,7 @@ class NumberControl : public NumberControlBase {
         }
 
         virtual int display(Coord pos, bool selected, bool opened) override {
+            if (this->debug) Serial.printf("==== NumberControl#display %s ====\n", this->label);
             /*if (this->debug) {
                 Serial.println(F("NumberControl#display starting!")); Serial_flush();
                 Serial.printf(F("NumberControl#display in %s starting\n"), this->label); Serial_flush();
@@ -195,7 +198,9 @@ class NumberControl : public NumberControlBase {
             //if (this->debug) { Serial.println("did colours"); Serial_flush(); }
 
             // render the value
+            if (this->debug) Serial.printf(">>>>>==== NumberControl#display calling renderValue %s ====\n", this->label);
             this->renderValue(selected, opened, tft->get_c_max()); //, strlen(tmp)<tft->get_c_max()/2);
+            if (this->debug) Serial.printf("<<<<<==== NumberControl#display called renderValue %s ====\n", this->label);
 
             const char *tmp;
             tmp = this->getFormattedExtra();
@@ -212,9 +217,9 @@ class NumberControl : public NumberControlBase {
         // just render the value without the rest of the widget, restricting it to the max_character_width characters
         // TODO: actually limit the output to the width (currently it just uses a smaller size if it doesn't fit in the requested number of characters)
         virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
-            //if (this->debug) Serial.printf(F("\t\trenderValue() in NumberControl with max_character_width %i\n"), max_character_width);
+            //if (this->debug) Serial.printf(F("%s:\trenderValue() in NumberControl with max_character_width\t%i\n"), this->label, max_character_width);
             const char *tmp = opened ? this->getFormattedInternalValue() : this->getFormattedValue();
-            //if (this->debug) { Serial.println("renderValue() did setting tmp"); Serial_flush(); }
+            if (this->debug) { Serial.printf("%s:\trenderValue() did setting tmp to\t'%s' \t(%s,\t%s)\n", this->label, tmp, selected?"selected":"not selected", opened?"opened":"unopened"); Serial_flush(); }
             
             //if (this->debug) { Serial.printf("NumberControl#renderValue in %s about to do getFormattedValue() ting...\n", this->label); Serial_flush(); }
             /*if (opened) {
@@ -245,13 +250,13 @@ class NumberControl : public NumberControlBase {
             //byte textSize = (strlen(tmp) > max_character_width/2) ? 1 : 2;
             //byte textSize = (strlen(tmp) / max_character_width) + 1;
             //Serial.printf("%s\t#renderValue string is \t%s (length=%i), max_character_width is\t%i, setting text size to\t%i\n", this->label, tmp, strlen(tmp), max_character_width, textSize);
-            if (this->debug) {
+            /*if (this->debug) {
                 Serial.printf("%s\t#renderValue string is \t'%s'\t(length=%i), max_character_width is\t%i, current text width is %i, setting text size to\t%i\n", this->label, tmp, strlen(tmp), max_character_width, tft->currentCharacterWidth(), tft->get_textsize_for_width(tmp, max_character_width*tft->currentCharacterWidth()));
                 Serial_flush();
-            }
+            }*/
             bool original_wrap_status = tft->isTextWrap();
             int pixel_width = max_character_width*tft->currentCharacterWidth();
-            byte textSize = tft->get_textsize_for_width(tmp, pixel_width);
+            uint8_t textSize = tft->get_textsize_for_width(tmp, pixel_width);
             tft->setTextSize(textSize);
             tft->setTextWrap(false);
             tft->println(tmp);

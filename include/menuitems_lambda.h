@@ -73,14 +73,39 @@ class LambdaNumberControl : public NumberControl<DataType> {
     // override in subclass if need to do something special eg getter/setter
     virtual DataType get_current_value() override {
         DataType v = this->getter_func();
-        //if (this->debug) { Serial.printf(F("%s: Called getter and got value %i!\n"), this->label, v); Serial_flush(); }
+        if (this->debug) { Serial.printf(F("%s: LambdaNumberControl#get_current_value(): Called the getter and got value %3.3f!\n"), this->label, (float)v); Serial_flush(); }
         return v;
     }
 
+    /*virtual DataType get_internal_value() override {
+        //if (this->direct) return NumberControl<DataType>::get_internal_value();
+        return get_current_value();
+    }*/
+    /*virtual const char *getFormattedValue() override {
+        Serial.printf("%s: LambdaNumberControl#getFormattedValue()!\n");
+        if (this->direct) {
+            return this->getFormattedInternalValue();
+        }
+        return NumberControl<DataType>::getFormattedValue();
+        //if (this->debug) Serial.printf("%s:\tNumberControl#getFormattedValue() returning get_current_value=%3.3f\n", this->label, (float)this->get_current_value());
+        //return this->getFormattedValue((DataType)this->get_current_value());
+    }*/
+    /*virtual const char *getFormattedInternalValue() override {
+        static char tmp[MAX_LABEL_LENGTH];
+        snprintf(tmp, MAX_LABEL_LENGTH-1, "%s", this->getFormattedValue((DataType)this->get_internal_value()));
+        if (this->debug) { Serial.printf("%s: LambdaNumberControl#getFormattedInternalValue() returning '%s'\n", this->label, tmp); Serial_flush(); }
+        return tmp;
+    }*/
+    /*virtual DataType get_internal_value() {
+        return this->internal_value;
+    }*/
+
     // override in subclass if need to do something special eg getter/setter
     virtual void set_current_value(DataType value) override { 
-        if (this->debug) { Serial.printf("LambdaNumberControl#set_current_value(%i)\n", value); Serial_flush(); }
+        if (this->debug) { Serial.printf("%s: LambdaNumberControl#set_current_value(%3.3f) (%s)\n", this->label, (float)value, this->getFormattedValue(value)); Serial_flush(); }
 
+        //this->set_internal_value(value);
+        this->internal_value = value;         // TODO: see if this is needed??
         this->setter_func(value);
 
         char msg[MENU_MESSAGE_MAX];
