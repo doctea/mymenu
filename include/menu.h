@@ -549,11 +549,22 @@ class Menu {
             }
         }
         FLASHMEM void add_pinned(PinnedPanelMenuItem *m) {
-            if (m!=nullptr) {
-                m->tft = this->tft;
-                m->on_add();
+            if (pinned_panel==nullptr) {
+                // first pinned panel, just add it 
+                if (m!=nullptr) {
+                    m->tft = this->tft;
+                    m->on_add();
+                }
+                pinned_panel = m;
+            } else {
+                // second pinned panel, jump through some hoops to add both
+                DoublePinnedPanelMenuItem *dpp = new DoublePinnedPanelMenuItem(pinned_panel, m);
+                if (m!=nullptr) {
+                    m->tft = this->tft;
+                    m->on_add();
+                }
+                this->pinned_panel = dpp;
             }
-            pinned_panel = m;
         }
 
         // set the LinkedList where to store the messages

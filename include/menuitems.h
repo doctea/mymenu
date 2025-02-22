@@ -129,6 +129,34 @@ class PinnedPanelMenuItem : public MenuItem {
         }
 };
 
+class DoublePinnedPanelMenuItem : public PinnedPanelMenuItem {
+    public:
+        unsigned long ticks = 0;
+        PinnedPanelMenuItem *item1, *item2;
+
+        DoublePinnedPanelMenuItem(PinnedPanelMenuItem *item1, PinnedPanelMenuItem *item2) : PinnedPanelMenuItem(label) {
+            this->item1 = item1;
+            this->item2 = item2;
+        };
+
+        virtual void update_ticks(unsigned long ticks) override {
+            if (this->item1!=nullptr) this->item1->update_ticks(ticks);
+            if (this->item2!=nullptr) this->item2->update_ticks(ticks);
+            this->ticks = ticks;
+        }
+
+        int display(Coord pos, bool selected, bool opened) override {
+            int y = pos.y;
+            if (this->item1!=nullptr) {
+                y += this->item1->display(Coord(pos.x, y), selected, opened);
+            }
+            if (this->item2!=nullptr) {
+                y += this->item2->display(Coord(pos.x, y), selected, opened);
+            }
+            return y;
+        }
+};
+
 
 #include "menuitems_numbers.h"
 #include "menuitems_selector.h"

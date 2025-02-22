@@ -73,7 +73,7 @@ class LambdaNumberControl : public NumberControl<DataType> {
     // override in subclass if need to do something special eg getter/setter
     virtual DataType get_current_value() override {
         DataType v = this->getter_func();
-        if (this->debug) { Serial.printf(F("%s: LambdaNumberControl#get_current_value(): Called the getter and got value %3.3f!\n"), this->label, (float)v); Serial_flush(); }
+        if (this->debug) { Serial.printf("%s: LambdaNumberControl#get_current_value(): Called the getter and got value %3.3f!\n", this->label, (float)v); Serial_flush(); }
         return v;
     }
 
