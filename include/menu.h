@@ -416,7 +416,9 @@ class Menu {
         int_least8_t quick_page_index = 0;
         int_least8_t quick_pages[NUM_QUICK_PAGE_HISTORY] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
         // add the page index to the 'visited history'
-        void remember_opened_page(int8_t page_index) {
+        void remember_opened_page(int8_t page_index = -1) {
+            if (page_index==-1)
+                page_index = selected_page_index;
             // don't store qjump page itself..
             if (page_index==quick_page_index) 
                 return;
