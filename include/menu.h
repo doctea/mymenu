@@ -119,6 +119,21 @@ class Menu {
             return tft->getTextSize();
         }
 
+        bool hide_pinned = false;
+        int expand_pinned_level() {
+            if (hide_pinned)
+                return 0;
+            if (!this->get_selected_page()->scrollable)
+                return 1;
+            return 2;
+        }
+        void set_hide_pinned(bool value) {
+            this->hide_pinned = value;
+        }
+        bool get_hide_pinned() {
+            return this->hide_pinned;
+        }
+
         enum {
             NORMAL = 0,
             DISPLAY_ONE = 1
