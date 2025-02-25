@@ -363,4 +363,33 @@ class CallbackMenuItem : public MenuItem {
 
 #include "menuitems_lambda_selector.h"
 
+
+#include <functional-vlpp.h>
+
+#include "menuitems_object_multitoggle.h"
+// multi-toggle item that targts getters & setters on an object
+class MultiToggleItemLambda : public MultiToggleItemBase {
+    public:
+        using setter_func_def = vl::Func<void(bool)>;
+        using getter_func_def = vl::Func<bool(void)>;
+
+        setter_func_def setter = [=](bool v) -> void {};
+        getter_func_def getter = [=]() -> bool { return false; };
+
+        MultiToggleItemLambda(const char *label, setter_func_def setter, getter_func_def getter, bool invert_colours = false) 
+            : MultiToggleItemBase(label, invert_colours) 
+        {
+            this->setter = setter;
+            this->getter = getter;
+        }
+
+        virtual bool do_getter() override {
+            return this->getter();
+        }
+        virtual void do_setter(bool value) override {
+            this->setter(value);
+        }
+};
+
+
 #endif
