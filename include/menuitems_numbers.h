@@ -153,12 +153,16 @@ class NumberControl : public NumberControlBase {
             if (this->debug)
                 snprintf(fmt, 20, "%-3.2f [double]", value);
             else {
-                if (this->float_unit != '\0')
-                    snprintf(fmt, 19, "%-3.0f%c", value*this->float_mult, this->float_unit);
+                if (this->get_float_unit() != '\0')
+                    snprintf(fmt, 19, "%-3.0f%c", value*this->float_mult, this->get_float_unit());
                 else
                     snprintf(fmt, 19, "%-3.0f", value*this->float_mult);
             }
             return fmt;
+        }
+
+        virtual char get_float_unit() {
+            return this->float_unit;
         }
 
         virtual const char *getFormattedValue() {
