@@ -163,7 +163,7 @@ class DoublePinnedPanelMenuItem : public PinnedPanelMenuItem {
 #include "menuitems_action.h"
 //#include "menuitems_pinned.h"
 
-class SeparatorMenuItem : public MenuItem {
+class SeparatorMenuItem : virtual public MenuItem {
     public:
         //int16_t colour = C_WHITE;
         SeparatorMenuItem(const char *label) : MenuItem(label, false) {}

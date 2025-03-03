@@ -213,15 +213,18 @@ class LambdaActionItem : public MenuItem {
         this->getter_func = getter_func;
         this->has_getter = true;
 
+        static const char *label_1_format = "<< %s >>";
+        static const char *label_2_format = ">> %s <<";
+
         if (button_label_true!=nullptr) {
             strncpy(this->button_label_true, button_label_true, MAX_LABEL_LENGTH);
         } else
-            snprintf(this->button_label_true, MAX_LABEL_LENGTH, "<< %s >>", label);
+            snprintf(this->button_label_true, MAX_LABEL_LENGTH, label_1_format, label);
 
         if (button_label_false!=nullptr)
-            snprintf(this->button_label_false, MAX_LABEL_LENGTH, ">> %s <<", button_label_false);
+            snprintf(this->button_label_false, MAX_LABEL_LENGTH, label_2_format, button_label_false);
         else
-            snprintf(this->button_label_false, MAX_LABEL_LENGTH, ">> %s <<", label);
+            snprintf(this->button_label_false, MAX_LABEL_LENGTH, label_2_format, label);
     };
 
     virtual int display(Coord pos, bool selected, bool opened) override {
@@ -373,8 +376,8 @@ class MultiToggleItemLambda : public MultiToggleItemBase {
         using setter_func_def = vl::Func<void(bool)>;
         using getter_func_def = vl::Func<bool(void)>;
 
-        setter_func_def setter = [=](bool v) -> void {};
-        getter_func_def getter = [=]() -> bool { return false; };
+        setter_func_def setter = [this](bool v) -> void {};
+        getter_func_def getter = [this]() -> bool { return false; };
 
         MultiToggleItemLambda(const char *label, setter_func_def setter, getter_func_def getter, bool invert_colours = false) 
             : MultiToggleItemBase(label, invert_colours) 
