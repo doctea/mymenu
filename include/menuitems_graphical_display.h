@@ -22,7 +22,7 @@ class GraphicalValueDisplay : public MenuItem {
         this->min_limit = min;
         this->max_limit = max;
 
-        this->stored_values = (float*)calloc(memory, sizeof(float));
+        this->stored_values = (float*)CALLOC_FUNC(memory, sizeof(float));
     }
 
     virtual int display(Coord pos, bool selected, bool opened) override {

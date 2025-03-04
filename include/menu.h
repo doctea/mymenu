@@ -18,6 +18,14 @@
     #ifndef FLASHMEM
         #define FLASHMEM
     #endif
+
+    #ifndef CALLOC_FUNC
+        #define CALLOC_FUNC calloc
+    #endif
+    #ifndef MALLOC_FUNC
+        #define MALLOC_FUNC malloc
+    #endif
+
     //#define F(x) { x }
 #endif
 

@@ -6,6 +6,14 @@
 #ifdef ENABLE_SD
 #include <SdFat.h>
 
+#ifndef CALLOC_FUNC
+    #define CALLOC_FUNC calloc
+#endif
+#ifndef MALLOC_FUNC
+    #define MALLOC_FUNC malloc
+#endif
+
+
 //#include <SdFatUtil.h>
 
 /*
@@ -95,7 +103,7 @@ bool save_screenshot(DisplayTranslator_Configured *display) {
 
     // create padding (based on the number of pixels in a row
     //unsigned char bmpPad[rowSize - 3*w];
-    unsigned char *bmpPad = (unsigned char*)calloc(rowSize - 3*w, 0);
+    unsigned char *bmpPad = (unsigned char*)CALLOC_FUNC(rowSize - 3*w, 0);
     /*for (unsigned int i=0; i<sizeof(bmpPad); i++) {         // fill with 0s
         bmpPad[i] = 0;
     }*/

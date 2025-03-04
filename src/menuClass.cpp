@@ -120,7 +120,7 @@ int Menu::display() {
         //static int *panel_bottom = nullptr;
         bool bottoms_computed = false;
         if (selected_page->panel_bottom == nullptr) {
-            selected_page->panel_bottom = (int*)calloc(this->get_num_panels(), sizeof(int));
+            selected_page->panel_bottom = (int*)CALLOC_FUNC(this->get_num_panels(), sizeof(int));
         } else {
             if (!this->recalculate_bottoms)
                 bottoms_computed = true;
