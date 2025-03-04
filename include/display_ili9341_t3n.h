@@ -48,7 +48,7 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
 
     virtual void setup() {
         Debug_println(F("ili9341 setup()..")); Serial_flush();
-        if (Serial) Serial.println(F("ili9341 setup()..")); Serial_flush();
+        if (Serial) { Serial.println(F("ili9341 setup()..")); Serial_flush(); }
         tft->begin(SPI_SPEED);
         tft->setRotation(SCREEN_ROTATION);
         #ifndef DONT_USE_EXTMEM_FRAMEBUFFER

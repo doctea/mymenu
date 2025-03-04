@@ -54,7 +54,11 @@ class FileViewerMenuItem : public ListViewerMenuItem {
             while (f.available()) {
                 line = f.readStringUntil('\n');
                 list_contents->add(line);
-                if (debug) { Serial.printf("readFile(): read a line '%s'\n", line.c_str()); Serial_flush(); }
+                if (debug) { 
+                    Serial.printf("readFile(): read a line '%s'\n", line.c_str()); 
+                    Serial.printf("free ram is now %u\n", freeRam());
+                    Serial_flush(); 
+                }
             }
             if (debug) Serial.println("readFile(): closing.."); Serial_flush();
             f.close();
