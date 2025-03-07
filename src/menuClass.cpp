@@ -3,6 +3,11 @@
 
 #include <LinkedList.h>
 
+int freeRam();
+#ifdef ARDUINO_TEENSY41
+    int freeExtRam();
+#endif
+
 #include <string>
 
 bool debug_flag = false;
@@ -313,17 +318,24 @@ int Menu::display() {
           Serial.println("failed to allocate from extmem!");
         else
           sprintf(ptr, "hello");*/
-          
-        snprintf(
-            profile_string, 
-            MENU_C_MAX, 
-            //"%-3ius %-2ifps Free RAM2=%uK EXT=%uK", 
-            "%-2ifps | RAM2 %uK EXT %uK free", 
-            //micros() - display_started, 
-            frames_in_last_second,
-            freeRam()/1024,
-            freeExtRam()/1024
-        );
+        #ifdef ARDUINO_TEENSY41
+            snprintf(
+                profile_string, 
+                MENU_C_MAX, 
+                "%-2ifps | RAM2 %uK EXT %uK free", 
+                frames_in_last_second,
+                freeRam()/1024,
+                freeExtRam()/1024
+            );
+        #else
+            snprintf(
+                profile_string, 
+                MENU_C_MAX, 
+                "%-2ifps | RAM2 %uK free", 
+                frames_in_last_second,
+                freeRam()/1024
+            );
+        #endif
         frames_drawn++;
     }
 
