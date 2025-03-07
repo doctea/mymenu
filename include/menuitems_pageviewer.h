@@ -13,6 +13,8 @@
 class PageFileViewerMenuItem : public MenuItem {
     public:
 
+    char filename[256];
+
     unsigned int height_lines = 0;
     char *page_first_line = nullptr;
     //char *page_last_line = nullptr;
@@ -32,7 +34,7 @@ class PageFileViewerMenuItem : public MenuItem {
         // find the start of the last line we can display
         page_first_line = file_contents;
         char *last_found_break = nullptr;
-        int line_count = 0;
+        unsigned int line_count = 0;
         char *search = page_first_line;
         while (search < file_contents + file_size && line_count < height_lines) {
             if (*search == '\n') {
@@ -46,8 +48,12 @@ class PageFileViewerMenuItem : public MenuItem {
     }
 
     bool readFile(const char *filename) {
+        // todo: don't risk fragmentation by allocating memory for the file contents every time
+        //       we load a file.  Instead, allocate a fixed-size buffer and re-use it.
         if (file_contents!=nullptr)
             extmem_free(file_contents);
+
+        strncpy(this->filename, filename, 255);
 
         File f = SD.open(filename, FILE_READ);
         if (!f) {
@@ -73,6 +79,7 @@ class PageFileViewerMenuItem : public MenuItem {
     }
 
     int render_list_header(Coord pos) {
+        tft->printf("%s\n(%u bytes)\n", filename, file_size, 0);
         //tft->printf("Lines: %i\n", list_contents->size());
         //tft->printf("...");
         return tft->getCursorY();
@@ -91,7 +98,7 @@ class PageFileViewerMenuItem : public MenuItem {
         char line_buffer[256];
 
         char *cursor = start_at;
-        for (int line_number = 0 ; line_number < height_lines ; line_number++) {
+        for (unsigned int line_number = 0 ; line_number < height_lines ; line_number++) {
             int buf_idx = 0;
             while (cursor < file_contents+file_size && *cursor != '\n' && buf_idx < 256) {
                 line_buffer[buf_idx++] = *cursor;

@@ -13,6 +13,9 @@
 #include "SD.h"
 
 int freeRam();
+#ifdef ARDUINO_TEENSY41
+    int freeExtRam();
+#endif
 
 #include "menuitems_listviewer.h"
 
@@ -57,6 +60,9 @@ class FileViewerMenuItem : public ListViewerMenuItem {
                 if (debug) { 
                     Serial.printf("readFile(): read a line '%s'\n", line.c_str()); 
                     Serial.printf("free ram is now %u\n", freeRam());
+                    #ifdef ARDUINO_TEENSY41
+                        Serial.printf("free ext ram is now %u\n", freeExtRam());
+                    #endif
                     Serial_flush(); 
                 }
             }

@@ -308,7 +308,22 @@ int Menu::display() {
         this->updateDisplay();
 
     if (profile_enable) {
-        snprintf(profile_string, MENU_C_MAX, "display took %-3ius - %-2ifps", micros() - display_started, frames_in_last_second);
+        /*char * ptr = (char*)extmem_malloc(1024 << 10);
+        if (!ptr)
+          Serial.println("failed to allocate from extmem!");
+        else
+          sprintf(ptr, "hello");*/
+          
+        snprintf(
+            profile_string, 
+            MENU_C_MAX, 
+            //"%-3ius %-2ifps Free RAM2=%uK EXT=%uK", 
+            "%-2ifps | RAM2 %uK EXT %uK free", 
+            //micros() - display_started, 
+            frames_in_last_second,
+            freeRam()/1024,
+            freeExtRam()/1024
+        );
         frames_drawn++;
     }
 
