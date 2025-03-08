@@ -10,7 +10,9 @@
 #include "LinkedList.h"
 #include "menuitems.h"
 
-#include "SD.h"
+#ifdef ENABLE_SD
+    #include "SD.h"
+#endif
 
 int freeRam();
 #ifdef ARDUINO_TEENSY41
@@ -36,6 +38,7 @@ class FileViewerMenuItem : public ListViewerMenuItem {
         this->filename = filename;
     }
     void readFile() {
+        #ifdef ENABLE_SD
         ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
             if (debug) {
                 Serial.println("readFile()..."); Serial_flush();
@@ -71,6 +74,7 @@ class FileViewerMenuItem : public ListViewerMenuItem {
             if (debug) Serial.println("readFile(): did f.close();"); Serial_flush();
             Serial.println("finished readFile()!");
         }
+        #endif
     }
 
     int render_list_header(Coord pos) {

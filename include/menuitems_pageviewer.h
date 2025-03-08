@@ -48,6 +48,7 @@ class PageFileViewerMenuItem : public MenuItem {
     }
 
     bool readFile(const char *filename) {
+        #ifdef ENABLE_SD
         // todo: don't risk fragmentation by allocating memory for the file contents every time
         //       we load a file.  Instead, allocate a fixed-size buffer and re-use it.
         if (file_contents!=nullptr)
@@ -71,6 +72,8 @@ class PageFileViewerMenuItem : public MenuItem {
 
         setFileContents(file_contents, file_size);
         return true;
+        #endif
+        return false;
     }
 
     virtual void on_add() override {
