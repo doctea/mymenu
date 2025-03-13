@@ -1,5 +1,4 @@
-#ifndef MENUITEMS_LAMBDA_SELECTOR__INCLUDED
-#define MENUITEMS_LAMBDA_SELECTOR__INCLUDED
+#pragma once
 
 #include "functional-vlpp.h"
 #include "menuitems_lambda.h"
@@ -164,5 +163,3 @@ class LambdaSelectorControl : public LambdaNumberControl<DataType> {
     }
 
 };
-
-#endif
