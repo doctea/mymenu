@@ -135,7 +135,7 @@ class PageFileViewerMenuItem : public MenuItem {
         }
         if (cursor >= file_contents)
             start_at = cursor + 1;  // +1 to skip the newline character
-        Serial.printf("knob_left: start_at is now %p\n", start_at);
+        //Serial.printf("knob_left: start_at is now %p\n", start_at);
         return true;
     }
 
