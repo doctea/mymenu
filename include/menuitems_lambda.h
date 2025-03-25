@@ -15,7 +15,8 @@ class LambdaNumberControl : public NumberControl<DataType> {
     setter_func_def setter_func;
     getter_func_def getter_func;
 
-    LambdaNumberControl(const char* label, 
+    LambdaNumberControl(
+        const char* label, 
         setter_func_def setter_func,
         getter_func_def getter_func,
         void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr,
@@ -32,7 +33,8 @@ class LambdaNumberControl : public NumberControl<DataType> {
 
         this->set_internal_value( this->getter_func() );
     }
-    LambdaNumberControl(const char* label, 
+    LambdaNumberControl(
+        const char* label, 
         setter_func_def setter_func,
         getter_func_def getter_func,
         void (*on_change_handler)(DataType last_value, DataType new_value),
