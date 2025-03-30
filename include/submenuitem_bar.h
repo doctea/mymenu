@@ -58,7 +58,23 @@ class SubMenuItemColumns : public SubMenuItemBar {
 
 class DualMenuItem : public SubMenuItemColumns {
     public:
-        DualMenuItem(const char *label, bool show_sub_headers = true, bool show_header = true) : SubMenuItemColumns(label, 2, show_sub_headers, show_header) {
+        int item_1_width = 0;
+        DualMenuItem(const char *label, bool show_sub_headers = true, bool show_header = true, int item_1_width = 0) : SubMenuItemColumns(label, 2, show_sub_headers, show_header) {
+            this->item_1_width = item_1_width;
+        }
+
+        int get_max_pixel_width(int item_number) override {
+            if (item_1_width==0) {
+                if (this->cached_pixel_width_per_item==0)
+                    this->cached_pixel_width_per_item = this->tft->width() / this->number_columns();
+                return this->cached_pixel_width_per_item - (item_number==number_columns()-1?3:0);
+            } else {
+                if (item_number==0) {
+                    return item_1_width;
+                } else {
+                    return this->tft->width() - item_1_width;
+                }
+            }
         }
 };
 

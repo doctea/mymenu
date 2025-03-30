@@ -158,7 +158,8 @@ int SubMenuItemColumns::display(Coord pos, bool selected, bool opened) {
             pos.y = tft->getCursorY();
             last_y = pos.y;
         } else {
-            start_x = (item_index%columns) * (menu->tft->width() / columns);
+            //start_x = (item_index%columns) * (menu->tft->width() / columns);
+            start_x += this->get_max_pixel_width(item_index-1);
             pos.y = last_y;
         }
         const uint_fast16_t width = this->get_max_pixel_width(item_index);
