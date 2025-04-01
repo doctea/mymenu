@@ -33,12 +33,12 @@ class PageFileViewerMenuItem : public MenuItem {
 
         // find the start of the last line we can display
         page_first_line = file_contents;
-        char *last_found_break = nullptr;
+        //char *last_found_break = nullptr;
         unsigned int line_count = 0;
         char *search = page_first_line;
         while (search < file_contents + file_size && line_count < height_lines) {
             if (*search == '\n') {
-                last_found_break = search;
+                //last_found_break = search;
                 line_count++;
             }
             search++;
