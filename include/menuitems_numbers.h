@@ -248,7 +248,7 @@ class NumberControl : public NumberControlBase {
                 tft->setTextSize(1);
             }*/
             //tft->setTextSize(0);
-            colours(false); //, this->default_fg, this->)
+            colours(selected || opened); //, this->default_fg, this->)
             //Serial.printf("renderValue in NumberControl\tfor %s,\tgot default_fg colour %04x\n", this->label, this->default_fg);
 
             //byte textSize = (strlen(tmp) > max_character_width/2) ? 1 : 2;
