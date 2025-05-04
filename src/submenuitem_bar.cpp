@@ -1,3 +1,5 @@
+#ifdef ENABLE_SCREEN
+
 #include "submenuitem_bar.h"
 
 /*int SubMenuItemBar::get_max_pixel_width(int item_number) {
@@ -183,3 +185,5 @@ int SubMenuItemColumns::display(Coord pos, bool selected, bool opened) {
     //Debug_printf(F("End of display, y=%i\n--------\n"), finish_y);
     return finish_y;//tft->getCursorY();
 }
+
+#endif

@@ -1,3 +1,4 @@
+#ifdef ENABLE_SCREEN
 
 #include "menu_messages.h"
 
@@ -22,3 +23,5 @@ void setup_messages_menu() {
     menu->add(new ActionConfirmItem("Clear", messages_log_clear));
     menu->add(new ListViewerMenuItem("Message history", messages_log));
 }
+
+#endif

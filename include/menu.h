@@ -636,6 +636,12 @@ class Menu {
         
         // call when ticks have updated, to notify all menuitem controls in case they need to do something
         void update_ticks(unsigned long ticks) {
+            // avoid updating twice for the same tick
+            static uint32_t last_updated_ticks = 0;
+            if (ticks==last_updated_ticks)
+                return;
+            last_updated_ticks = ticks;
+
             if (pinned_panel!=nullptr)
                 pinned_panel->update_ticks(ticks);
 

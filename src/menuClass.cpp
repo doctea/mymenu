@@ -1,3 +1,5 @@
+#ifdef ENABLE_SCREEN
+
 #include "menu.h"
 #include "menuitems.h"
 
@@ -357,3 +359,4 @@ void menu_set_last_message(const char *msg, int colour) {
     menu->set_message_colour(colour);
 }
 
+#endif

@@ -1,3 +1,5 @@
+#ifdef ENABLE_SCREEN
+
 #include "menuitems.h"
 
 const char *fired_message = "Fired %s";
@@ -192,3 +194,5 @@ int SeparatorMenuItem::display(Coord pos, bool selected, bool opened) {
 
     return pos.y;
 }
+
+#endif
