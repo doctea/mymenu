@@ -338,7 +338,7 @@ class LambdaActionConfirmItem : public LambdaActionItem {
 
 };
 
-
+// you might also call this LambdaMenuItem
 class CallbackMenuItem : public MenuItem {
     using label_callback_def = vl::Func<const char*(void)>;
     public:
