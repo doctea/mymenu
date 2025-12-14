@@ -341,25 +341,38 @@ class LambdaActionConfirmItem : public LambdaActionItem {
 // you might also call this LambdaMenuItem
 class CallbackMenuItem : public MenuItem {
     using label_callback_def = vl::Func<const char*(void)>;
+    using colour_callback_def = vl::Func<uint16_t(void)>;
+
     public:
-    label_callback_def callback_func;
-    CallbackMenuItem(const char *label, label_callback_def callback_func, bool show_header = true) : MenuItem(label, false, show_header), callback_func(callback_func) {
+    label_callback_def label_callback_func;
+    colour_callback_def colour_callback_func = [=]() -> uint16_t { return C_WHITE; };
+
+    CallbackMenuItem(const char *label, label_callback_def label_callback_func, bool show_header = true) : 
+        MenuItem(label, false, show_header), 
+        label_callback_func(label_callback_func) {
+        this->selectable = false;
+    }
+
+    CallbackMenuItem(const char *label, label_callback_def label_callback_func, colour_callback_def colour_callback_func, bool show_header = true) : 
+        MenuItem(label, false, show_header), 
+        label_callback_func(label_callback_func), colour_callback_func(colour_callback_func) {
         this->selectable = false;
     }
 
     virtual int display(Coord pos, bool selected, bool opened) override {
-        pos.y = header((const char*)this->callback_func(), pos, selected, opened);
+        pos.y = header((const char*)this->label_callback_func(), pos, selected, opened);
         tft->setCursor(pos.x,pos.y);
 
         return tft->getCursorY();
     }
 
     virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
-        const char *txt = (const char*) this->callback_func();
+        const char *txt = (const char*) this->label_callback_func();
         //bool use_small = strlen(txt) <= (max_character_width/2);
         //int textSize = use_small ? 2 : 1;
         int textSize = tft->get_textsize_for_width(txt, max_character_width*tft->characterWidth());
         //if (this->debug) Serial.printf(F("%s:\trenderValue '%s' (len %i) with max_character_width %i got textSize %i\n"), this->label, txt, strlen(txt), max_character_width/2, textSize);
+        this->colours(selected, this->colour_callback_func ? this->colour_callback_func() : this->default_fg, BLACK);
         tft->setTextSize(textSize);
         tft->println(txt);
         return tft->getCursorY();
