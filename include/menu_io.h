@@ -10,7 +10,7 @@ class ResettableButton : public Bounce2::Button {
     /**
      * @brief Resets the 'last state change' time.
      */
-    void resetStateChange() {
+    virtual void resetStateChange() {
       //this->stateChangeLastTime = 0; //millis();
       this->durationOfPreviousState = 0;
       this->stateChangeLastTime = millis();
@@ -73,7 +73,7 @@ class InterruptButton : public ResettableButton {
 
     protected:
         virtual bool readCurrentState() override {
-            return this->current_state;
+            return getPressedState() ? !this->current_state : this->current_state;
         }
 
 };
