@@ -5,6 +5,10 @@
 LinkedList<String> *messages_log = new LinkedList<String>();
 
 void messages_log_add(String msg) {
+  if (Serial) {
+    Serial.print("messages_log_add: ");
+    Serial.println(msg);
+  }
   messages_log->add(msg);
   if (messages_log->size() >= MAX_MESSAGES_LOG) {
     messages_log->unlink(0);
