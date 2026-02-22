@@ -17,6 +17,7 @@
 
 const int message_max = 20;
 
+#define tft_print_column(format, ...) { int __x = tft->getCursorX(); tft->printf(format, __VA_ARGS__); tft->setCursor(__x, tft->getCursorY()); }
 class DisplayTranslator {
     public:
 

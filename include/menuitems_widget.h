@@ -53,6 +53,36 @@ class tImageIcon : public IconBase {
         }
 };
 
+class TextIcon : public IconBase {
+    public:
+        const char *text;
+
+        TextIcon(const char *text) : text(text) {};
+
+        virtual int draw(DisplayTranslator *tft, int x, int y, int width, int height, uint16_t fg, uint16_t bg, bool inverted = false) override {
+            // for now, just draw a filled rectangle as a placeholder for the icon
+            if (inverted) {
+                uint16_t temp = fg;
+                fg = bg;
+                bg = temp;
+            }
+
+            tft->fillRect(x+1, y+1, width-2, height-2, fg);
+            tft->drawRect(x, y, width, height, bg);
+
+            int text_size = tft->get_textsize_for_width(text, width*tft->characterWidth());
+
+            // draw the text in the middle of the square
+            tft->setCursor(x + (width - text_size * tft->characterWidth()) / 2, y + (height - tft->characterWidth()) / 2);
+            tft->setTextSize(1);
+            tft->print(text);
+
+            tft->setCursor(x, y + height + 4); // move the cursor to below the square for the next item to be drawn
+
+            return tft->getCursorY();
+        }
+};
+
 // class LameIcon : public IconBase {
 //     public:
 //         // for now, just a placeholder for a bitmap or something, but eventually this could be extended to include different states (eg for toggles)
