@@ -59,7 +59,7 @@
 #if defined(TFT_ST7789_T3) || defined(TFT_ST7789)
     #include <Adafruit_GFX.h>
     //#include "ST7789_t3.h"
-    #if defined(TFT_ST7789)
+    #if defined(TFT_ST7789) || defined(TFT_ST7789_T3)
         #include <Adafruit_ST77xx.h>
     #endif
 
