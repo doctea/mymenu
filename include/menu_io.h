@@ -73,7 +73,7 @@ class InterruptButton : public ResettableButton {
 
     protected:
         virtual bool readCurrentState() override {
-            return getPressedState() ? !this->current_state : this->current_state;
+            return this->current_state == getPressedState();
         }
 
 };
