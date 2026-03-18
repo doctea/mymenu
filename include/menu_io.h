@@ -56,13 +56,13 @@ class InterruptButton : public ResettableButton {
         my_interrupt = InterruptButton::num_interrupts;
         switch (my_interrupt) {
             case 0:
-                attachInterrupt(digitalPinToInterrupt(pin), InterruptButton::isr_0_change,  CHANGE);
+                attachInterrupt(digitalPinToInterrupt(pin), InterruptButton::isr_0_change, CHANGE);
                 break;
             case 1:
-                attachInterrupt(digitalPinToInterrupt(pin), InterruptButton::isr_1_change,  CHANGE);
+                attachInterrupt(digitalPinToInterrupt(pin), InterruptButton::isr_1_change, CHANGE);
                 break;
             case 2:
-                attachInterrupt(digitalPinToInterrupt(pin), InterruptButton::isr_2_change,  CHANGE);
+                attachInterrupt(digitalPinToInterrupt(pin), InterruptButton::isr_2_change, CHANGE);
                 break;
         }
 
@@ -71,10 +71,10 @@ class InterruptButton : public ResettableButton {
         num_interrupts++;
     }
 
-    protected:
-        virtual bool readCurrentState() override {
-            return this->current_state == getPressedState();
-        }
+    // protected:
+    //     virtual bool readCurrentState() override {
+    //         return this->current_state == getPressedState();
+    //     }
 
 };
 
