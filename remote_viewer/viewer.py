@@ -82,16 +82,23 @@ def main(port=PORT):
 
             w = struct.unpack('<H', read_exact(ser, 2))[0]
             h = struct.unpack('<H', read_exact(ser, 2))[0]
+            # read encoding flag (1 byte) then payload size (4 bytes)
+            encoding_b = read_exact(ser, 1)
+            if not encoding_b:
+                print("Failed to read encoding byte")
+                continue
+            encoding = encoding_b[0]
             size = struct.unpack('<I', read_exact(ser, 4))[0]
 
             raw = read_exact(ser, size)
 
-            # If payload length matches uncompressed 16-bit image, treat as raw
-            # Otherwise assume RLE stream of [count:2][value:2] pairs and expand.
             expected_raw_bytes = w * h * 2
-            if size == expected_raw_bytes:
+            # encoding: 0 = raw, 1 = RLE
+            if encoding == 0 or size == expected_raw_bytes:
+                # treat payload as raw 16-bit words
                 data16 = np.frombuffer(raw, dtype=np.uint16).byteswap()
-            else:
+            elif encoding == 1:
+                # expand RLE [count:uint16][value:uint16] pairs
                 total = w * h
                 pixels = np.empty(total, dtype=np.uint16)
                 offset = 0
@@ -106,8 +113,34 @@ def main(port=PORT):
                         pixels[filled:filled+cnt] = val
                         filled += cnt
                 if filled != total:
-                    print(f"RLE decode error: expected {total} pixels, got {filled}")
-                data16 = pixels.byteswap()
+                    print(f"RLE decode error: expected {total} pixels, got {filled}; falling back to raw if sizes match")
+                    if size == expected_raw_bytes:
+                        data16 = np.frombuffer(raw, dtype=np.uint16).byteswap()
+                    else:
+                        data16 = pixels.byteswap()
+                else:
+                    data16 = pixels.byteswap()
+            else:
+                # unknown encoding -> try raw fallback
+                print(f"Unknown encoding {encoding}, trying raw")
+                if size == expected_raw_bytes:
+                    data16 = np.frombuffer(raw, dtype=np.uint16).byteswap()
+                else:
+                    # attempt to interpret as RLE anyway
+                    total = w * h
+                    pixels = np.empty(total, dtype=np.uint16)
+                    offset = 0
+                    filled = 0
+                    while filled < total and offset + 4 <= len(raw):
+                        cnt = struct.unpack('<H', raw[offset:offset+2])[0]
+                        val = struct.unpack('<H', raw[offset+2:offset+4])[0]
+                        offset += 4
+                        if filled + cnt > total:
+                            cnt = total - filled
+                        if cnt > 0:
+                            pixels[filled:filled+cnt] = val
+                            filled += cnt
+                    data16 = pixels.byteswap()
 
             # read end marker
             end = read_exact(ser, len("==END-FRAME=="))

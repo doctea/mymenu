@@ -365,10 +365,11 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
 
     // RLE-encoded framebuffer send (count+value pairs) for faster transmission
     void sendRawFrame() {
-        // Send RLE-encoded 16-bit framebuffer to host. Protocol:
-        // [==START-FRAME==][w:2][h:2][size:4][payload:size bytes][==END-FRAME==]
-        // Payload format: repeated pairs of [count:2][value:2] where 'count' is
-        // number of repeated pixels (uint16) and 'value' is the 16-bit pixel value.
+        // Send (optionally RLE-encoded) 16-bit framebuffer to host. Protocol:
+        // [==START-FRAME==][w:2][h:2][encoding:1][size:4][payload:size bytes][==END-FRAME==]
+        // encoding: 0 = raw (uncompressed 16-bit little-endian words),
+        //           1 = RLE (pairs of [count:uint16][value:uint16])
+        // Payload for RLE: repeated [count:2][value:2] pairs.
         Serial.print("==START-FRAME==");
         uint16_t w = width();
         uint16_t h = height();
@@ -377,7 +378,7 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         // pointer to pixel data (16-bit words)
         uint16_t *pixels = (uint16_t*)actual->_img;
 
-        // First pass: compute encoded payload size without allocating
+        // First pass: compute encoded payload size for RLE without allocating
         uint32_t encoded_bytes = 0;
         uint32_t i = 0;
         while (i < total) {
@@ -390,23 +391,44 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
             i += run;
         }
 
+        uint8_t encoding = 1; // assume RLE
         uint32_t size = encoded_bytes;
+        uint32_t raw_bytes = total * 2;
+        // If RLE doesn't help, send raw instead
+        if (encoded_bytes >= raw_bytes) {
+            encoding = 0;
+            size = raw_bytes;
+        }
+
         Serial.write((uint8_t*)&w, 2);
         Serial.write((uint8_t*)&h, 2);
+        Serial.write((uint8_t*)&encoding, 1);
         Serial.write((uint8_t*)&size, 4);
 
-        // Second pass: stream encoded runs
-        i = 0;
-        while (i < total) {
-            uint16_t val = pixels[i];
-            uint32_t run = 1;
-            while (i + run < total && pixels[i + run] == val && run < 0xFFFF) {
-                run++;
+        if (encoding == 0) {
+            // send raw bytes (little-endian 16-bit words)
+            uint8_t *ptr = (uint8_t*)actual->_img;
+            uint32_t remaining = size;
+            while (remaining > 0) {
+                uint32_t chunk = remaining;
+                Serial.write(ptr, chunk);
+                ptr += chunk;
+                remaining -= chunk;
             }
-            uint16_t run16 = (uint16_t)run;
-            Serial.write((uint8_t*)&run16, 2);
-            Serial.write((uint8_t*)&val, 2);
-            i += run;
+        } else {
+            // Second pass: stream encoded runs
+            i = 0;
+            while (i < total) {
+                uint16_t val = pixels[i];
+                uint32_t run = 1;
+                while (i + run < total && pixels[i + run] == val && run < 0xFFFF) {
+                    run++;
+                }
+                uint16_t run16 = (uint16_t)run;
+                Serial.write((uint8_t*)&run16, 2);
+                Serial.write((uint8_t*)&val, 2);
+                i += run;
+            }
         }
 
         // end marker
