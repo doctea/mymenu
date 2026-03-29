@@ -90,6 +90,7 @@ class Menu {
         bool recalculate_bottoms = false;
 
         bool send_frame = false;    // flag to send a frame over serial at the end of the current display() call
+        bool send_frame_live = false;
     
         Menu(DisplayTranslator *dt, bool button_mode_rise_on_click = false) {
             this->tft = dt;

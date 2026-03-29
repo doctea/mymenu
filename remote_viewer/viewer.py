@@ -62,6 +62,9 @@ def main(port=PORT):
             elif key == ord('z'):
                 double_size = not double_size
                 print("Double-size display:", "ON" if double_size else "OFF")
+            elif key == ord('L'):
+                print("Toggling live mode")
+                ser.write(b'L')
             elif key == ord('q'):
                 break
 
@@ -83,8 +86,28 @@ def main(port=PORT):
 
             raw = read_exact(ser, size)
 
-            # interpret raw bytes as 16-bit words and swap byte order (device sends swapped words)
-            data16 = np.frombuffer(raw, dtype=np.uint16).byteswap()
+            # If payload length matches uncompressed 16-bit image, treat as raw
+            # Otherwise assume RLE stream of [count:2][value:2] pairs and expand.
+            expected_raw_bytes = w * h * 2
+            if size == expected_raw_bytes:
+                data16 = np.frombuffer(raw, dtype=np.uint16).byteswap()
+            else:
+                total = w * h
+                pixels = np.empty(total, dtype=np.uint16)
+                offset = 0
+                filled = 0
+                while filled < total and offset + 4 <= len(raw):
+                    cnt = struct.unpack('<H', raw[offset:offset+2])[0]
+                    val = struct.unpack('<H', raw[offset+2:offset+4])[0]
+                    offset += 4
+                    if filled + cnt > total:
+                        cnt = total - filled
+                    if cnt > 0:
+                        pixels[filled:filled+cnt] = val
+                        filled += cnt
+                if filled != total:
+                    print(f"RLE decode error: expected {total} pixels, got {filled}")
+                data16 = pixels.byteswap()
 
             # read end marker
             end = read_exact(ser, len("==END-FRAME=="))

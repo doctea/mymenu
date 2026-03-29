@@ -343,7 +343,9 @@ int Menu::display() {
 
     if (send_frame) {
         this->tft->push_framebuffer_serial();
-        send_frame = false;
+        if(!send_frame_live) {
+            send_frame = false;
+        }
     }
 
     return y;

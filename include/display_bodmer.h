@@ -363,24 +363,50 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         tft->drawRGBBitmap(x, y, c->getBuffer(), c->width(), c->height());
     }*/
 
-    // basically working, but slow and wrong colours
+    // RLE-encoded framebuffer send (count+value pairs) for faster transmission
     void sendRawFrame() {
+        // Send RLE-encoded 16-bit framebuffer to host. Protocol:
+        // [==START-FRAME==][w:2][h:2][size:4][payload:size bytes][==END-FRAME==]
+        // Payload format: repeated pairs of [count:2][value:2] where 'count' is
+        // number of repeated pixels (uint16) and 'value' is the 16-bit pixel value.
         Serial.print("==START-FRAME==");
         uint16_t w = width();
         uint16_t h = height();
-        uint32_t size = width() * height() * sizeof(uint16_t);
+        uint32_t total = (uint32_t)w * (uint32_t)h;
+
+        // pointer to pixel data (16-bit words)
+        uint16_t *pixels = (uint16_t*)actual->_img;
+
+        // First pass: compute encoded payload size without allocating
+        uint32_t encoded_bytes = 0;
+        uint32_t i = 0;
+        while (i < total) {
+            uint16_t val = pixels[i];
+            uint32_t run = 1;
+            while (i + run < total && pixels[i + run] == val && run < 0xFFFF) {
+                run++;
+            }
+            encoded_bytes += 2 + 2; // count (2 bytes) + value (2 bytes)
+            i += run;
+        }
+
+        uint32_t size = encoded_bytes;
         Serial.write((uint8_t*)&w, 2);
         Serial.write((uint8_t*)&h, 2);
         Serial.write((uint8_t*)&size, 4);
 
-        // send payload in chunks, respecting write availability
-        uint8_t *ptr = (uint8_t*)actual->_img;
-        uint32_t remaining = size;
-        while (remaining > 0) {
-            uint32_t chunk = remaining;
-            Serial.write(ptr, chunk);
-            ptr += chunk;
-            remaining -= chunk;
+        // Second pass: stream encoded runs
+        i = 0;
+        while (i < total) {
+            uint16_t val = pixels[i];
+            uint32_t run = 1;
+            while (i + run < total && pixels[i + run] == val && run < 0xFFFF) {
+                run++;
+            }
+            uint16_t run16 = (uint16_t)run;
+            Serial.write((uint8_t*)&run16, 2);
+            Serial.write((uint8_t*)&val, 2);
+            i += run;
         }
 
         // end marker
@@ -389,10 +415,8 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
     }
 
     virtual void push_framebuffer_serial() override {
-        // get the framebuffer data from the actual_espi and push it out over serial using QOI
-
+        // get the framebuffer data from the actual_espi and push it out over serial
         if (Serial) this->sendRawFrame();
-
     }
 };
 
