@@ -427,6 +427,7 @@ class Menu {
         uint_least8_t quick_page_history_total = 0;
         int_least8_t quick_page_index = 0;
         int_least8_t quick_pages[NUM_QUICK_PAGE_HISTORY] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+        int_least8_t all_page_index = 0;
         // add the page index to the 'visited history'
         void remember_opened_page(int8_t page_index = -1) {
             if (page_index==-1)
@@ -452,10 +453,16 @@ class Menu {
             if (quick_page_history_total < NUM_QUICK_PAGE_HISTORY) 
                 quick_page_history_total++;
         }
+        page_t *get_page(unsigned int page_index) {
+            if (page_index < 0 || page_index >= pages->size())
+                return nullptr;
+            return pages->get(page_index);
+        }
+
         page_t *get_quick_page(unsigned int page_index) {
             if (quick_pages[page_index]==-1)
                 return nullptr;
-            return pages->get(quick_pages[page_index]);
+            return get_page(quick_pages[page_index]);
         }
         void setup_quickjump();
         void select_page_quickjump() {
@@ -471,6 +478,9 @@ class Menu {
                 if (strcmp(pages->get(i)->title, title)==0)
                     return i;
             return -1;
+        }
+        int get_number_pages() {
+            return pages->size();
         }
 
         page_t *get_selected_page() {
