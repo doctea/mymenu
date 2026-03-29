@@ -1,0 +1,7 @@
+numpy==2.4.3
+opencv-python==4.13.0.92
+pillow==12.1.1
+pyqoi-lib==0.1.0
+pyserial==3.5
+pywin32==311
+qoi==0.7.2

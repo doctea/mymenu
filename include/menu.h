@@ -80,14 +80,17 @@ class Menu {
 
     bool button_mode_rise_on_click = true;
 
+    
     public:
         bool debug = false;
         bool debug_times = false;
-
+        
         bool auto_update = true;    // whether to send update to tft at end of every display() call, or to allow host app to decide
-
+    
         bool recalculate_bottoms = false;
 
+        bool send_frame = false;    // flag to send a frame over serial at the end of the current display() call
+    
         Menu(DisplayTranslator *dt, bool button_mode_rise_on_click = false) {
             this->tft = dt;
             this->pages = new LinkedList<page_t*>();

@@ -154,5 +154,7 @@ class DisplayTranslator {
     virtual void fillRoundRect(int x, int y, int w, int h, int radius, int color) = 0; //{ Serial.println(F("TODO: unimplemented fillRoundRect())")); };
     virtual void fillCircle(int x, int y, int radius, uint16_t colour) = 0;
 
+    virtual void push_framebuffer_serial() {};
+
 };
 

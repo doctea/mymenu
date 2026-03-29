@@ -1,9 +1,10 @@
-#ifndef DISPLAY_BODMER__INCLUDED
-#define DISPLAY_BODMER__INCLUDED
+#pragma once
 
 //#define ENABLE_ST77XX_FRAMEBUFFER
 
 #ifdef TFT_BODMER
+
+#include "tusb.h"
 
 #include "display_abstract.h"
 
@@ -21,6 +22,17 @@
 */
 #define USE_SPI_DMA
 #include <TFT_eSPI.h>
+
+// wrapper so that we can get the framebuffer pointer out of the TFT_eSprite, which is needed for pushing out the framebuffer data over serial
+class TFT_eSprite_Wrapper : public TFT_eSprite {
+    public:
+    TFT_eSprite_Wrapper(TFT_eSPI *tft) : TFT_eSprite(tft) {}
+    
+    int16_t *get_img() {
+        return (int16_t*)TFT_eSprite::_img;
+    }
+};
+//using TFT_eSprite = TFT_eSprite_Wrapper;
 
 #include "colours.h"
 
@@ -60,7 +72,7 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
             TFT_eSPI *real_actual_espi = nullptr;
             //TFT_eSprite real_actual_sprite = TFT_eSprite(&real_actual_espi);
             //TFT_eSprite actual = TFT_eSprite(&real_actual_espi);
-            TFT_eSprite *actual = nullptr;
+            TFT_eSprite_Wrapper *actual = nullptr;
             uint16_t* sprPtr = nullptr;
             //TFT_eSprite *tft = &actual;
             TFT_eSprite *tft = nullptr;//&actual;
@@ -86,7 +98,7 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
     virtual void setup() {
         Debug_println(F("DisplayTranslator_Bodmer setup()..")); Serial_flush();
         real_actual_espi = new TFT_eSPI();
-        actual = new TFT_eSprite(real_actual_espi);
+        actual = new TFT_eSprite_Wrapper(real_actual_espi);
         tft = actual;
         tft->init(); //SCREEN_WIDTH, SCREEN_HEIGHT);           // Init ST7789 240x135
 
@@ -350,7 +362,38 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         //tft->drawBitmap(c, x, y)
         tft->drawRGBBitmap(x, y, c->getBuffer(), c->width(), c->height());
     }*/
+
+    // basically working, but slow and wrong colours
+    void sendRawFrame() {
+        Serial.print("==START-FRAME==");
+        uint16_t w = width();
+        uint16_t h = height();
+        uint32_t size = width() * height() * sizeof(uint16_t);
+        Serial.write((uint8_t*)&w, 2);
+        Serial.write((uint8_t*)&h, 2);
+        Serial.write((uint8_t*)&size, 4);
+
+        // send payload in chunks, respecting write availability
+        uint8_t *ptr = (uint8_t*)actual->_img;
+        uint32_t remaining = size;
+        while (remaining > 0) {
+            uint32_t chunk = remaining;
+            Serial.write(ptr, chunk);
+            ptr += chunk;
+            remaining -= chunk;
+        }
+
+        // end marker
+        Serial.print("==END-FRAME==");
+        //Serial.flush();
+    }
+
+    virtual void push_framebuffer_serial() override {
+        // get the framebuffer data from the actual_espi and push it out over serial using QOI
+
+        if (Serial) this->sendRawFrame();
+
+    }
 };
 
-#endif
 #endif
