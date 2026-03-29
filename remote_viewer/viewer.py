@@ -70,6 +70,8 @@ def main(port=PORT):
                 continue
             if marker != b'==START-FRAME==':
                 # ignore unexpected bytes
+                # todo: if we receive any other information outside of the expected frame format, we should print it out to console for debugging purposes
+                print("Unexpected data received, skipping:", marker)
                 continue
 
             w = struct.unpack('<H', read_exact(ser, 2))[0]
@@ -77,6 +79,8 @@ def main(port=PORT):
             size = struct.unpack('<I', read_exact(ser, 4))[0]
 
             raw = read_exact(ser, size)
+
+            raw = np.frombuffer(raw, dtype=np.uint16).byteswap().astype(np.uint16)
 
             # read end marker
             end = read_exact(ser, len("==END-FRAME=="))
@@ -86,7 +90,7 @@ def main(port=PORT):
 
             # Convert RGB565 raw -> RGB888 using Pillow
             # Pillow expects little-endian 16-bit BGR565 as "BGR;16"
-            img = Image.frombytes("RGB", (w, h), raw, "raw", "RGB;16")
+            img = Image.frombytes("RGB", (w, h), raw, "raw", "BGR;16")
             arr = np.array(img)  # RGB
 
             frame = cv2.cvtColor(arr, cv2.COLOR_RGB2BGR)
