@@ -159,7 +159,8 @@ class AllPagesIndexMenuItem : public QuickPagesMenuItem {
         }
 
         virtual int display(Coord pos, bool selected, bool opened) override {
-            pos.y = header(label, pos, selected, opened);
+            //pos.y = header(label, pos, selected, opened);
+            // todo: make the header show the page group
             tft->setTextSize(2);
 
             uint_fast8_t size = menu->get_number_pages();

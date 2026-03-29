@@ -48,6 +48,10 @@
 #endif
 
 #define MAX_PAGE_TITLE 10
+
+// todo: add some kind of page grouping system to allow for like 'Output' pages and 'Pattern' pages and 'CV' pages etc, and then show the group name in the header of each page; maybe also add a 'grouped page index' menu item that shows all pages grouped by their group, to make it easier to find things when there are lots of pages
+// eg a page_group_t struct 
+
 struct page_t {
     const char *title = "Default"; //[MAX_PAGE_TITLE];
     uint16_t colour = C_WHITE;

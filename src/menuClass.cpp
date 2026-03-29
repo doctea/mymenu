@@ -355,17 +355,13 @@ int Menu::display() {
 #include "menuitems_quickpage.h"
 
 void Menu::setup_quickjump() {
-    all_page_index = add_page("All Page Index");
+    all_page_index = add_page("All Pages Index");
     menu->add(new AllPagesIndexMenuItem("All Pages Index"));
-    menu->remember_opened_page(0);  // add the Main page to the all pages index by default
+    menu->remember_opened_page(0);  // add the All Pages Index page to the all pages index by default
 
     quick_page_index = add_page("QuickJump");
     menu->add(new QuickPagesMenuItem("QuickJump history"));
     menu->remember_opened_page(0);  // add the Main page to the quickjump list by default
-
-    all_page_index = add_page("All Page Index");
-    menu->add(new AllPagesIndexMenuItem("All Pages Index"));
-    menu->remember_opened_page(0);  // add the Main page to the all pages index by default
 }
 
 
