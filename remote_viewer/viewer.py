@@ -40,6 +40,7 @@ def main(port=PORT):
     ser.write(b'L')
 
     cv2.namedWindow("RP2350 Live", cv2.WINDOW_NORMAL)
+    double_size = False
     try:
         while True:
             #print("loop")
@@ -57,8 +58,10 @@ def main(port=PORT):
             elif key == ord('c'):
                 # send frame to clipboard
                 print("Sending current frame to clipboard")
-
                 send_to_clipboard(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))
+            elif key == ord('z'):
+                double_size = not double_size
+                print("Double-size display:", "ON" if double_size else "OFF")
             elif key == ord('q'):
                 break
 
@@ -80,7 +83,8 @@ def main(port=PORT):
 
             raw = read_exact(ser, size)
 
-            raw = np.frombuffer(raw, dtype=np.uint16).byteswap().astype(np.uint16)
+            # interpret raw bytes as 16-bit words and swap byte order (device sends swapped words)
+            data16 = np.frombuffer(raw, dtype=np.uint16).byteswap()
 
             # read end marker
             end = read_exact(ser, len("==END-FRAME=="))
@@ -90,11 +94,22 @@ def main(port=PORT):
 
             # Convert RGB565 raw -> RGB888 using Pillow
             # Pillow expects little-endian 16-bit BGR565 as "BGR;16"
-            img = Image.frombytes("RGB", (w, h), raw, "raw", "BGR;16")
+            # pass bytes to Pillow (from the swapped 16-bit view)
+            img = Image.frombytes("RGB", (w, h), data16.tobytes(), "raw", "BGR;16")
             arr = np.array(img)  # RGB
 
             frame = cv2.cvtColor(arr, cv2.COLOR_RGB2BGR)
-            cv2.imshow("RP2350 Live", frame)
+            # optionally double the displayed size (nearest-neighbor)
+            if double_size:
+                display_frame = cv2.resize(frame, (frame.shape[1]*2, frame.shape[0]*2), interpolation=cv2.INTER_NEAREST)
+            else:
+                display_frame = frame
+            # ensure the named window matches the image size (some backends don't auto-resize)
+            try:
+                cv2.resizeWindow("RP2350 Live", display_frame.shape[1], display_frame.shape[0])
+            except Exception:
+                pass
+            cv2.imshow("RP2350 Live", display_frame)
 
 
     except KeyboardInterrupt:
@@ -112,6 +127,6 @@ if __name__ == "__main__":
     port = sys.argv[1] if len(sys.argv) > 1 else PORT
 
     print("Starting viewer on port", port)
-    print("Controls are 's' to save screenshot, 'd'=left/'f'=right/'a'=back/'b'=select/'e'=send frame to send commands, 'q' to quit")
+    print("Controls are 's' to save screenshot, 'd'=left/'f'=right/'a'=back/'b'=select/'e'=update frame/'z'=toggle double-size display, 'q' to quit")
 
     main(port)

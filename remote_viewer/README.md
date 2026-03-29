@@ -24,6 +24,7 @@ python viewer.py COM16
 - 'b' to send a 'encoder click'
 - 'e' to request a new frame
 - 's' to save current frame
+- 'z' to toggle double-size display window
 - 'q' to quit
 
 
