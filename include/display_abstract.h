@@ -36,7 +36,7 @@ class DisplayTranslator {
     // recreate string formats based on current textsize
     virtual void setup_formats() {
         this->row_character_width = this->get_row_character_width();
-        snprintf(message_format,         message_max, "[%%-%i.%is]", (uint8_t)row_character_width-2, (uint8_t)row_character_width-2);
+        snprintf(message_format,         message_max, "[%%-%i.%is]", (uint8_t)row_character_width-2, (uint8_t)row_character_width-2); // TODO: first value here should be -3 not -2, at least on Microlidian; but then that messes up the starting position for the rest of the menu.
         snprintf(header_format,          message_max, "%%-%is",      (uint8_t)row_character_width);
         snprintf(header_open_format,     message_max, ">>>%%-%is",   (uint8_t)row_character_width-3);
         snprintf(header_selected_format, message_max, "%%-%is",      (uint8_t)row_character_width);

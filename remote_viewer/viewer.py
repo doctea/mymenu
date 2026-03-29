@@ -183,6 +183,6 @@ if __name__ == "__main__":
     port = sys.argv[1] if len(sys.argv) > 1 else PORT
 
     print("Starting viewer on port", port)
-    print("Controls are 's' to save screenshot, 'd'=left/'f'=right/'a'=back/'b'=select/'e'=update frame/'z'=toggle double-size display, 'q' to quit")
+    print("Controls are 's' to save screenshot, 'd'=left/'f'=right/'a'=back/'b'=select/'e'=update frame/'c'=copy image to clipboard,'z'=toggle double-size display, 'q' to quit")
 
     main(port)
