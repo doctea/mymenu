@@ -17,7 +17,7 @@ class ActionItem : public MenuItem {
     ActionItem(const char *label, void (*on_open)(), bool show_header = false) : MenuItem(label) {
         this->on_open = on_open;
         this->show_header = show_header;
-        snprintf(button_label, MENU_C_MAX, ">> %s <<", label);
+        snprintf(button_label, MENU_C_MAX, "> %s <", label);
     }
 
     virtual int display(Coord pos, bool selected, bool opened) override {

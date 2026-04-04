@@ -15,6 +15,7 @@ class NumberControlBase : public MenuItem {
 };
 
 // generic control for selecting a number
+// note: on_change_handler is called after the internal value has been changed.
 template<class DataType = int>
 class NumberControl : public NumberControlBase {
     public:
