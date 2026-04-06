@@ -48,25 +48,45 @@ class PageFileViewerMenuItem : public MenuItem {
     }
 
     bool readFile(const char *filename) {
+        const uint64_t MAX_FILE_SIZE = 1024 * 1024 * sizeof(char); // 1MB max file size for now, to avoid running out of memory
         #ifdef ENABLE_SD
-        // todo: don't risk fragmentation by allocating memory for the file contents every time
-        //       we load a file.  Instead, allocate a fixed-size buffer and re-use it.
-        if (file_contents!=nullptr)
-            extmem_free(file_contents);
+        if (file_contents==nullptr) {
+            Serial.printf("Allocating %llu bytes for file_contents buffer...\n", MAX_FILE_SIZE);
+            file_contents = (char*)extmem_malloc(MAX_FILE_SIZE);  // allocate 1MB for file contents - todo: make this configurable, or at least define a constant for it
+            if (!file_contents) {
+                Serial.printf("Failed to allocate file_contents buffer of size %llu - won't be able to display file!\n", MAX_FILE_SIZE);
+                return false;
+            }
+        }
+
+        if (file_contents == nullptr) {
+            Serial.println("ERROR: file_contents is nullptr, cannot read file!");
+            return false;
+        }
 
         strncpy(this->filename, filename, 255);
 
+        if (!SD.exists(filename)) {
+            Serial.printf("readFile: File %s does not exist!\n", filename);
+            return false;
+        } 
+        
+        // we should clear the file_contents buffer before reading new data into it, to avoid displaying old data if the new file is smaller than the previous one
+        
         File f = SD.open(filename, FILE_READ);
         if (!f) {
-            Serial.println("error loading file for viewing!");
+            Serial.println("readFile: Error opening file for viewing!");
             return false;
         }
+
+        if (f.size() > MAX_FILE_SIZE) {
+            Serial.printf("File %s exists and opened, but is %llu bytes, which exceeds the maximum allowed size of %llu bytes!\n", filename, SD.totalSize(), MAX_FILE_SIZE);
+            f.close();
+            return false;
+        }
+
+        memset(file_contents, 0, MAX_FILE_SIZE);
         file_size = f.size();
-        file_contents = (char *)extmem_malloc(file_size);
-        if (file_contents==nullptr) {
-            Serial.println("error allocating memory for file_contents");
-            return false;
-        }
         f.readBytes(file_contents, file_size);
         f.close();
 
