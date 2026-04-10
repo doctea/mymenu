@@ -48,6 +48,8 @@ int Menu::display_pinned() {
 // draw the menu display
 int Menu::display() {
     PROFILE_SLOT(p_menu_display, "menu display()");
+    PROFILE_SET_SPIKE_THRESHOLD(p_menu_display, 18000);
+    PROFILE_SET_SPIKE_MODULO(p_menu_display, 96);  // last known tick at time of spike
     PROFILE_SCOPE(p_menu_display);
     bool debug = this->debug;
 
