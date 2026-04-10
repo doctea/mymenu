@@ -4,6 +4,7 @@
 #include "menuitems.h"
 
 #include <LinkedList.h>
+#include <profiling.h>
 
 int freeRam();
 #ifdef ARDUINO_TEENSY41
@@ -46,6 +47,8 @@ int Menu::display_pinned() {
 
 // draw the menu display
 int Menu::display() {
+    PROFILE_SLOT(p_menu_display, "menu display()");
+    PROFILE_SCOPE(p_menu_display);
     bool debug = this->debug;
 
     // early return if display isn't ready for writing (mostly used for dma checks)
