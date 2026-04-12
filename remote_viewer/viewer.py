@@ -33,6 +33,28 @@ def read_exact(ser, n):
         buf += chunk
     return buf
 
+START_MARKER = b'==START-FRAME=='
+
+def read_until_start_marker(ser):
+    """Slide byte-by-byte through the serial stream until the start marker is
+    found.  Any bytes that are *not* part of the marker are printed as debug
+    garbage so the caller can see what arrived before the frame started."""
+    window = b''
+    garbage = b''
+    while True:
+        byte = ser.read(1)
+        if not byte:
+            raise IOError("Serial read timeout or disconnect")
+        window += byte
+        # Keep only the last len(START_MARKER) bytes in the sliding window
+        if len(window) > len(START_MARKER):
+            garbage += window[:1]
+            window = window[-len(START_MARKER):]
+        if window == START_MARKER:
+            if garbage:
+                print("Non-frame data skipped before marker:", garbage)
+            return  # marker found, stream is now positioned right after it
+
 def main(port=PORT):
     ser = serial.Serial(port, BAUD, timeout=2)
     time.sleep(0.1)
@@ -71,14 +93,7 @@ def main(port=PORT):
             if not ser.in_waiting:
                 continue
 
-            marker = ser.read(len("==START-FRAME=="))
-            if not marker:
-                continue
-            if marker != b'==START-FRAME==':
-                # ignore unexpected bytes
-                # todo: if we receive any other information outside of the expected frame format, we should print it out to console for debugging purposes
-                print("Unexpected data received, skipping:", marker)
-                continue
+            read_until_start_marker(ser)
 
             w = struct.unpack('<H', read_exact(ser, 2))[0]
             h = struct.unpack('<H', read_exact(ser, 2))[0]
