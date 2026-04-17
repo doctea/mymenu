@@ -3,6 +3,22 @@
 #include <Encoder.h>
 #include <Bounce2.h>
 
+#if defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_ARCH_RP2350)
+#include "hardware/irq.h"
+#endif
+
+// Raise the GPIO IRQ bank priority above USB (0x80) and timer alarms (0xC0)
+// so that both the Encoder and button ISRs (all on IO_IRQ_BANK0) cannot be
+// starved.  Call this once, before creating any Encoder or attaching any
+// InterruptButton.  Safe to call multiple times (idempotent).
+inline void setup_menu_io_gpio_priority() {
+    #if defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_ARCH_RP2350)
+        // Priority 0x40: higher than USB (0x80) and timer alarms (0xC0),
+        // lower than truly critical handlers (0x00 default).
+        irq_set_priority(IO_IRQ_BANK0, 0x40);
+    #endif
+}
+
 // wrapper class to allow resetting of button's state change memory, to work around problem where
 // it thinks the back button has been held for 250ms when first powered on
 class ResettableButton : public Bounce2::Button {
@@ -67,6 +83,12 @@ class InterruptButton : public ResettableButton {
         }
 
         InterruptButton::isr_target[my_interrupt] = this;
+
+        // Ensure priority is set even if setup_menu_io_gpio_priority() wasn't
+        // called explicitly before the first attach.
+        if (num_interrupts == 0) {
+            setup_menu_io_gpio_priority();
+        }
 
         num_interrupts++;
     }
