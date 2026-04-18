@@ -360,8 +360,13 @@ class CallbackMenuItem : public MenuItem {
     }
 
     virtual int display(Coord pos, bool selected, bool opened) override {
-        pos.y = header((const char*)this->label_callback_func(), pos, selected, opened);
-        tft->setCursor(pos.x,pos.y);
+        pos.y = this->show_header ? 
+                    header((const char*)this->label_callback_func(), pos, selected, opened) 
+                : 
+                    pos.y;
+        tft->setCursor(pos.x, pos.y);
+
+        pos.y = this->renderValue(selected, opened, MENU_C_MAX);
 
         return tft->getCursorY();
     }
@@ -379,11 +384,8 @@ class CallbackMenuItem : public MenuItem {
     }
 };
 
-#include "menuitems_lambda_selector.h"
-
-
 #include <functional-vlpp.h>
-
+#include "menuitems_lambda_selector.h"
 #include "menuitems_object_multitoggle.h"
 // multi-toggle item that targts getters & setters on an object
 class MultiToggleItemLambda : public MultiToggleItemBase {

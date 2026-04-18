@@ -15,7 +15,7 @@ inline void setup_menu_io_gpio_priority() {
     #if defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_ARCH_RP2350)
         // Priority 0x40: higher than USB (0x80) and timer alarms (0xC0),
         // lower than truly critical handlers (0x00 default).
-        irq_set_priority(IO_IRQ_BANK0, 0x40);
+        irq_set_priority(IO_IRQ_BANK0, 0x00);
     #endif
 }
 

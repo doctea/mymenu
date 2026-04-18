@@ -290,6 +290,17 @@ class NumberControl : public NumberControlBase {
             //Serial.printf(F("%s: NumberControl.set_internal_value(%i)\twith constraint (%i:%i) resulted in %i\n"), this->label, value, (int)this->minimumDataValue, (int)this->maximumDataValue, this->internal_value);
         }
 
+        virtual DataType get_saturated_value_for_delta(long double delta) {
+            long double value = (long double)this->get_internal_value() + delta;
+            const long double min_value = (long double)this->getMinimumDataValue();
+            const long double max_value = (long double)this->getMaximumDataValue();
+
+            if (value < min_value) value = min_value;
+            if (value > max_value) value = max_value;
+
+            return (DataType)value;
+        }
+
         virtual DataType get_current_step_down() {
             // do knob acceleration
             if (last_changed_at_decreased==0)
@@ -317,10 +328,8 @@ class NumberControl : public NumberControlBase {
 
 
         virtual void decrease_value() {
-            if (this->get_internal_value()>this->getMinimumDataValue() 
-                && get_internal_value() - get_current_step_down() < this->getMaximumDataValue()
-            ) {   // so that unsigned datatypes don't wrap back around when they try to go below 0
-                this->set_internal_value((DataType)(get_internal_value() - get_current_step_down()));
+            if (this->get_internal_value() > this->getMinimumDataValue()) {
+                this->set_internal_value(this->get_saturated_value_for_delta(-(long double)this->get_current_step_down()));
                 last_changed_at_decreased = millis();
                 last_changed_at_increased = 0;
             } else if (wrap) {
@@ -331,8 +340,8 @@ class NumberControl : public NumberControlBase {
         }
         virtual void increase_value() {
             //Serial.printf("NumberControl '%s'#increase_value with internal value %3.3f and step %3.3f makes %3.3f\n", this->label, get_internal_value(), this->get_current_step(), get_internal_value()+this->get_current_step());
-            if (this->get_internal_value()!=this->getMaximumDataValue()) {
-                this->set_internal_value((DataType)(get_internal_value() + get_current_step_up()));
+            if (this->get_internal_value() < this->getMaximumDataValue()) {
+                this->set_internal_value(this->get_saturated_value_for_delta((long double)this->get_current_step_up()));
                 last_changed_at_increased = millis();
                 last_changed_at_decreased = 0;
             } else if (wrap) {
@@ -357,8 +366,9 @@ class NumberControl : public NumberControlBase {
             if (this->readOnly) 
                 return;
             DataType last_value = this->get_current_value();
+            this->set_internal_value(new_value);
             //Serial.printf("NumberControl#change_value(%f) about to call set_current_value(%f)", (double)new_value, (double)new_value);
-            this->set_current_value(new_value);
+            this->set_current_value(this->get_internal_value());
             //Serial.printf("NumberControl#change_value(%f) after set_current_value(%f) get_current_value got %f\n", (double)new_value, (double)new_value, this->get_current_value());
             if (on_change_handler!=nullptr) {
                 //if (this->debug)  { Serial.println(F("NumberControl calling on_change_handler")); Serial_flush(); }
