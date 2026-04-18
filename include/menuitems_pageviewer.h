@@ -65,9 +65,14 @@ class PageFileViewerMenuItem : public MenuItem {
         }
 
         strncpy(this->filename, filename, 255);
+        this->filename[255] = '\0';
 
         if (!SD.exists(filename)) {
             Serial.printf("readFile: File %s does not exist!\n", filename);
+            // Keep viewer in a safe, empty state so display/scroll cannot crash.
+            file_size = 0;
+            page_first_line = nullptr;
+            start_at = nullptr;
             return false;
         } 
         
@@ -76,12 +81,18 @@ class PageFileViewerMenuItem : public MenuItem {
         File f = SD.open(filename, FILE_READ);
         if (!f) {
             Serial.println("readFile: Error opening file for viewing!");
+            file_size = 0;
+            page_first_line = nullptr;
+            start_at = nullptr;
             return false;
         }
 
         if (f.size() > MAX_FILE_SIZE) {
             Serial.printf("File %s exists and opened, but is %llu bytes, which exceeds the maximum allowed size of %llu bytes!\n", filename, SD.totalSize(), MAX_FILE_SIZE);
             f.close();
+            file_size = 0;
+            page_first_line = nullptr;
+            start_at = nullptr;
             return false;
         }
 
@@ -113,7 +124,7 @@ class PageFileViewerMenuItem : public MenuItem {
         pos.y = header(label, pos, selected, opened);
         pos.y = this->render_list_header(pos);
 
-        if (file_contents==nullptr) {
+        if (file_contents==nullptr || start_at==nullptr || file_size==0) {
             tft->println("(No file loaded)");
             return tft->getCursorY();
         }
@@ -139,6 +150,9 @@ class PageFileViewerMenuItem : public MenuItem {
     }
 
     virtual bool knob_left() override {
+        if (file_contents == nullptr || start_at == nullptr || file_size == 0)
+            return false;
+
         // already at start - don't go any further (todo: wrap around to eof)
         if (start_at == file_contents)
             return false;
@@ -160,6 +174,9 @@ class PageFileViewerMenuItem : public MenuItem {
     }
 
     virtual bool knob_right() override {
+        if (file_contents == nullptr || start_at == nullptr || file_size == 0)
+            return false;
+
         // already at end - don't go any further (todo: wrap around to start)
         if (start_at >= file_contents + file_size)
             return false;
