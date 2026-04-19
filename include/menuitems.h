@@ -93,6 +93,9 @@ class MenuItem {
         virtual bool knob_left();
         virtual bool knob_right();
         virtual bool allow_takeover();
+        // When true, SubMenuItemBar will render this control once more after row layout
+        // so it can draw an overlay/popout while opened.
+        virtual bool wants_fullscreen_overlay_when_opened_in_bar() { return false; }
         // whether we should be allowed to hover over this one
         virtual bool is_selectable ();
         // whether 'tis openable -- ie, that it can be 'opened' without having an effect, eg submenuitem... basically anything except an action?!

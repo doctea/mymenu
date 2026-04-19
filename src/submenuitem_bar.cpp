@@ -64,6 +64,16 @@ int SubMenuItemBar::display(Coord pos, bool selected, bool opened) {
             finish_y = temp_y;
     }
 
+    // Some controls (e.g. compact selectors) need a second, full-width overlay pass.
+    // Defer until end of Menu::display so this draws on top of everything else.
+    if (opened && this->currently_opened>=0 && this->currently_opened < (int)this->items->size()) {
+        MenuItem *opened_item = this->items->get(this->currently_opened);
+        if (opened_item!=nullptr && opened_item->wants_fullscreen_overlay_when_opened_in_bar() && menu!=nullptr) {
+            menu->pending_overlay_item = opened_item;
+            menu->pending_overlay_y = start_y;
+        }
+    }
+
     tft->setTextColor(this->default_fg, this->default_bg);
     //tft->setTextSize(0);
 
@@ -132,7 +142,8 @@ int SubMenuItemBar::small_display(int index, int x, int y, int width_in_pixels, 
 
     // actually render the item
     tft->setTextSize(0);
-    y = ctrl->renderValue((!this->show_sub_headers && outer_selected) || is_selected, is_opened, max_display_width_characters); //width/width_in_chars);
+    const bool render_opened_inline = is_opened && !ctrl->wants_fullscreen_overlay_when_opened_in_bar();
+    y = ctrl->renderValue((!this->show_sub_headers && outer_selected) || is_selected, render_opened_inline, max_display_width_characters); //width/width_in_chars);
 
     //if (this->debug) Serial.printf("\tend of small_display, returning y=%i\n", y);
     return y;

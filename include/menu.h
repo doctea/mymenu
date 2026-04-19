@@ -75,6 +75,13 @@ class Menu {
     int last_knob_position = -1;
     int button_count = 0;
 
+    int pending_knob_steps = 0;
+    bool pending_select_press = false;
+    bool pending_select_release = false;
+    bool pending_back_short = false;
+    bool pending_back_long = false;
+    bool pending_right_press = false;
+
     uint16_t screen_height_cutoff = 100;
 
     int8_t tab_textsize = 1;
@@ -84,10 +91,35 @@ class Menu {
 
     bool button_mode_rise_on_click = true;
 
+        void unwind_page_opened_state(page_t *page) {
+            if (page==nullptr || page->items==nullptr)
+                return;
+
+            int guard = 0;
+            while (page->currently_opened!=-1 && guard++ < 32) {
+                const int opened_index = page->currently_opened;
+                if (opened_index<0 || opened_index >= (int)page->items->size()) {
+                    page->currently_opened = -1;
+                    break;
+                }
+
+                MenuItem *opened_item = page->items->get(opened_index);
+                if (opened_item==nullptr || !opened_item->button_back()) {
+                    page->currently_selected = opened_index;
+                    page->currently_opened = -1;
+                }
+            }
+        }
+
     
     public:
         bool debug = false;
         bool debug_times = false;
+
+        // Optional deferred overlay pass: controls can request a late draw so
+        // popouts render on top of subsequent rows.
+        MenuItem *pending_overlay_item = nullptr;
+        int pending_overlay_y = 0;
         
         bool auto_update = true;    // whether to send update to tft at end of every display() call, or to allow host app to decide
     
@@ -226,8 +258,12 @@ class Menu {
 
         void select_first_selectable_item() {
             this->selected_page->currently_selected = -1;
+            if (this->selected_page==nullptr || this->selected_page->items==nullptr)
+                return;
             //this->select_next_selectable_item();
             const unsigned int size = this->selected_page->items->size();
+            if (size==0)
+                return;
             for (unsigned int i = 0 ; i < size ; i++) {
                 if (this->selected_page->items->get(i)->is_selectable()) {
                     //if (Serial) Serial.printf("select_first_selectable_item on page %s found a selectable item at %i!\n", selected_page->title, i);
@@ -250,13 +286,22 @@ class Menu {
             this->selected_page->currently_selected = found;
         }
         int find_next_selectable_item() {
+            if (this->selected_page==nullptr || this->selected_page->items==nullptr)
+                return -1;
+
             int current = this->selected_page->currently_selected;
             const int size = this->selected_page->items->size();
+            if (size<=0)
+                return -1;
+
+            if (current < -1 || current >= size)
+                current = -1;
+
             //Serial.printf("find_next_selectable_item on page %i, starting with current=%i and size=%i..\n", this->opened_page_index, current, size);
-            for (int c = (current+1)%size ; c < size+current ; c++) {
-                //Serial.printf("find_next_selectable_item checking item at index %i..\n", c%size);
-                if (this->selected_page->items->get(c%size)->is_selectable())
-                    return c%size;
+            for (int step = 1 ; step <= size ; step++) {
+                const int idx = (current + step + size) % size;
+                if (this->selected_page->items->get(idx)->is_selectable())
+                    return idx;
             }
 
             // nothing found selectable - but if currently selected is selectable then just use that
@@ -271,19 +316,23 @@ class Menu {
             this->selected_page->currently_selected = found;
         }
         int find_previous_selectable_item() {
+            if (this->selected_page==nullptr || this->selected_page->items==nullptr)
+                return -1;
+
             int current = this->selected_page->currently_selected;
             const int size = this->selected_page->items->size();
-            int c = current;
+            if (size<=0)
+                return -1;
 
-            do {
-                c--;
-                if (c<0)
-                    c = size-1;
-                if (this->selected_page->items->get(c%size)->is_selectable()) {
-                    //Serial.printf("found at %i\n", c);
-                    return c;
+            if (current < 0 || current >= size)
+                current = 0;
+
+            for (int step = 1 ; step <= size ; step++) {
+                const int idx = (current - step + size) % size;
+                if (this->selected_page->items->get(idx)->is_selectable()) {
+                    return idx;
                 }
-            } while (c != current);
+            }
 
             // nothing found selectable - but if currently selected is selectable then just use that
             if (current>=0 && this->selected_page->items->get(current)->is_selectable())
@@ -471,6 +520,7 @@ class Menu {
         void setup_quickjump();
         void select_page_quickjump() {
             if (quick_page_index>=0) {
+                this->unwind_page_opened_state(this->selected_page);
                 selected_page_index = opened_page_index = -1;
                 this->open_page(this->quick_page_index);
             }
@@ -508,8 +558,10 @@ class Menu {
 
         void select_page(unsigned int p) {
             // unselect current first
-            if (this->selected_page!=nullptr)
+            if (this->selected_page!=nullptr) {
+                this->unwind_page_opened_state(this->selected_page);
                 this->selected_page->currently_selected = this->selected_page->currently_opened = -1;
+            }
 
             this->opened_page_index = -1;
             this->selected_page_index = p;
@@ -677,9 +729,7 @@ class Menu {
         }
 
         // check encoder and buttons and fire off events if necessary
-        void update_inputs() {
-            //static int button_count = 0;
-            //int new_knob_read;
+        void poll_inputs() {
             #ifdef ENCODER_KNOB_L
                 static int last_knob_read = 0, new_knob_read;
                 #ifdef ENCODER_DURING_SETUP // if knob is a pointer to an Encoder; so that we can instantiate the knob at runtime on eg RP2040 earlephilhower so that interrupts dont get trashed https://github.com/PaulStoffregen/Encoder/pull/85
@@ -688,47 +738,80 @@ class Menu {
                     new_knob_read = knob.read() / ENCODER_STEP_DIVISOR;
                 #endif
                 if (new_knob_read!=last_knob_read) {
-                    Debug_printf("new_knob_read %i changed from %i\n", new_knob_read, last_knob_read);
-                    /*if (ENCODER_STEP_DIVISOR>1)
-                        last_knob_read = new_knob_read; ///4; 
-                    else
-                        last_knob_read = new_knob_read; // / ENCODER_STEP_DIVISOR; ///4; */
+                    const int delta = new_knob_read - last_knob_read;
+                    this->pending_knob_steps += delta;
                     last_knob_read = new_knob_read;
-                    knob_turned(last_knob_read);
                 }
             #endif
             #ifdef PIN_BUTTON_A
                 if (pushButtonA.update()) {
                     if ( pushButtonA.pressed() ) {
-                        button_count++;
-                        button_select();
+                        this->pending_select_press = true;
                     } else if ( pushButtonA.released() ) {
-                        button_select_released();
+                        this->pending_select_release = true;
                     }
                 }
             #endif
             #ifdef PIN_BUTTON_B
                 if (pushButtonB.update()) {
                     if ( pushButtonB.released() && pushButtonB.previousDuration()<=LONGPRESS_MILLIS) {
-                        button_count++;
-                        button_back();
+                        this->pending_back_short = true;
                     } /*else if (pushButtonB.isPressed()) {
                         Serial.printf("B button is pressed, duration is %i!\n", pushButtonB.currentDuration());
                     }*/
                 } else if ( pushButtonB.isPressed() && pushButtonB.currentDuration()>LONGPRESS_MILLIS ) {
-                    button_back_longpress();
+                    this->pending_back_long = true;
                 }                    
             #endif
             #ifdef PIN_BUTTON_C
                 if (pushButtonC.update()) {
                     if ( pushButtonC.pressed() ) {
-                        button_count++;
-                        button_right();
+                        this->pending_right_press = true;
                     } /*else if (pushBufttonC.fell()) {
                         button_right_released();
                     }*/
                 }
             #endif
+        }
+
+        void dispatch_polled_inputs() {
+            while (this->pending_knob_steps < 0) {
+                this->knob_left();
+                this->pending_knob_steps++;
+            }
+            while (this->pending_knob_steps > 0) {
+                this->knob_right();
+                this->pending_knob_steps--;
+            }
+
+            if (this->pending_select_press) {
+                this->pending_select_press = false;
+                button_count++;
+                this->button_select();
+            }
+            if (this->pending_select_release) {
+                this->pending_select_release = false;
+                this->button_select_released();
+            }
+            if (this->pending_back_short) {
+                this->pending_back_short = false;
+                button_count++;
+                this->button_back();
+            }
+            if (this->pending_back_long) {
+                this->pending_back_long = false;
+                this->button_back_longpress();
+            }
+            if (this->pending_right_press) {
+                this->pending_right_press = false;
+                button_count++;
+                this->button_right();
+            }
+        }
+
+        void update_inputs() {
+            this->poll_inputs();
+            this->dispatch_polled_inputs();
         }
 
         uint16_t get_next_colour() {

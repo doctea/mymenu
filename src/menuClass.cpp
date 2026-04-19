@@ -53,6 +53,10 @@ int Menu::display() {
     PROFILE_SCOPE(p_menu_display);
     bool debug = this->debug;
 
+    // Reset deferred overlay request for this frame.
+    this->pending_overlay_item = nullptr;
+    this->pending_overlay_y = 0;
+
     // early return if display isn't ready for writing (mostly used for dma checks)
     if (!this->tft->ready()) {
 	    return 0;
@@ -312,6 +316,11 @@ int Menu::display() {
             tft->printf("Mem: %i\n"), freeRam();
         }*/
         if (debug) { Debug_println("Done in main draw part"); Serial_flush(); }
+    }
+
+    // Draw deferred overlay after the page has fully rendered so it appears on top.
+    if (this->pending_overlay_item!=nullptr) {
+        this->pending_overlay_item->display(Coord(0, this->pending_overlay_y), true, true);
     }
 
     //tft->updateScreenAsync(false);
