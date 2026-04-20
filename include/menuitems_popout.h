@@ -80,7 +80,7 @@ inline int menu_draw_selector_takeover_overlay(
 
     const int title_h = max(8, tft->getSingleRowHeight() + 4);
     const int subtitle_h = has_subtitle ? max(7, tft->getSingleRowHeight() + 1) : 0;
-    const int subtitle_y = box_y + title_h + max(2, spec.subtitle_top_gap);
+    const int subtitle_y = box_y + title_h + max(2, spec.subtitle_top_gap) + 2;
     const int hints_y = box_y + box_h - max(7, tft->getSingleRowHeight() + 2) - 1;
     const int value_top_y = has_subtitle ? (subtitle_y + subtitle_h) : (box_y + title_h + 2);
     const int value_center_y = (value_top_y + hints_y) / 2;
