@@ -717,10 +717,10 @@ class Menu {
 
             //Serial.printf("update_ticks %i...\n", ticks);
             const int pages_count = this->pages->size();
-            for (int p = 0 ; p < pages_count ; p++) {
+            for (uint_fast8_t p = 0 ; p < pages_count ; p++) {
                 //Serial.printf("\tupdate_ticks for page %i...\n", p);
-                const unsigned int items_count = this->pages->get(p)->items->size();
-                for (unsigned int i = 0 ; i < items_count ; i++) {
+                const uint_fast8_t items_count = this->pages->get(p)->items->size();
+                for (uint_fast8_t i = 0 ; i < items_count ; i++) {
                     //Serial.printf("\t\tupdate_ticks for item %i...\n", i);
                     this->pages->get(p)->items->get(i)->update_ticks(ticks);
                 }
