@@ -716,7 +716,7 @@ class Menu {
                 pinned_panel->update_ticks(ticks);
 
             //Serial.printf("update_ticks %i...\n", ticks);
-            const int pages_count = this->pages->size();
+            const uint_fast8_t pages_count = this->pages->size();
             for (uint_fast8_t p = 0 ; p < pages_count ; p++) {
                 //Serial.printf("\tupdate_ticks for page %i...\n", p);
                 const uint_fast8_t items_count = this->pages->get(p)->items->size();

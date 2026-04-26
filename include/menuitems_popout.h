@@ -25,7 +25,9 @@ struct SelectorTakeoverOverlaySpec {
 
     bool has_extra = false;
     int extra_height = 0;
-    vl::Func<void(DisplayTranslator *tft, int x, int y, int max_width, int max_height)> draw_extra;
+    // Raw function pointer + userdata: zero heap allocation per frame (unlike vl::Func which heap-allocates the invoker on every assignment).
+    void (*draw_extra_fn)(void *userdata, DisplayTranslator *tft, int x, int y, int max_width, int max_height) = nullptr;
+    void *draw_extra_userdata = nullptr;
 };
 
 inline void menu_draw_centered_text(
@@ -41,12 +43,13 @@ inline void menu_draw_centered_text(
     if (tft==nullptr || txt==nullptr || txt[0]=='\0')
         return;
 
+    const size_t txt_len = strlen(txt);
     uint8_t text_size = tft->get_textsize_for_width(txt, pixel_width);
     if (text_size > max_text_size)
         text_size = max_text_size;
     tft->setTextSize(text_size);
 
-    const int text_pixel_width = strlen(txt) * tft->characterWidth() * (text_size>0 ? text_size : 1);
+    const int text_pixel_width = txt_len * tft->characterWidth() * (text_size>0 ? text_size : 1);
     const int text_pixel_height = tft->getSingleRowHeight() * (1 + text_size);
     const int draw_x = center_x - (text_pixel_width / 2);
     const int draw_y = center_y - (text_pixel_height / 2);
@@ -69,11 +72,12 @@ inline int menu_draw_selector_takeover_overlay(
     const bool has_subtitle = spec.subtitle!=nullptr && spec.subtitle[0]!='\0';
     const int screen_w = tft->width();
     const int screen_h = tft->height();
+    const int single_row_h = tft->getSingleRowHeight();
     const int margin_x = max(3, screen_w / 16);
     const int box_w = screen_w - (margin_x * 2);
-    const int subtitle_extra_h = has_subtitle ? max(3, tft->getSingleRowHeight()/2) : 0;
+    const int subtitle_extra_h = has_subtitle ? max(3, single_row_h/2) : 0;
     const int box_h = constrain(
-        (screen_h / 3) + tft->getSingleRowHeight() + spec.box_padding + subtitle_extra_h + spec.extra_height,
+        (screen_h / 3) + single_row_h + spec.box_padding + subtitle_extra_h + spec.extra_height,
         spec.min_box_h, 
         max(spec.min_box_h, screen_h - 4)
     );
@@ -89,10 +93,10 @@ inline int menu_draw_selector_takeover_overlay(
 
     const int box_x = (screen_w - box_w) / 2;
 
-    const int title_h = max(8, tft->getSingleRowHeight() + 4);
-    const int subtitle_h = has_subtitle ? max(7, tft->getSingleRowHeight() + 1) : 0;
+    const int title_h = max(8, single_row_h + 4);
+    const int subtitle_h = has_subtitle ? max(7, single_row_h + 1) : 0;
     const int subtitle_y = box_y + title_h + max(2, spec.subtitle_top_gap) + 2;
-    const int hints_y = box_y + box_h - max(7, tft->getSingleRowHeight() + 2) - 1;
+    const int hints_y = box_y + box_h - max(7, single_row_h + 2) - 1;
     const int value_top_y = has_subtitle ? (subtitle_y + subtitle_h) : (box_y + title_h + 2);
     const int value_center_y = (value_top_y + hints_y - spec.extra_height) / 2;
 
@@ -107,8 +111,8 @@ inline int menu_draw_selector_takeover_overlay(
 
     menu_draw_centered_text(tft, spec.value, box_x + (box_w / 2), value_center_y, box_w - 10, spec.value_fg, BLACK, spec.max_value_text_size);
 
-    if (spec.has_extra) {
-        spec.draw_extra(tft, box_x + 4, tft->getCursorY() + 2, box_w-8, spec.extra_height);
+    if (spec.has_extra && spec.draw_extra_fn != nullptr) {
+        spec.draw_extra_fn(spec.draw_extra_userdata, tft, box_x + 4, tft->getCursorY() + 2, box_w-8, spec.extra_height);
     }
 
     tft->setTextSize(0);
