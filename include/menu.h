@@ -91,26 +91,25 @@ class Menu {
 
     bool button_mode_rise_on_click = true;
 
-        void unwind_page_opened_state(page_t *page) {
-            if (page==nullptr || page->items==nullptr)
-                return;
+    void unwind_page_opened_state(page_t *page) {
+        if (page==nullptr || page->items==nullptr)
+            return;
 
-            int guard = 0;
-            while (page->currently_opened!=-1 && guard++ < 32) {
-                const int opened_index = page->currently_opened;
-                if (opened_index<0 || opened_index >= (int)page->items->size()) {
-                    page->currently_opened = -1;
-                    break;
-                }
+        int guard = 0;
+        while (page->currently_opened!=-1 && guard++ < 32) {
+            const int opened_index = page->currently_opened;
+            if (opened_index<0 || opened_index >= (int)page->items->size()) {
+                page->currently_opened = -1;
+                break;
+            }
 
-                MenuItem *opened_item = page->items->get(opened_index);
-                if (opened_item==nullptr || !opened_item->button_back()) {
-                    page->currently_selected = opened_index;
-                    page->currently_opened = -1;
-                }
+            MenuItem *opened_item = page->items->get(opened_index);
+            if (opened_item==nullptr || !opened_item->button_back()) {
+                page->currently_selected = opened_index;
+                page->currently_opened = -1;
             }
         }
-
+    }
     
     public:
         bool debug = false;
@@ -391,6 +390,7 @@ class Menu {
                     // if there is only one item on this page, close the page too
                     // todo: make this understand if there is only one SELECTABLE item on the page
                     opened_page_index = -1;
+                    selected_page->currently_selected = selected_page->currently_opened = -1;
                 }
             } else if (!is_item_opened()) {
                 // no item is opened
