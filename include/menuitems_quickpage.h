@@ -81,7 +81,12 @@ class CustomQuickPagesMenuItem : virtual public QuickPagesMenuItem {
                 return tft->getCursorY();
 
             colours(opened && o==selected_value_index, page->colour);
-            tft->println(page->title);
+            if (page==nullptr)
+                tft->println("Null page?!");
+            else if (page->title==nullptr)
+                tft->println("Null page title?!");
+            else
+                tft->println(page->title);
             colours(C_WHITE);
 
             return tft->getCursorY();

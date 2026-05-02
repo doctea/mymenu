@@ -49,6 +49,11 @@
 
 #define MAX_PAGE_TITLE 10
 
+#ifdef ENABLE_BUTTON_MATRIX
+    #include <functional-vlpp.h>
+    using button_matrix_event_callback_func = vl::Func<void(int, int, bool)>;
+#endif
+
 // todo: add some kind of page grouping system to allow for like 'Output' pages and 'Pattern' pages and 'CV' pages etc, and then show the group name in the header of each page; maybe also add a 'grouped page index' menu item that shows all pages grouped by their group, to make it easier to find things when there are lots of pages
 // eg a page_group_t struct 
 
@@ -114,6 +119,12 @@ class Menu {
     public:
         bool debug = false;
         bool debug_times = false;
+
+        #ifdef ENABLE_BUTTON_MATRIX
+            bool pending_button_matrix[4][4] = {0}; 
+            bool last_button_matrix_state[4][4] = {0}; // store the last state of each button in the matrix to detect changes
+            bool pending_button_matrix_changed[4][4] = {0};
+        #endif
 
         // Optional deferred overlay pass: controls can request a late draw so
         // popouts render on top of subsequent rows.
@@ -537,8 +548,24 @@ class Menu {
             return pages->size();
         }
 
+        page_t *get_previous_page() {
+            if (pages->size()==0)
+                return nullptr;
+            int previous_page_index = selected_page_index - 1;
+            if (previous_page_index < 0)
+                previous_page_index = pages->size() - 1;
+            return pages->get(previous_page_index);
+        }
         page_t *get_selected_page() {
             return this->selected_page;
+        }
+        page_t *get_next_page() {
+            if (pages->size()==0)
+                return nullptr;
+            int next_page_index = selected_page_index + 1;
+            if (next_page_index >= (int)pages->size())
+                next_page_index = 0;
+            return pages->get(next_page_index);
         }
 
         void select_next_page() {
@@ -774,6 +801,43 @@ class Menu {
             #endif
         }
 
+        #ifdef ENABLE_BUTTON_MATRIX
+            button_matrix_event_callback_func on_button_matrix_event[4][4] = {
+                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
+                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
+                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
+                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
+
+                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
+                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
+                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
+                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
+
+                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
+                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
+                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
+                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
+
+                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },                    
+                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },            
+                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
+                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); }
+            };
+            void dispatch_button_matrix_event(int x, int y, bool pressed) {
+                this->on_button_matrix_event[x][y](x, y, pressed);
+            }
+            void register_button_matrix_event_callback(int x, int y, button_matrix_event_callback_func callback) {
+                this->on_button_matrix_event[x][y] = callback;
+            }
+            void set_button_matrix_state(int x, int y, bool pressed) {
+                if (pressed != this->last_button_matrix_state[x][y]) {
+                    this->pending_button_matrix[x][y] = pressed;
+                    this->pending_button_matrix_changed[x][y] = true;
+                    this->last_button_matrix_state[x][y] = this->pending_button_matrix[x][y];
+                }
+            }
+        #endif
+
         void dispatch_polled_inputs() {
             while (this->pending_knob_steps < 0) {
                 this->knob_left();
@@ -807,6 +871,23 @@ class Menu {
                 button_count++;
                 this->button_right();
             }
+            #ifdef ENABLE_BUTTON_MATRIX
+                for (int x = 0 ; x < 4 ; x++) {
+                    for (int y = 0 ; y < 4 ; y++) {
+                        //if (this->pending_button_matrix[x * 4 + y] != this->last_button_matrix_state[x * 4 + y]) {
+                        if (this->pending_button_matrix_changed[x][y]) {
+                            if (this->pending_button_matrix[x][y]) {
+                                // button was already pressed, so this is a release
+                                this->dispatch_button_matrix_event(x, y, false);
+                            } else {
+                                // button was not already pressed, so this is a press
+                                this->dispatch_button_matrix_event(x, y, true);
+                            }
+                            pending_button_matrix_changed[x][y] = false;
+                        }
+                    }
+                }
+            #endif
         }
 
         void update_inputs() {
