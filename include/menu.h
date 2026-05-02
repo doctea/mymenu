@@ -705,12 +705,13 @@ class Menu {
         }
 
         // set the colour of the message (ie red / green for error / success)
-        void set_message_colour(uint32_t colour) {
+        void set_message_colour(uint16_t colour) {
             message_colour = colour;
         }
         // set the message to display at top of display
-        void set_last_message(const char *msg) {
+        void set_last_message(const char *msg, uint16_t colour = C_WHITE) {
             strncpy(last_message, msg, MENU_C_MAX);
+            this->set_message_colour(colour);
             this->add_message(msg);
         }
 

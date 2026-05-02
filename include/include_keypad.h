@@ -92,6 +92,9 @@ key_pressed_t readKeys() {
     int row = key / 4;
     int col = key % 4;
 
+    row = 3 - row;  // invert row index to match physical layout
+    col = 3 - col;  // invert column index to match physical layout
+
     return {row, col};
 }
 
