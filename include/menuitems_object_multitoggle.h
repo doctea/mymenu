@@ -281,10 +281,12 @@ class ObjectMultiToggleControl : public MenuItem {
 
 class ObjectMultiToggleColumnControl : public ObjectMultiToggleControl {
     public:
+        uint_fast8_t num_columns = 2;
 
         ObjectMultiToggleColumnControl(const char *label ) : ObjectMultiToggleControl(label) {}
-        ObjectMultiToggleColumnControl(const char *label, bool enable_all_option) : ObjectMultiToggleColumnControl(label) {
+        ObjectMultiToggleColumnControl(const char *label, bool enable_all_option, int num_columns = 2) : ObjectMultiToggleColumnControl(label) {
             this->all_option = enable_all_option;
+            this->num_columns = num_columns;
         }
 
         char fmt[MENU_C_MAX] = "-";
@@ -301,7 +303,6 @@ class ObjectMultiToggleColumnControl : public ObjectMultiToggleControl {
             uint_fast16_t x = 0;
             uint_fast16_t start_y = pos.y;
 
-            const uint_fast8_t num_columns = 2;
             const uint_fast8_t items_size = items.size();
 
             bool all_selected = false;
@@ -322,7 +323,7 @@ class ObjectMultiToggleColumnControl : public ObjectMultiToggleControl {
             }
 
             const uint width_per_item = (tft->width() / num_columns);
-            const uint items_per_column = items_size / num_columns;
+            const uint items_per_column = 1 + (items_size / num_columns);
             const uint chars_per_column = width_per_item / tft->currentCharacterWidth();
 
             if (fmt[0]=='-')
@@ -334,14 +335,19 @@ class ObjectMultiToggleColumnControl : public ObjectMultiToggleControl {
             for (uint_fast8_t i = 0 ; i < (uint_fast8_t)items_size ; i++) {
                 MultiToggleItemBase *item = items.get(i);
                 // move to next column if we need to
-                if (i == items_per_column) {
-                    if (tft->getCursorY()>(int)max_height_reached)                
-                        max_height_reached = tft->getCursorY(); // remember how far down the screen we've drawn
+                // if (i == items_per_column) {
+                //     if (tft->getCursorY()>(int)max_height_reached)                
+                //         max_height_reached = tft->getCursorY(); // remember how far down the screen we've drawn
 
-                    tft->setCursor(width_per_item, start_y);
-                } else if (i > items_per_column) {
-                    tft->setCursor(tft->width()/num_columns, pos.y);
-                }
+                //     tft->setCursor(width_per_item, start_y);
+                // } else if (i > items_per_column) {
+                //     tft->setCursor(tft->width()/num_columns, pos.y);
+                // }
+                int column_number = i / items_per_column;
+                tft->setCursor(
+                    column_number * width_per_item, 
+                    start_y + ((i % items_per_column) * (tft->getSingleRowHeight()+2))
+                );
 
                 // green or red according to whether underlying item is on or off, inverted if widget opened and item selected
                 colours((i==effectively_selected) && opened, item->get_colour(), this->default_bg);
