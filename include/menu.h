@@ -71,6 +71,7 @@ struct page_t {
 class Menu {
     int opened_page_index = -1;
     int selected_page_index = 0;
+    int before_quickjump_page_index = -1;
     page_t *selected_page = nullptr;
     LinkedList<page_t*> *pages = nullptr;
 
@@ -124,6 +125,7 @@ class Menu {
             bool pending_button_matrix[4][4] = {0}; 
             bool last_button_matrix_state[4][4] = {0}; // store the last state of each button in the matrix to detect changes
             bool pending_button_matrix_changed[4][4] = {0};
+            bool keypad_enabled = false;
         #endif
 
         // Optional deferred overlay pass: controls can request a late draw so
@@ -532,8 +534,14 @@ class Menu {
         void select_page_quickjump() {
             if (quick_page_index>=0) {
                 this->unwind_page_opened_state(this->selected_page);
-                selected_page_index = opened_page_index = -1;
-                this->open_page(this->quick_page_index);
+                if (before_quickjump_page_index>=0 && quick_page_index==selected_page_index) {
+                    // if we're already on the quickjump page, then jump back to the previous page instead
+                    this->open_page(this->before_quickjump_page_index);
+                } else {
+                    this->before_quickjump_page_index = selected_page_index;
+                    selected_page_index = opened_page_index = -1;
+                    this->open_page(this->quick_page_index);
+                }
             }
         }
 
@@ -840,6 +848,12 @@ class Menu {
                     this->last_button_matrix_state[x][y] = this->pending_button_matrix[x][y];
                 }
             }
+            bool is_keypad_enabled() {
+                return this->keypad_enabled;
+            }
+            void set_keypad_enabled(bool enabled = true) {
+                this->keypad_enabled = enabled;
+            }
         #endif
 
         void dispatch_polled_inputs() {
@@ -876,18 +890,20 @@ class Menu {
                 this->button_right();
             }
             #ifdef ENABLE_BUTTON_MATRIX
-                for (int x = 0 ; x < 4 ; x++) {
-                    for (int y = 0 ; y < 4 ; y++) {
-                        //if (this->pending_button_matrix[x * 4 + y] != this->last_button_matrix_state[x * 4 + y]) {
-                        if (this->pending_button_matrix_changed[x][y]) {
-                            if (this->pending_button_matrix[x][y]) {
-                                // button was already pressed, so this is a release
-                                this->dispatch_button_matrix_event(x, y, false);
-                            } else {
-                                // button was not already pressed, so this is a press
-                                this->dispatch_button_matrix_event(x, y, true);
+                if(this->is_keypad_enabled()) {
+                    for (int x = 0 ; x < 4 ; x++) {
+                        for (int y = 0 ; y < 4 ; y++) {
+                            //if (this->pending_button_matrix[x * 4 + y] != this->last_button_matrix_state[x * 4 + y]) {
+                            if (this->pending_button_matrix_changed[x][y]) {
+                                if (this->pending_button_matrix[x][y]) {
+                                    // button was already pressed, so this is a release
+                                    this->dispatch_button_matrix_event(x, y, false);
+                                } else {
+                                    // button was not already pressed, so this is a press
+                                    this->dispatch_button_matrix_event(x, y, true);
+                                }
+                                pending_button_matrix_changed[x][y] = false;
                             }
-                            pending_button_matrix_changed[x][y] = false;
                         }
                     }
                 }
