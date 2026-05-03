@@ -486,14 +486,14 @@ class Menu {
             tft->start();
         }
 
-        static const int_least8_t NUM_QUICK_PAGE_HISTORY = 10;
-        uint_least8_t quick_page_history_head = 0;
-        uint_least8_t quick_page_history_total = 0;
-        int_least8_t quick_page_index = 0;
-        int_least8_t quick_pages[NUM_QUICK_PAGE_HISTORY] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
-        int_least8_t all_page_index = 0;
+        static const int NUM_QUICK_PAGE_HISTORY = 10;
+        int quick_page_history_head = 0;
+        int quick_page_history_total = 0;
+        int quick_page_index = 0;
+        int quick_pages[NUM_QUICK_PAGE_HISTORY] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+        int all_page_index = 0;
         // add the page index to the 'visited history'
-        void remember_opened_page(int8_t page_index = -1) {
+        void remember_opened_page(int page_index = -1) {
             if (page_index==-1)
                 page_index = selected_page_index;
             // don't store qjump page itself..
@@ -784,9 +784,12 @@ class Menu {
                 if (pushButtonB.update()) {
                     if ( pushButtonB.released() && pushButtonB.previousDuration()<=LONGPRESS_MILLIS) {
                         this->pending_back_short = true;
-                    } /*else if (pushButtonB.isPressed()) {
-                        Serial.printf("B button is pressed, duration is %i!\n", pushButtonB.currentDuration());
-                    }*/
+                    } else if ( pushButtonB.released() && pushButtonB.previousDuration()>LONGPRESS_MILLIS && !back_held ) {
+                        // The loop stalled longer than LONGPRESS_MILLIS (e.g. deferred recomputes),
+                        // so the regular else-if below never fired while the button was held.
+                        // Catch the long-press here on release instead.
+                        this->pending_back_long = true;
+                    }
                 } else if ( pushButtonB.isPressed() && pushButtonB.currentDuration()>LONGPRESS_MILLIS ) {
                     this->pending_back_long = true;
                 }                    
