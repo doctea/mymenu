@@ -168,9 +168,14 @@ class DoublePinnedPanelMenuItem : public PinnedPanelMenuItem {
 
 class SeparatorMenuItem : virtual public MenuItem {
     public:
+        bool draw_lines = true;
+        int textSize = 0;
         //int16_t colour = C_WHITE;
-        SeparatorMenuItem(const char *label) : MenuItem(label, false) {}
-        SeparatorMenuItem(const char *label, uint16_t default_fg) : SeparatorMenuItem(label) {
+        SeparatorMenuItem(const char *label, int textSize = 0, bool draw_lines = true) : MenuItem(label, false) {
+            this->textSize = textSize;
+            this->draw_lines = draw_lines;
+        }
+        SeparatorMenuItem(const char *label, uint16_t default_fg, int textSize = 0, bool draw_lines = true) : SeparatorMenuItem(label, textSize, draw_lines) {
             this->default_fg = default_fg;
         }
 

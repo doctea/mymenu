@@ -1,5 +1,4 @@
-#ifndef MENUITEMS_LAMBDA__INCLUDED
-#define MENUITEMS_LAMBDA__INCLUDED
+#pragma once
 
 #include "functional-vlpp.h"
 
@@ -411,5 +410,3 @@ class MultiToggleItemLambda : public MultiToggleItemBase {
         }
 };
 
-
-#endif

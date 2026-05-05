@@ -264,6 +264,18 @@ int Menu::display() {
         tft->setTextSize(0);
         /// finished drawing tabs
 
+        // draw pinned page header (column labels etc) if set
+        if (selected_page->header_text != nullptr) {
+            tft->setTextColor(C_WHITE, BLACK);
+            tft->setTextSize(selected_page->header_text_size);
+            tft->setCursor(0, y);
+            bool wasTextWrap = tft->isTextWrap();
+            tft->setTextWrap(false);
+            tft->println(selected_page->header_text);
+            tft->setTextWrap(wasTextWrap);
+            y = tft->getCursorY();
+        }
+
         // draw each menu item
         //int start_y = 0;
         //if (debug) { Serial.println("display()=> about to start drawing the items.."); Serial_flush(); }

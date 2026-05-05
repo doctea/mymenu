@@ -66,6 +66,8 @@ struct page_t {
     int num_panels = 0;
     LinkedList<MenuItem*> *items = nullptr;
     bool scrollable = true;
+    const char *header_text = nullptr;  // pinned column-header line shown below the tab bar
+    int header_text_size = 2;           // size of the header text
 };
 
 class Menu {
@@ -454,6 +456,13 @@ class Menu {
         }
 
         // FLASHMEM // void setup_menu() causes a section type conflict with int Menu::add_page(const char*, uint16_t)
+        void set_page_header(const char *text, int header_text_size = 2) {
+            if (selected_page) {
+                selected_page->header_text = text;
+                selected_page->header_text_size = header_text_size;
+            }
+        }
+
         int add_page(const char *title, uint16_t colour = C_WHITE, bool scrollable = true) {
             //Serial.printf("add_page(%s) has current size of %i\n", title, this->pages->size());
             return insert_page(title, this->pages->size()>0 ? this->pages->size() : 0, colour, scrollable);
