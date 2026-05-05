@@ -28,6 +28,32 @@ class SubMenuItemBar : public SubMenuItem {
     virtual int small_display(int index, int x, int y, int width_in_pixels, bool is_selected, bool is_opened, bool outer_selected);
 };
 
+class SubMenuItemBarCustomProportions : public SubMenuItemBar {
+    public:
+    float *number_columns_proportions; // array of proportions for each column, should add up to 1.0
+    int num_columns;
+    SubMenuItemBarCustomProportions(const char *label, int num_columns, bool show_sub_headers = true, bool show_header = true) : SubMenuItemBar(label, show_sub_headers, show_header) {
+        this->num_columns = num_columns;
+        this->number_columns_proportions = new float[num_columns];
+        for (int i = 0 ; i < num_columns ; i++) {
+            this->number_columns_proportions[i] = 1.0 / num_columns;
+        }
+    }
+
+    void set_column_proportion(uint8_t column_index, float proportion) {
+        if (column_index < num_columns) {
+            this->number_columns_proportions[column_index] = proportion;
+            // invalidate cached pixel width so it gets recalculated with new proportions
+            this->cached_pixel_width_per_item = 0;
+        }
+    }
+
+    virtual int get_max_pixel_width(int item_number) override {
+        // todo: cache these or calculate at set time, to avoid a bunch of float maths every render loop
+        return ((float)this->tft->width()) * this->number_columns_proportions[item_number]; 
+    }
+};
+
 
 // todo: probably move the column functionality into SubMenuItemBar to save bytes on duplicated logic
 class SubMenuItemColumns : public SubMenuItemBar {
