@@ -230,19 +230,29 @@ int Menu::display() {
             if (ci >= (int)pages->size())        // wrap around to start of list if we get to the end
                 ci = ci % pages->size();
 
+            page_t *page = pages->get(ci);
+            if (page==nullptr) {
+                Serial.printf("ERROR: page %i is nullptr!\n", ci);
+                continue;
+            }
+            if (page->title==nullptr) {
+                Serial.printf("ERROR: page %i has nullptr title!\n", ci);
+                continue;
+            }
+
             if ((int)i==selected_page_index && !is_page_opened())
-                tft->setTextColor(BLACK, pages->get(ci)->colour);
+                tft->setTextColor(BLACK, page->colour);
             else
-                tft->setTextColor(pages->get(ci)->colour, BLACK);
+                tft->setTextColor(page->colour, BLACK);
 
             int cursor_x = tft->getCursorX();
             //int characters_left = ((tft->width() - tft->getCursorX()) / tft->currentCharacterWidth()) - 1; // + (tft->characterWidth() * (strlen(pages->get(ci)->title)+1)));
             int characters_left = ((tft_width - cursor_x) / current_character_width) - 1;
             if (characters_left<2) {
                 break;
-            } else if (characters_left < (int)strlen(pages->get(ci)->title)+1) {
+            } else if (characters_left < (int)strlen(page->title)+1) {
                 char title[MENU_C_MAX];
-                strncpy(title, pages->get(ci)->title, characters_left);
+                strncpy(title, page->title, characters_left);
                 title[characters_left] = '\0';
                 title[characters_left-2] = '.';
                 title[characters_left-1] = '.';
@@ -251,7 +261,7 @@ int Menu::display() {
                 break;  // break if we'd go off the screen rendering this item TODO: draw the available characters
             }
 
-            tft->print(pages->get(ci)->title);
+            tft->print(page->title);
             tft->setTextColor(tft->rgb(196,196,196), BLACK);
             tft->print("|");
             tft->setTextColor(C_WHITE, BLACK);
