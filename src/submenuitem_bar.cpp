@@ -147,6 +147,8 @@ int SubMenuItemBar::small_display(int index, int x, int y, int width_in_pixels, 
     // actually render the item
     tft->setTextSize(0);
     const bool render_opened_inline = is_opened && !ctrl->wants_fullscreen_overlay_when_opened_in_bar();
+    if (render_opened_inline)
+        colours(is_opened, GREEN, this->default_bg);
     y = ctrl->renderValue((!this->show_sub_headers && outer_selected) || is_selected, render_opened_inline, max_display_width_characters); //width/width_in_chars);
 
     //if (this->debug) Serial.printf("\tend of small_display, returning y=%i\n", y);
