@@ -93,7 +93,7 @@ class CustomQuickPagesMenuItem : virtual public QuickPagesMenuItem {
         }
 
         virtual void add_page(page_t *p) {
-            for (uint_fast8_t i = 0 ; i < pages->size() ; i++) {
+            for (uint_fast16_t i = 0 ; i < pages->size() ; i++) {
                 if (pages->get(i)==p)   // already exists 
                     return;
             }
@@ -104,13 +104,13 @@ class CustomQuickPagesMenuItem : virtual public QuickPagesMenuItem {
             pos.y = header(label, pos, selected, opened);
             tft->setTextSize(2);
 
-            uint_fast8_t size = pages->size();
+            uint_fast16_t size = pages->size();
 
             if (selected_value_index<0 && size>0) {
                 selected_value_index = 0;
             }
-            for (uint_fast8_t i = 0 ; i < size ; i++) {
-                uint_fast8_t o = (i + selected_value_index) % size;
+            for (uint_fast16_t i = 0 ; i < size ; i++) {
+                uint_fast16_t o = (i + selected_value_index) % size;
 
                 pos.y = this->display_entry(o, opened);
                

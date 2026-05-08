@@ -497,7 +497,7 @@ class Menu {
             tft->start();
         }
 
-        static const int NUM_QUICK_PAGE_HISTORY = 10;
+        static const int NUM_QUICK_PAGE_HISTORY = 20;
         int quick_page_history_head = 0;
         int quick_page_history_total = 0;
         int quick_page_index = 0;
@@ -556,7 +556,7 @@ class Menu {
 
         // get the index of a page based on title string; returns -1 if not found
         int get_page_index_for_name(const char *title) {
-            for (unsigned int i = 0 ; i < pages->size() ; i++) 
+            for (uint_fast16_t i = 0 ; i < pages->size() ; i++) 
                 if (strcmp(pages->get(i)->title, title)==0)
                     return i;
             return -1;
@@ -761,11 +761,11 @@ class Menu {
                 pinned_panel->update_ticks(ticks);
 
             //Serial.printf("update_ticks %i...\n", ticks);
-            const uint_fast8_t pages_count = this->pages->size();
-            for (uint_fast8_t p = 0 ; p < pages_count ; p++) {
+            const uint_fast16_t pages_count = this->pages->size();
+            for (uint_fast16_t p = 0 ; p < pages_count ; p++) {
                 //Serial.printf("\tupdate_ticks for page %i...\n", p);
-                const uint_fast8_t items_count = this->pages->get(p)->items->size();
-                for (uint_fast8_t i = 0 ; i < items_count ; i++) {
+                const uint_fast16_t items_count = this->pages->get(p)->items->size();
+                for (uint_fast16_t i = 0 ; i < items_count ; i++) {
                     //Serial.printf("\t\tupdate_ticks for item %i...\n", i);
                     this->pages->get(p)->items->get(i)->update_ticks(ticks);
                 }

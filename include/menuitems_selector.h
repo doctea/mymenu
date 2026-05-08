@@ -127,8 +127,10 @@ class SelectorControl : public MenuItem {
             int textSize = tft->get_textsize_for_width(label, max_character_width * tft->characterWidth());
             tft->setTextSize(textSize);
             //tft->printf("%i:",textSize);
-            tft->printf((char*)label);
-            tft->setCursor(tft->getCursorX(), tft->getCursorY() + tft->getRowHeight());
+            bool original_wrap_status = tft->isTextWrap();
+            tft->setTextWrap(false);
+            tft->println((char*)label);
+            tft->setTextWrap(original_wrap_status);
 
             return tft->getCursorY();
         }

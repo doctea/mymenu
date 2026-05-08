@@ -124,9 +124,13 @@ int SubMenuItemBar::small_display(int index, int x, int y, int width_in_pixels, 
         //int textsize = tft->get_textsize_for_width(ctrl->label, get_max_pixel_width(index));
         int textSize = 0;
         tft->setTextSize(textSize);
+        bool was_wrap = tft->isTextWrap();
+        tft->setTextWrap(false);
         tft->printf(header_fmt, (char*)ctrl->get_label());
+        tft->setTextWrap(was_wrap);
 
-        y = tft->getCursorY();
+        if (x < tft->width())
+            y = tft->getCursorY();
         //y += tft->getRowHeight();
         //if (this->debug) Serial.printf("\t bottom of header is %i\n", y);
     }
