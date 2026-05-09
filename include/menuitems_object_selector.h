@@ -39,13 +39,13 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
     virtual int get_index_for_value(DataType value) {
         if (this->available_values == nullptr) return 0;
 
-        const unsigned int size = available_values->size();
-
-        for (unsigned int i = 0 ; i < size ; i++) {
-            if (available_values->get(i).value==value) {
-                //Serial.printf("get_index_for_value(%i) returning %i\n", value, i);
-                return i;
+        int idx = 0;
+        for (auto& entry : *available_values) {
+            if (entry.value==value) {
+                //Serial.printf("get_index_for_value(%i) returning %i\n", value, idx);
+                return idx;
             }
+            ++idx;
         }
         return -1;
     }

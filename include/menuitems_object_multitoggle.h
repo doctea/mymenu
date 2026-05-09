@@ -170,8 +170,8 @@ class ObjectMultiToggleControl : public MenuItem {
             //Serial.printf("so got width_per_item %i\n", width_per_item);
             //width_per_item = constrain(width_per_item, 1, tft->width()/FONT_WIDTH);
             
-            for (uint_fast8_t i = 0 ; i < (uint_fast8_t)items_size ; i++) {
-                MultiToggleItemBase *item = items.get(i);
+            uint_fast8_t i = 0;
+            for (auto* item : items) {
                 //Serial.printf("processing item %s\n", item->label);
 
                 // green or red according to whether underlying item is on or off, inverted if widget opened and item selected
@@ -203,6 +203,7 @@ class ObjectMultiToggleControl : public MenuItem {
                 x += (width_per_item * FONT_WIDTH); // move to the start of the next item along
                 pos.y = start_y; // reset cursor position ready to draw the next item
                 tft->setCursor(x, pos.y);
+                ++i;
             }
             
             return max_height_reached; //tft->getCursorY();
@@ -266,8 +267,8 @@ class ObjectMultiToggleControl : public MenuItem {
         virtual bool switch_all(bool on = true) {
             //all_status = !all_status;
             all_status = on;
-            for (unsigned int i = 0 ; i < items.size() ; i++) {
-                items.get(i)->do_setter(all_status);
+            for (auto* item : items) {
+                item->do_setter(all_status);
             }
             static char tmp[MENU_C_MAX];
             snprintf(tmp, MENU_C_MAX, "Toggled all %s to %s", this->label, all_status?label_on:label_off);
@@ -332,17 +333,8 @@ class ObjectMultiToggleColumnControl : public ObjectMultiToggleControl {
 
             start_y = tft->getCursorY();
 
-            for (uint_fast8_t i = 0 ; i < (uint_fast8_t)items_size ; i++) {
-                MultiToggleItemBase *item = items.get(i);
-                // move to next column if we need to
-                // if (i == items_per_column) {
-                //     if (tft->getCursorY()>(int)max_height_reached)                
-                //         max_height_reached = tft->getCursorY(); // remember how far down the screen we've drawn
-
-                //     tft->setCursor(width_per_item, start_y);
-                // } else if (i > items_per_column) {
-                //     tft->setCursor(tft->width()/num_columns, pos.y);
-                // }
+            uint_fast8_t i = 0;
+            for (auto* item : items) {
                 int column_number = i / items_per_column;
                 tft->setCursor(
                     column_number * width_per_item, 
@@ -362,6 +354,7 @@ class ObjectMultiToggleColumnControl : public ObjectMultiToggleControl {
                 //tft->println();
 
                 pos.y = tft->getCursorY();
+                ++i;
             }
             
             return max_height_reached; //tft->getCursorY();

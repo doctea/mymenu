@@ -275,22 +275,23 @@ class Menu {
             if (this->selected_page==nullptr || this->selected_page->items==nullptr)
                 return;
             //this->select_next_selectable_item();
-            const unsigned int size = this->selected_page->items->size();
-            if (size==0)
+            if (this->selected_page->items->size()==0)
                 return;
-            for (unsigned int i = 0 ; i < size ; i++) {
-                if (this->selected_page->items->get(i)->is_selectable()) {
-                    //if (Serial) Serial.printf("select_first_selectable_item on page %s found a selectable item at %i!\n", selected_page->title, i);
-                    selected_page->currently_selected = i;
+            int idx = 0;
+            for (auto* item : *selected_page->items) {
+                if (item->is_selectable()) {
+                    //if (Serial) Serial.printf("select_first_selectable_item on page %s found a selectable item at %i!\n", selected_page->title, idx);
+                    selected_page->currently_selected = idx;
                     if (this->selected_page->items->size()==1) {
-                        //if (Serial) Serial.printf("found only one item, so opening it too!\n", selected_page->title, i);
+                        //if (Serial) Serial.printf("found only one item, so opening it too!\n", selected_page->title, idx);
                         //selected_page->currently_opened = selected_page->currently_selected;
-                        if (selected_page->items->get(i)->is_openable()) {
+                        if (item->is_openable()) {
                             button_select(); button_select_released();
                         }
                     }
                     return;
                 }
+                ++idx;
             }
             //if (Serial) Serial.println("select_first_selectable_item didn't find anything to select!");
         }
@@ -556,9 +557,12 @@ class Menu {
 
         // get the index of a page based on title string; returns -1 if not found
         int get_page_index_for_name(const char *title) {
-            for (uint_fast16_t i = 0 ; i < pages->size() ; i++) 
-                if (strcmp(pages->get(i)->title, title)==0)
-                    return i;
+            int idx = 0;
+            for (auto* page : *pages) {
+                if (strcmp(page->title, title)==0)
+                    return idx;
+                ++idx;
+            }
             return -1;
         }
         int get_number_pages() {
@@ -653,23 +657,17 @@ class Menu {
                 if (Serial) Serial.println("WARNING: nullptr list passed to menu#add, skipping!");
                 return;
             }
-            //Serial.printf("passed items @%p\n", items);
-            //Serial.printf("got items of size %i\n", items->size()); Serial.flush();
-            for (unsigned int i = 0 ; i < items->size() ; i++) {
-                if (items->get(i)==nullptr) {
-                    //Serial.printf("skipping %i because its nullptr\n", i);
+            for (auto* item : *items) {
+                if (item==nullptr) {
+                    //Serial.printf("skipping because its nullptr\n");
                     continue;
                 }
-                //items->get(i)->set_default_colours(default_fg_colour, BLACK);
-                //Serial.printf("setting default_fg_colour %04X on %s\n", default_fg_colour, items->get(i)->label);
-                //Serial.printf("adding item %i of %i..\n", i+1, items->size()); Serial.flush();
-                this->add(items->get(i), default_fg_colour);
-                //Serial.printf("added item %i of %i.\n", i+1, items->size()); Serial.flush();
+                //item->set_default_colours(default_fg_colour, BLACK);
+                //Serial.printf("setting default_fg_colour %04X on %s\n", default_fg_colour, item->label);
+                this->add(item, default_fg_colour);
             }
-            //Serial.printf("deleting items?"); Serial.flush();
             items->clear(); 
             delete items;
-            //Serial.printf("deleted items!"); Serial.flush();
         }
         /*#ifndef GDB_DEBUG
         FLASHMEM 
@@ -761,13 +759,9 @@ class Menu {
                 pinned_panel->update_ticks(ticks);
 
             //Serial.printf("update_ticks %i...\n", ticks);
-            const uint_fast16_t pages_count = this->pages->size();
-            for (uint_fast16_t p = 0 ; p < pages_count ; p++) {
-                //Serial.printf("\tupdate_ticks for page %i...\n", p);
-                const uint_fast16_t items_count = this->pages->get(p)->items->size();
-                for (uint_fast16_t i = 0 ; i < items_count ; i++) {
-                    //Serial.printf("\t\tupdate_ticks for item %i...\n", i);
-                    this->pages->get(p)->items->get(i)->update_ticks(ticks);
+            for (auto* page : *this->pages) {
+                for (auto* item : *page->items) {
+                    item->update_ticks(ticks);
                 }
             }
             //Serial.printf("updated_ticks %i\n", ticks);

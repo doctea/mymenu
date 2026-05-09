@@ -37,13 +37,12 @@ class ListViewerMenuItem : public MenuItem {
         pos.y = this->render_list_header(pos);
 
         if (list_contents->size()>0) {
-            unsigned int i = 0;
-            for (i = start_line ; i < start_line + height_lines && i < list_contents->size() ; i++) {
-                /*char buffer[MENU_C_MAX] = "";
-                sprintf(buffer, "%-3i: %s", i, file_contents->get(i).c_str());
-                tft->println(buffer);*/
+            unsigned int i = start_line;
+            auto it = list_contents->begin();
+            for (unsigned int s = 0; s < start_line && it != list_contents->end(); ++s, ++it) {}
+            for (; it != list_contents->end() && i < start_line + height_lines; ++it, ++i) {
                 tft->printf("%-3i: ", i+1);
-                tft->println(list_contents->get(i).c_str());
+                tft->println((*it).c_str());
             }
             if (i < height_lines && list_contents->size() > height_lines)
                 tft->println("...more...");

@@ -93,8 +93,8 @@ class CustomQuickPagesMenuItem : virtual public QuickPagesMenuItem {
         }
 
         virtual void add_page(page_t *p) {
-            for (uint_fast16_t i = 0 ; i < pages->size() ; i++) {
-                if (pages->get(i)==p)   // already exists 
+            for (auto* page : *pages) {
+                if (page==p)   // already exists 
                     return;
             }
             pages->add(p);

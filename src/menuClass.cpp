@@ -225,6 +225,8 @@ int Menu::display() {
         const int current_character_width = tft->currentCharacterWidth();
 
         /////// draw tabs for the pages
+        // NOTE: left as index-based loop — starts at selected_page_index and wraps with modulo,
+        // so requires random-access get(ci) to compute the wrapped display index each iteration.
         for (unsigned int i = selected_page_index ; i < pages->size() + selected_page_index ; i++) {
             int ci = i;
             if (ci >= (int)pages->size())        // wrap around to start of list if we get to the end
@@ -290,9 +292,11 @@ int Menu::display() {
         //int start_y = 0;
         //if (debug) { Serial.println("display()=> about to start drawing the items.."); Serial_flush(); }
         const uint_fast16_t size = items->size();
-        for (uint_fast16_t i = start_panel ; i < size ; i++) {
+        auto it = items->begin();
+        for (uint_fast16_t s = 0; s < start_panel && it != items->end(); ++s, ++it) {}
+        for (uint_fast16_t i = start_panel; it != items->end(); ++it, ++i) {
             //if (debug) { Serial.printf("display()=> about to get item %i\n", i); Serial_flush(); }
-            MenuItem *item = items->get(i);
+            MenuItem *item = *it;
             /*if(item->label[0]=='T')
                 delay(5000);*/
 

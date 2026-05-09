@@ -66,24 +66,24 @@ class SubMenuItem : public MenuItem {
             }
         }
         virtual void add(LinkedList<MenuItem*> *items) {
-            for (unsigned int i = 0 ; i < items->size() ; i++) {
-                this->add(items->get(i));
+            for (auto* item : *items) {
+                this->add(item);
             }
             items->clear();
             delete items;
         }
 
         virtual void on_add() override {
-            for (unsigned int i = 0 ; i < this->items->size() ; i++) {
-                this->items->get(i)->set_tft(this->tft);
-                this->items->get(i)->on_add();
-                this->items->get(i)->set_default_colours(this->default_fg, this->default_bg); // inherit colours .. but breaks when we set custom colours eg in ParameterAmountControls..
+            for (auto* item : *this->items) {
+                item->set_tft(this->tft);
+                item->on_add();
+                item->set_default_colours(this->default_fg, this->default_bg); // inherit colours .. but breaks when we set custom colours eg in ParameterAmountControls..
             }
         }
 
         virtual void update_ticks(unsigned long ticks) override {
-            for (unsigned int i = 0 ; i < items->size() ; i++) {
-                items->get(i)->update_ticks(ticks);
+            for (auto* item : *items) {
+                item->update_ticks(ticks);
             }
         }
 
@@ -123,17 +123,19 @@ class SubMenuItem : public MenuItem {
                 //colours(false, C_WHITE, BLACK);
                 //Serial.println("submenuitem#display opened or always_show"); Serial.flush();            
 
-                for (unsigned int i = start_item ; i < this->items->size() ; i++) {
+                auto it = items->begin();
+                for (int s = 0; s < start_item && it != items->end(); ++s, ++it) {}
+                for (int i = start_item; it != items->end(); ++it, ++i) {
                     if (this->debug) { Serial.printf("submenuitem#display rendering item %i..\n", i); Serial.flush(); }
                     y = tft->getCursorY();
 
                     tft->setTextColor(this->default_fg, this->default_bg);
                     pos.x = 0; pos.y = tft->getCursorY();
-                    MenuItem *item = items->get(i);
+                    MenuItem *item = *it;
                     //Serial.printf("got item %i: %s\n", i, item->label); Serial.flush();
                     //Serial.printf("submenuitem#display about to call display on item %i..\n", i); Serial.flush();            
                     y = item->display(
-                        pos, (int)i==this->currently_selected, (int)i==this->currently_opened
+                        pos, i==this->currently_selected, i==this->currently_opened
                     );
                     //Serial.printf("submenuitem#display finished display on item %i\n", i); Serial.flush();            
                     tft->setTextColor(this->default_fg, this->default_bg);
@@ -287,7 +289,8 @@ class SubMenuItem : public MenuItem {
                 //tft->clear();
                 //colours(false, C_WHITE, BLACK);
                 int count = 0;
-                for (int i = start_item ; i < (int)this->items->size() ; i++) {
+                int i = start_item;
+                for (auto* sub_item : *this->items) {
                     pos.x = width_per_item * count;
                     pos.y = start_y;
 
@@ -296,24 +299,25 @@ class SubMenuItem : public MenuItem {
                     tft->setCursor(pos.x, pos.y+1);
                     colours((!opened && selected) || (opened && i==this->currently_selected), this->default_fg, this->default_bg);
                     //tft->setTextSize(0);
-                    int textSize = tft->get_textsize_for_width(this->items->get(i)->label, tft->width()/2);
+                    int textSize = tft->get_textsize_for_width(sub_item->label, tft->width()/2);
                     tft->setTextSize(textSize);
-                    tft->println(this->items->get(i)->label);
+                    tft->println(sub_item->label);
                     colours(false);
                     pos.y = tft->getCursorY();  // set position to just under the fake header
 
-                    //if (this->debug) Serial.printf("%i: Drawing %s\tat\t%i,%i\t selected=%s\t and opened=%s\n", count, items->get(i)->label, pos.x, pos.y, i==this->currently_selected?"true":"false", i==this->currently_opened?"true":"false");
-                    y = this->items->get(i)->display(
+                    //if (this->debug) Serial.printf("%i: Drawing %s\tat\t%i,%i\t selected=%s\t and opened=%s\n", count, sub_item->label, pos.x, pos.y, i==this->currently_selected?"true":"false", i==this->currently_opened?"true":"false");
+                    y = sub_item->display(
                         pos, ((int)i)==this->currently_selected, i==this->currently_opened
                     );
                     if (y>highest_y) {
-                        //if (this->debug) Serial.printf("count %i: Subitem %s\t%i has x,y of\t%i,%i, higher than previous record\t%i (with is %i)\n", count, this->items->get(i)->label, i, pos.x, y, highest_y, width_per_item);
+                        //if (this->debug) Serial.printf("count %i: Subitem %s\t%i has x,y of\t%i,%i, higher than previous record\t%i (with is %i)\n", count, sub_item->label, i, pos.x, y, highest_y, width_per_item);
                         highest_y = y;
                     }
                     //this->tft->setTextColor(C_WHITE, BLACK);
                     y = this->tft->getCursorY();
                     
                     count++;
+                    ++i;
                 }
                 // blank to bottom of screen
                 if (!always_show && y < tft->height()) {
