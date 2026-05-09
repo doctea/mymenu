@@ -146,6 +146,7 @@ class Menu {
             this->tft = dt;
             this->pages = new LinkedList<page_t*>();
             this->select_page(this->add_page("Main"));
+            this->remember_opened_page(-1, true);
             this->screen_height_cutoff = (int)(0.75f*(float)tft->height());
 
             //this->button_mode_rise_on_click = button_mode_rise_on_click;
@@ -502,27 +503,40 @@ class Menu {
         int quick_page_history_head = 0;
         int quick_page_history_total = 0;
         int quick_page_index = 0;
-        int quick_pages[NUM_QUICK_PAGE_HISTORY] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+        struct quick_page_entry_t {
+            int16_t page_index = -1;
+            bool permanent = false;
+        };
+        quick_page_entry_t quick_pages[NUM_QUICK_PAGE_HISTORY];
         int all_page_index = 0;
         // add the page index to the 'visited history'
-        void remember_opened_page(int page_index = -1) {
+        void remember_opened_page(int page_index = -1, bool permanently = false) {
             if (page_index==-1)
                 page_index = selected_page_index;
             // don't store qjump page itself..
             if (page_index==quick_page_index) 
                 return;
 
-            // don't add this item if it already exists
+            // don't add this item again if it already exists
             for (int i = 0 ; i < NUM_QUICK_PAGE_HISTORY ; i++) {    
-                if (this->quick_pages[i]==page_index)
+                if (this->quick_pages[i].page_index==page_index)
                     return;
             }
 
             // add the page to the rolling history
-            this->quick_pages[this->quick_page_history_head] = page_index;
+            // find the next non-permanent entry to overwrite, starting with the current head position
+            int overwrite_index = quick_page_history_head;
+            for (int i = 0 ; i < NUM_QUICK_PAGE_HISTORY ; i++) {
+                if (!this->quick_pages[overwrite_index].permanent) {
+                    break;
+                }
+                overwrite_index = (overwrite_index + 1) % NUM_QUICK_PAGE_HISTORY;
+            }
+            this->quick_pages[overwrite_index].page_index = page_index;
+            this->quick_pages[overwrite_index].permanent = permanently;
 
             // wrap history where necessary
-            quick_page_history_head++;
+            quick_page_history_head = overwrite_index + 1;
             if (quick_page_history_head >= NUM_QUICK_PAGE_HISTORY)
                 quick_page_history_head = 0;
 
@@ -536,9 +550,9 @@ class Menu {
         }
 
         page_t *get_quick_page(unsigned int page_index) {
-            if (quick_pages[page_index]==-1)
+            if (quick_pages[page_index].page_index==-1)
                 return nullptr;
-            return get_page(quick_pages[page_index]);
+            return get_page(quick_pages[page_index].page_index);
         }
         void setup_quickjump();
         void select_page_quickjump() {

@@ -59,7 +59,7 @@ class QuickPagesMenuItem : public MenuItem {
             if (selected_value_index<0)
                 return false;
             if (Serial && this->debug) Serial.printf("button_select for value %i (%i, %s)\n", selected_value_index, menu->quick_pages[selected_value_index], menu->get_quick_page(selected_value_index)->title);
-            menu->open_page(menu->quick_pages[selected_value_index]);
+            menu->open_page(menu->quick_pages[selected_value_index].page_index);
             return false;
         }
 
