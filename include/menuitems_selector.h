@@ -17,6 +17,7 @@ class SelectorControl : public MenuItem {
         int_least16_t actual_value_index = -1;
 
         virtual void setter (DataType new_value) {
+            // Serial.printf("SelectorControl::setter() called with new_value=%i\n", (int)new_value);
             if (f_setter!=nullptr)
                 this->f_setter(new_value);
         }
@@ -62,7 +63,7 @@ class SelectorControl : public MenuItem {
 
         // classic fixed display version
         virtual int display(Coord pos, bool selected, bool opened) override {
-            pos.y = header(label, pos, selected, opened);
+            pos.y = header(this->get_label(), pos, selected, opened);
             //tft->setTextSize(2);
 
             DataType current_value = this->getter(); //f_getter!=nullptr ? this->f_getter() : available_values[this->selected_value_index];
@@ -70,6 +71,16 @@ class SelectorControl : public MenuItem {
             for (int i = 0 ; i < get_num_values() ; i++) {
                 //bool is_current_value_selected = selected_value_index==i; //available_values[i]==currentValue;
                 bool is_current_value_selected = get_value_for_index(i)==current_value; //getter();
+                // Serial.printf(
+                //     "%s: displaying value %i at index %i, which is %sselected - current_value=%i, get_value_for_index(%i)=%i\n", 
+                //     this->get_label(), 
+                //     (int)get_value_for_index(i), 
+                //     i, 
+                //     is_current_value_selected ? "" : "not ",
+                //     (int)current_value,
+                //     i,
+                //     (int)get_value_for_index(i)
+                // );
                 int col = is_current_value_selected ? GREEN : C_WHITE;
                 colours(opened && selected_value_index==(int)i, col, BLACK);
 
@@ -186,8 +197,9 @@ class SelectorControl : public MenuItem {
         virtual bool button_select() override {
             //Serial.printf("button_select with selected_value_index %i\n", selected_value_index);
             //Serial.printf("that is available_values[%i] of %i\n", selected_value_index, available_values[selected_value_index]);
-            if (this->f_setter!=nullptr)
-                this->f_setter(get_value_for_index(selected_value_index));
+            // if (this->f_setter!=nullptr)
+            //     this->f_setter(get_value_for_index(selected_value_index));
+            this->setter(get_value_for_index(selected_value_index));
 
             char msg[MENU_MESSAGE_MAX];
             //Serial.printf("about to build msg string...\n");
