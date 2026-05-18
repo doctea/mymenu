@@ -89,6 +89,8 @@ int Menu::display() {
     LinkedList<MenuItem*> *items = selected_page->items;
     //if (debug) { Serial.printf("currently_opened = %i/%i, currently_selected = %i/%i..\n", currently_opened+1, selected_page->items->size(), currently_selected+1, selected_page->items->size()); Serial_flush(); }
 
+    tft->clear();
+
     // now draw the menu
     //if (debug) { Serial.println("display()=> about to check display mode and branch.."); Serial_flush(); }
     if (is_item_opened() && items->get(currently_opened)->allow_takeover()) {
@@ -108,8 +110,8 @@ int Menu::display() {
         //if (debug) { Serial.println("display()=> DISPLAY_ONE branch"); Serial_flush(); }
         // for screens that can only display one option at a time
         static int last_displayed = 0;
-        if (last_displayed!=currently_selected)
-            tft->clear();
+        // if (last_displayed!=currently_selected)
+        //     tft->clear();
         tft->setCursor(0, y);
 
         y = display_pinned();
@@ -182,12 +184,12 @@ int Menu::display() {
             #endif
 
             //tft.fillWindow(ST77XX_BLACK);
-            tft->clear();
+            // tft->clear();
             //tft->fillRect(0, 0, tft->width(), tft->height(), BLACK);
             start_panel = constrain(start_panel, 0, (int)items->size()-1);
         } else {
             start_panel = 0;
-            tft->clear();
+            // tft->clear();
             //tft->fillRect(0, 0, tft->width(), tft->height(), BLACK);
         }
         //if (panel_bottom[currently_selected] >= tft->height()/2)
@@ -201,9 +203,9 @@ int Menu::display() {
         #endif
 
         static int last_start_panel = -1;
-        if (last_start_panel!=start_panel) {
-            tft->clear(true);
-        }
+        // if (last_start_panel!=start_panel) {
+        //     tft->clear(true);
+        // }
         last_start_panel = start_panel;
 
         tft->setCursor(0,y);

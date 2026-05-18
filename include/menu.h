@@ -417,7 +417,7 @@ class Menu {
             } else {
                 Debug_printf("back with currently_opened menuitem %i, handled by selected\n", selected_page->currently_opened); //setting to -1\n", currently_opened);
             }
-            tft->clear(true);   // TOOD: don't rely on this
+            // tft->clear(true);   // TODO: don't rely on this
             return true;
         }
         bool button_back_longpress() {

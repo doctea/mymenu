@@ -94,10 +94,10 @@ class SubMenuItem : public MenuItem {
             //static int previously_opened = -2;
             //static bool previously_opened = false;
 
-            if (currently_selected!=previously_selected || needs_redraw) {
-                //Serial.println("SubMenuItem#display: tft->clear ");
-                this->tft->clear();
-            }
+            // if (currently_selected!=previously_selected || needs_redraw) {
+            //     //Serial.println("SubMenuItem#display: tft->clear ");
+            //     this->tft->clear();
+            // }
             previously_selected = currently_selected;
             //previously_opened = opened;
             //if (currently_opened!=previously_opened || needs_redraw || (opened!=previously_opened)) {
