@@ -206,14 +206,15 @@ class LambdaActionItem : public MenuItem {
             this->setter_func = setter_func;
             this->has_setter = true;
         }*/
-    LambdaActionItem(const char *label, setter_2_def setter_func_2) : 
+    LambdaActionItem(const char *label, setter_2_def setter_func_2, bool suppress_fired_message = false) : 
         MenuItem(label) {
             this->setter_func_2 = setter_func_2;
             this->has_setter_2 = true;
+            this->suppress_fired_message = suppress_fired_message;
         }
 
-    LambdaActionItem(const char *label, setter_2_def setter_func_2, getter_def getter_func, const char *button_label_true, const char *button_label_false = nullptr) 
-        : LambdaActionItem(label, setter_func_2) {
+    LambdaActionItem(const char *label, setter_2_def setter_func_2, getter_def getter_func, const char *button_label_true, const char *button_label_false = nullptr, bool suppress_fired_message = false) 
+        : LambdaActionItem(label, setter_func_2, suppress_fired_message) {
         this->getter_func = getter_func;
         this->has_getter = true;
 
@@ -290,8 +291,9 @@ class LambdaActionConfirmItem : public LambdaActionItem {
 
     LambdaActionConfirmItem(
         const char *label, 
-        setter_2_def setter_func_2
-    ) : LambdaActionItem(label, setter_func_2) {
+        setter_2_def setter_func_2,
+        bool suppress_fired_message = false
+    ) : LambdaActionItem(label, setter_func_2, suppress_fired_message) {
         this->go_back_on_select = true;
     };
 
