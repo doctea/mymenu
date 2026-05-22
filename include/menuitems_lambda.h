@@ -197,6 +197,9 @@ class LambdaActionItem : public MenuItem {
     setter_2_def setter_func_2;
     getter_def getter_func;
     bool has_getter = false, has_setter = false, has_setter_2 = false;
+    // When true, the lambda can call menu_set_last_message itself and the
+    // default "Fired: <label>" message will not overwrite it.
+    bool suppress_fired_message = false;
 
     /*LambdaActionItem(const char *label, vl::Func<void(bool)> setter_func) : 
         MenuItem(label) {
@@ -267,12 +270,11 @@ class LambdaActionItem : public MenuItem {
         //Serial.println(F("LambdaActionItem#action_opened"));
         this->on_open();
 
-        char msg[MENU_MESSAGE_MAX];
-        //Serial.printf("about to build msg string...\n");
-        snprintf(msg, MENU_MESSAGE_MAX, fired_message, label);
-        //Serial.printf("about to set_last_message!");
-        //msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
-        menu_set_last_message(msg,GREEN);
+        if (!suppress_fired_message) {
+            char msg[MENU_MESSAGE_MAX];
+            snprintf(msg, MENU_MESSAGE_MAX, fired_message, label);
+            menu_set_last_message(msg,GREEN);
+        }
 
         return false;   // don't 'open'
     }
@@ -325,12 +327,11 @@ class LambdaActionConfirmItem : public LambdaActionItem {
 
         this->on_open();
 
-        char msg[MENU_MESSAGE_MAX];
-        //Serial.printf("about to build msg string...\n");
-        snprintf(msg, MENU_MESSAGE_MAX, fired_message, this->label);
-        //Serial.printf("about to set_last_message!");
-        //msg[this->tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
-        menu_set_last_message(msg,GREEN);
+        if (!suppress_fired_message) {
+            char msg[MENU_MESSAGE_MAX];
+            snprintf(msg, MENU_MESSAGE_MAX, fired_message, this->label);
+            menu_set_last_message(msg,GREEN);
+        }
 
         return this->go_back_on_select;    // return to menu
     }

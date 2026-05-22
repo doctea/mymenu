@@ -99,7 +99,7 @@ int Menu::display() {
         tft->setCursor(0, y);
 
         y = display_pinned();
-        //y = draw_message();
+        y = draw_message();
         // let the currently opened item take care of drawing all of the display
         //Serial.println("allow_takeover!");
         //if (debug) { Serial.printf("display()=> doing display of item %i\n", currently_opened); Serial_flush(); }

@@ -13,14 +13,16 @@
 class SubMenuItem : public MenuItem {
     public:
         bool always_show = false;       // whether to hide items until menu is opened or not
+        bool scrollable = true;           // whether to scroll to keep currently_selected in view
         int currently_selected = -1;
         int currently_opened = -1;
         LinkedList<MenuItem*> *items = nullptr; // = LinkedList<MenuItem*>();
 
-        SubMenuItem(const char *label, bool show_header = true) : MenuItem(label) {
+        SubMenuItem(const char *label, bool show_header = true, bool scrollable = true) : MenuItem(label) {
             this->items = new LinkedList<MenuItem*>();
             go_back_on_select = true;
             this->show_header = show_header;
+            this->scrollable = scrollable;
         }
         // always_show argument determines whether to show items even when menu isn't opened
         /*SubMenuItem(const char *label, bool show_sub_headers = true) : SubMenuItem(label, show_sub_headers) {
@@ -115,7 +117,9 @@ class SubMenuItem : public MenuItem {
                 return this->items->get(currently_selected)->display(Coord(0,y), true, true);
 
             //int start_item = currently_selected>=0 ? currently_selected : 0;
-            int start_item = constrain(currently_selected-2, 0, (int)this->items->size()-1);
+            int start_item = scrollable
+                ? constrain(currently_selected-2, 0, (int)this->items->size()-1)
+                : 0;
 
             if (opened || this->always_show) {
                 //if (this->debug) { Serial.printf("submenuitem#display()=> doing opened/always_show display\n", currently_opened); Serial_flush();}
