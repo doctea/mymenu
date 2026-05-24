@@ -32,6 +32,7 @@ class SubMenuItem : public MenuItem {
         virtual bool allow_takeover() override {
             return this->always_show==false;
         }
+
         virtual bool action_opened() override {
             //debug_flag = true;
             //this->debug = true;
