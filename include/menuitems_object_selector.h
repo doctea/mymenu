@@ -11,7 +11,7 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
         const char *label;
     };
 
-    LinkedList<option> *available_values = nullptr; //new LinkedList<option>();
+    OptionList<option> *available_values = nullptr;
 
     ObjectSelectorControl(
         const char* label, 
@@ -143,9 +143,9 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
         if (this->debug) { Serial.println(F("Done.")); Serial_flush(); }
     }
 
-    virtual LinkedList<option> *setup_available_values() {
+    virtual OptionList<option> *setup_available_values() {
         if (this->available_values==nullptr)
-            this->available_values = new LinkedList<option>();
+            this->available_values = new OptionList<option>();
         return this->available_values;
     }
 
@@ -159,12 +159,12 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
         this->maximumDataValue = (DataType)(available_values->size() - 1);
     }
 
-    virtual LinkedList<option> *get_available_values() {
+    virtual OptionList<option> *get_available_values() {
         if (this->available_values==nullptr)
             this->setup_available_values();
         return this->available_values;
     }
-    virtual void set_available_values(LinkedList<option> *available_values) {
+    virtual void set_available_values(OptionList<option> *available_values) {
         this->available_values = available_values;
         if (available_values!=nullptr) {
             this->maximumDataValue = available_values->size() - 1;

@@ -32,6 +32,44 @@ class Coord {
 
 void menu_set_last_message(const char *msg, int colour);
 
+// Lightweight flat-array list to replace LinkedList<option> in selector controls.
+// Eliminates per-entry malloc overhead (LinkedList paid 8-byte alloc overhead per 8-byte option node).
+template<typename T>
+class OptionList {
+    T* _items = nullptr;
+    uint16_t _count = 0;
+    uint16_t _capacity = 0;
+
+    void grow() {
+        uint16_t new_cap = (_capacity == 0) ? 8 : (_capacity + 8);
+        T* new_items = (T*)realloc(_items, new_cap * sizeof(T));
+        if (new_items == nullptr) return;
+        _items = new_items;
+        _capacity = new_cap;
+    }
+
+public:
+    OptionList() = default;
+    ~OptionList() { free(_items); }
+    OptionList(const OptionList&) = delete;
+    OptionList& operator=(const OptionList&) = delete;
+
+    void add(T item) {
+        if (_count >= _capacity) grow();
+        if (_count < _capacity) _items[_count++] = item;
+    }
+    T& get(int idx) { return _items[idx]; }
+    const T& get(int idx) const { return _items[idx]; }
+    uint16_t size() const { return _count; }
+    bool empty() const { return _count == 0; }
+    void clear() { _count = 0; }
+
+    T* begin() { return _items; }
+    T* end()   { return _items + _count; }
+    const T* begin() const { return _items; }
+    const T* end()   const { return _items + _count; }
+};
+
 // basic line
 class MenuItem {
     public:
