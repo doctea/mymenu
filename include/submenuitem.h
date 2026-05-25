@@ -16,10 +16,10 @@ class SubMenuItem : public MenuItem {
         bool scrollable = true;           // whether to scroll to keep currently_selected in view
         int currently_selected = -1;
         int currently_opened = -1;
-        LinkedList<MenuItem*> *items = nullptr; // = LinkedList<MenuItem*>();
+        MenuItemList *items = nullptr;
 
         SubMenuItem(const char *label, bool show_header = true, bool scrollable = true) : MenuItem(label) {
-            this->items = new LinkedList<MenuItem*>();
+            this->items = new MenuItemList();
             go_back_on_select = true;
             this->show_header = show_header;
             this->scrollable = scrollable;

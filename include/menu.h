@@ -59,6 +59,64 @@
 // todo: add some kind of page grouping system to allow for like 'Output' pages and 'Pattern' pages and 'CV' pages etc, and then show the group name in the header of each page; maybe also add a 'grouped page index' menu item that shows all pages grouped by their group, to make it easier to find things when there are lots of pages
 // eg a page_group_t struct 
 
+// Lightweight flat-array list for MenuItem pointers.
+// Replaces LinkedList<MenuItem*> for page and SubMenuItem item storage.
+// Saves ~12 bytes per item (vs 8-byte ListNode + 8-byte malloc overhead for a 4-byte pointer).
+class MenuItemList {
+    MenuItem** _items = nullptr;
+    uint16_t _count = 0;
+    uint16_t _capacity = 0;
+
+    void grow() {
+        uint16_t new_cap = (_capacity == 0) ? 8 : (_capacity + 8);
+        MenuItem** new_items = (MenuItem**)realloc(_items, new_cap * sizeof(MenuItem*));
+        if (new_items == nullptr) return; // OOM - item will not be added
+        _items = new_items;
+        _capacity = new_cap;
+    }
+
+public:
+    MenuItemList() = default;
+    ~MenuItemList() { free(_items); }
+
+    MenuItemList(const MenuItemList&) = delete;
+    MenuItemList& operator=(const MenuItemList&) = delete;
+
+    void add(MenuItem* m) {
+        if (_count >= _capacity) grow();
+        if (_count < _capacity)
+            _items[_count++] = m;
+    }
+
+    MenuItem* get(int idx) const {
+        if (idx < 0 || idx >= (int)_count) return nullptr;
+        return _items[idx];
+    }
+
+    uint16_t size() const { return _count; }
+    bool empty() const { return _count == 0; }
+
+    void clear() { _count = 0; }
+
+    // Release unused capacity after all items have been added
+    void shrink_to_fit() {
+        if (_capacity > _count) {
+            if (_count == 0) {
+                free(_items); _items = nullptr; _capacity = 0;
+            } else {
+                MenuItem** new_items = (MenuItem**)realloc(_items, _count * sizeof(MenuItem*));
+                if (new_items != nullptr) { _items = new_items; _capacity = _count; }
+            }
+        }
+    }
+
+    // Iterator support — begin()/end() return MenuItem** so range-based for yields MenuItem*
+    MenuItem** begin() { return _items; }
+    MenuItem** end()   { return _items + _count; }
+    const MenuItem** begin() const { return (const MenuItem**)_items; }
+    const MenuItem** end()   const { return (const MenuItem**)_items + _count; }
+};
+
 struct page_t {
     const char *title = "Default"; //[MAX_PAGE_TITLE];
     uint16_t colour = C_WHITE;
@@ -66,7 +124,7 @@ struct page_t {
     int currently_opened = -1;
     int *panel_bottom = nullptr;
     int num_panels = 0;
-    LinkedList<MenuItem*> *items = nullptr;
+    MenuItemList *items = nullptr;
     bool scrollable = true;
     const char *header_text = nullptr;  // pinned column-header line shown below the tab bar
     int header_text_size = 2;           // size of the header text
@@ -485,7 +543,7 @@ class Menu {
             this->pages->add(position, p);
 
             this->select_page(position);
-            selected_page->items = new LinkedList<MenuItem*>();
+            selected_page->items = new MenuItemList();
             return position;
         }
 

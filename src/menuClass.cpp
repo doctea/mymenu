@@ -86,7 +86,7 @@ int Menu::display() {
     int currently_opened = selected_page->currently_opened;
     int currently_selected = selected_page->currently_selected;
     //if (debug) { Serial.printf("display()=> about to get the selected_page items.. "); Serial_flush(); }
-    LinkedList<MenuItem*> *items = selected_page->items;
+    MenuItemList *items = selected_page->items;
     //if (debug) { Serial.printf("currently_opened = %i/%i, currently_selected = %i/%i..\n", currently_opened+1, selected_page->items->size(), currently_selected+1, selected_page->items->size()); Serial_flush(); }
 
     tft->clear();
