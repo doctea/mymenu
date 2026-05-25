@@ -26,6 +26,17 @@ uint_fast16_t SubMenuItemBar::get_max_character_width(int item_number) {
 }
 
 int SubMenuItemBar::display(Coord pos, bool selected, bool opened) {
+    // If an opened child requests full takeover (e.g. a nested SubMenuItem),
+    // delegate display entirely to it — the bar itself is not rendered.
+    // This is distinct from the overlay mechanism (wants_fullscreen_overlay_when_opened_in_bar),
+    // which draws a popup on top of already-rendered content.
+    if (opened && currently_opened >= 0 && currently_opened < (int)items->size()) {
+        MenuItem *takeover_item = items->get(currently_opened);
+        if (takeover_item != nullptr && takeover_item->allow_takeover()) {
+            return takeover_item->display(Coord(0, pos.y), true, true);
+        }
+    }
+
     /*if (this->debug) {
         Serial.printf("Start of display in SubMenuItemBar at %u, passed in %i,%i\n", millis(), pos.x, pos.y);
         Serial.printf("rendering label @%p, ", label); Serial_flush();

@@ -178,22 +178,10 @@ class LambdaActionItem : public MenuItem {
 
     char button_label_false[MAX_LABEL_LENGTH] = "";
     char button_label_true[MAX_LABEL_LENGTH] = "";
-    //char button_label[MAX_LABEL_LENGTH]         = "                             ";
 
-    /*using setter_def_2 = void(TargetClass::*)();
-    using setter_def = void(TargetClass::*)(bool);
-    using getter_def = bool(TargetClass::*)();
-
-    //void(TargetClass::*setter)(bool) = nullptr; 
-    //bool(TargetClass::*getter)() = nullptr;
-    //get_label_def *get_label = nullptr; //void(TargetClass::*setter)(bool) = nullptr;
-    setter_def setter = nullptr;
-    setter_def_2 setter2 = nullptr;
-    getter_def getter = nullptr;*/
     using setter_2_def = vl::Func<void(void)>;  // callback with no parameters
     using getter_def = vl::Func<bool(void)>;
 
-    //vl::Func<void(bool)>    setter_func;
     setter_2_def setter_func_2;
     getter_def getter_func;
     bool has_getter = false, has_setter = false, has_setter_2 = false;
@@ -201,11 +189,6 @@ class LambdaActionItem : public MenuItem {
     // default "Fired: <label>" message will not overwrite it.
     bool suppress_fired_message = false;
 
-    /*LambdaActionItem(const char *label, vl::Func<void(bool)> setter_func) : 
-        MenuItem(label) {
-            this->setter_func = setter_func;
-            this->has_setter = true;
-        }*/
     LambdaActionItem(const char *label, setter_2_def setter_func_2, bool suppress_fired_message = false) : 
         MenuItem(label) {
             this->setter_func_2 = setter_func_2;
@@ -227,7 +210,7 @@ class LambdaActionItem : public MenuItem {
             snprintf(this->button_label_true, MAX_LABEL_LENGTH, label_1_format, label);
 
         if (button_label_false!=nullptr)
-            snprintf(this->button_label_false, MAX_LABEL_LENGTH, label_2_format, button_label_false);
+            strncpy(this->button_label_false, button_label_false, MAX_LABEL_LENGTH);
         else
             snprintf(this->button_label_false, MAX_LABEL_LENGTH, label_2_format, label);
     };
@@ -297,9 +280,29 @@ class LambdaActionConfirmItem : public LambdaActionItem {
         this->go_back_on_select = true;
     };
 
+    // Getter-based constructor: shows button_label_true when getter returns true,
+    // button_label_false otherwise — same as LambdaActionItem's equivalent ctor.
+    LambdaActionConfirmItem(
+        const char *label,
+        setter_2_def setter_func_2,
+        getter_def getter_func,
+        const char *button_label_true,
+        const char *button_label_false = nullptr,
+        bool suppress_fired_message = false
+    ) : LambdaActionItem(label, setter_func_2, getter_func, button_label_true, button_label_false, suppress_fired_message) {
+        this->go_back_on_select = true;
+    };
+
     virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
         //Serial.println("LambdaActionConfirmItem#renderValue..");
-        const char *button_label = opened ? sure_message : this->label;
+        const char *button_label;
+        if (opened) {
+            button_label = sure_message;
+        } else if (this->has_getter && this->button_label_true[0]) {
+            button_label = this->getter_func() ? this->button_label_true : this->button_label_false;
+        } else {
+            button_label = this->label;
+        }
 
         this->colours(selected);
 
