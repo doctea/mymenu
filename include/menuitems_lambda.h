@@ -176,8 +176,8 @@ class LambdaToggleControl : public MenuItem {
 class LambdaActionItem : public MenuItem {
     public:
 
-    char button_label_false[MAX_LABEL_LENGTH] = "";
-    char button_label_true[MAX_LABEL_LENGTH] = "";
+    const char *button_label_false = nullptr;
+    const char *button_label_true  = nullptr;
 
     using setter_2_def = vl::Func<void(void)>;  // callback with no parameters
     using getter_def = vl::Func<bool(void)>;
@@ -201,18 +201,11 @@ class LambdaActionItem : public MenuItem {
         this->getter_func = getter_func;
         this->has_getter = true;
 
-        static const char *label_1_format = "<< %s >>";
-        static const char *label_2_format = ">> %s <<";
-
-        if (button_label_true!=nullptr) {
-            strncpy(this->button_label_true, button_label_true, MAX_LABEL_LENGTH);
-        } else
-            snprintf(this->button_label_true, MAX_LABEL_LENGTH, label_1_format, label);
-
-        if (button_label_false!=nullptr)
-            strncpy(this->button_label_false, button_label_false, MAX_LABEL_LENGTH);
-        else
-            snprintf(this->button_label_false, MAX_LABEL_LENGTH, label_2_format, label);
+        // Store pointers directly — callers are expected to pass string literals
+        // (or other pointers with sufficient lifetime).  Falls back to label itself
+        // when a null is supplied.
+        this->button_label_true  = (button_label_true  != nullptr) ? button_label_true  : label;
+        this->button_label_false = (button_label_false != nullptr) ? button_label_false : label;
     };
 
     virtual int display(Coord pos, bool selected, bool opened) override {
@@ -221,12 +214,10 @@ class LambdaActionItem : public MenuItem {
     }
 
     virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
-        char *button_label = nullptr;
-        if (this->has_getter && this->button_label_true[0]) {
-            button_label = this->getter_func() ? this->button_label_true : this->button_label_false;
-        } else if (button_label_false[0]) {
-            //Serial.printf(F("%s: rendering button_label_false '%s'\n"), this->label, this->button_label_false);
-            button_label = this->button_label_false;
+        const char *button_label = nullptr;
+        if (this->has_getter && this->button_label_true != nullptr) {
+            button_label = this->getter_func() ? this->button_label_true
+                         : (this->button_label_false != nullptr ? this->button_label_false : label);
         } else {
             button_label = label;
         }
@@ -298,8 +289,9 @@ class LambdaActionConfirmItem : public LambdaActionItem {
         const char *button_label;
         if (opened) {
             button_label = sure_message;
-        } else if (this->has_getter && this->button_label_true[0]) {
-            button_label = this->getter_func() ? this->button_label_true : this->button_label_false;
+        } else if (this->has_getter && this->button_label_true != nullptr) {
+            button_label = this->getter_func() ? this->button_label_true
+                         : (this->button_label_false != nullptr ? this->button_label_false : this->label);
         } else {
             button_label = this->label;
         }

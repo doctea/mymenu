@@ -119,6 +119,9 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
                     real_actual_espi->initDMA();
                 #endif
                 real_actual_espi->setSwapBytes(false);
+                #ifdef BODMER_SPRITE_8BIT
+                    actual->setColorDepth(8);   // save RAM by using 8 bit color depth for the sprite?
+                #endif
                 if(SCREEN_ROTATION%2==1) {
                     sprPtr = (uint16_t*)actual->createSprite(SCREEN_HEIGHT, SCREEN_WIDTH);   // < - corrupts display in way that i did find mentioned in that thread !
                     real_actual_espi->fillRect(0, 0, SCREEN_HEIGHT, SCREEN_WIDTH, BLACK);
