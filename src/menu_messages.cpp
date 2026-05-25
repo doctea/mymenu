@@ -2,21 +2,31 @@
 
 #include "menu_messages.h"
 
-LinkedList<String> *messages_log = new LinkedList<String>();
+CircularMessageLog message_log;  // static allocation in BSS, zero-initialised
+
+void messages_log_add(const char* msg) {
+    if (Serial) {
+        Serial.print("messages_log_add: ");
+        Serial.println(msg);
+    }
+    message_log.add(msg);
+}
 
 void messages_log_add(String msg) {
-  if (Serial) {
-    Serial.print("messages_log_add: ");
-    Serial.println(msg);
-  }
-  messages_log->add(msg);
-  if (messages_log->size() >= MAX_MESSAGES_LOG) {
-    messages_log->unlink(0);
-  }
+    messages_log_add(msg.c_str());
+}
+
+void messages_log_add_fmt(const char* fmt, ...) {
+    char buf[MAX_MESSAGE_LENGTH];
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(buf, MAX_MESSAGE_LENGTH, fmt, args);
+    va_end(args);
+    messages_log_add(buf);
 }
 
 void messages_log_clear() {
-  messages_log->clear();
+    message_log.clear();
 }
 
 #include "menuitems_action.h"
@@ -25,7 +35,7 @@ void messages_log_clear() {
 void setup_messages_menu() {
     menu->add_page("Messages");
     menu->add(new ActionConfirmItem("Clear", messages_log_clear));
-    menu->add(new ListViewerMenuItem("Message history", messages_log));
+    menu->add(new CircularListViewerMenuItem("Message history", &message_log));
 }
 
 #endif

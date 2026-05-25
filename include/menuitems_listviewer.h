@@ -69,5 +69,43 @@ class ListViewerMenuItem : public MenuItem {
 
 };
 
+#include "menu_messages.h"
+
+class CircularListViewerMenuItem : public MenuItem {
+    CircularMessageLog *log;
+    unsigned int start_line = 0;
+    unsigned int height_lines = 8;
+
+    public:
+    CircularListViewerMenuItem(const char *label, CircularMessageLog *log)
+        : MenuItem(label), log(log) {}
+
+    virtual void on_add() override {
+        MenuItem::on_add();
+        height_lines = (tft->height() / tft->getRowHeight());
+    }
+
+    virtual int display(Coord pos, bool selected, bool opened) override {
+        tft->setCursor(pos.x, pos.y);
+        pos.y = header(label, pos, selected, opened);
+        tft->printf("Lines: %i\n", log->size());
+        for (unsigned int i = start_line; i < (unsigned int)log->size() && i < start_line + height_lines; i++) {
+            tft->printf("%-3u: ", i + 1);
+            tft->println(log->get(i));
+        }
+        return tft->getCursorY();
+    }
+
+    virtual bool knob_left() override {
+        if (start_line > 0) start_line--;
+        return true;
+    }
+
+    virtual bool knob_right() override {
+        if ((int)start_line + 1 < log->size()) start_line++;
+        return true;
+    }
+};
+
 
 #endif

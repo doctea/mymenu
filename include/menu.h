@@ -36,6 +36,8 @@
 
 #include <LinkedList.h>
 #include "menuitems.h"
+
+#include "menu_messages.h"
 //#include "menuitems_pinned.h"
 
 //FLASHMEM // causes a section type conflict with 'void Menu::add(LinkedList<MenuItem*>*, uint16_t)'
@@ -78,7 +80,7 @@ class Menu {
     LinkedList<page_t*> *pages = nullptr;
 
     PinnedPanelMenuItem *pinned_panel = nullptr;
-    LinkedList<String> *messages_log = nullptr;
+    CircularMessageLog *messages_log = nullptr;
 
     int last_knob_position = -1;
     int button_count = 0;
@@ -718,18 +720,15 @@ class Menu {
             }
         }
 
-        // set the LinkedList where to store the messages
-        FLASHMEM void set_messages_log(LinkedList<String> *messages_log) {
+        // set the CircularMessageLog where to store the messages
+        FLASHMEM void set_messages_log(CircularMessageLog *messages_log) {
             this->messages_log = messages_log;
         }
 
         // add message to the message history
         void add_message(const char *msg) {
             if (this->messages_log!=nullptr) {
-                this->messages_log->add(String(msg));
-                if (this->messages_log->size() > MAX_MESSAGE_LOG) {
-                    messages_log->unlink(0);
-                }
+                this->messages_log->add(msg);
             }
         }
 
