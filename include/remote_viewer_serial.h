@@ -101,6 +101,9 @@ static void _handle_viewer_command(char cmd) {
 static void read_viewer_serial() {
     if (!Serial) {
         _viewer_state.hello_sent = false;
+        // Stop live mode so that a reconnecting serial monitor isn't flooded
+        // with binary frame data.  Live mode restarts when '^' is received.
+        if (menu) menu->send_frame_live = false;
         return;
     }
     if (!_viewer_state.hello_sent) {
