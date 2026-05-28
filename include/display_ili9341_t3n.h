@@ -230,6 +230,37 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
         //tft->drawBitmap(c, x, y)
         tft->drawRGBBitmap(x, y, c->getBuffer(), c->width(), c->height());
     }*/
+
+    #ifdef ENABLE_REMOTE_VIEWER
+    // Raw framebuffer send over serial.
+    // Protocol: [==START-FRAME==][w:2][h:2][encoding:1][size:4][payload][==END-FRAME==]
+    // encoding: 0 = raw 16-bit LE words.
+    // Note: RLE was removed because ILI9341_t3n uses a live DMA-updated framebuffer;
+    // a two-pass approach (size computation then payload) produces mismatches when the
+    // buffer changes between passes.  Raw encoding has a fixed, pre-known size, so the
+    // header is always consistent with the payload.  USB serial has enough throughput.
+    void sendRawFrame() {
+        uint16_t *pixels = tft->getFrameBuffer();
+        if (!pixels) return;
+
+        uint16_t w        = width();
+        uint16_t h        = height();
+        uint32_t raw_bytes = (uint32_t)w * (uint32_t)h * 2;
+        uint8_t  encoding  = 0;
+
+        Serial.print("==START-FRAME==");
+        Serial.write((uint8_t*)&w,         2);
+        Serial.write((uint8_t*)&h,         2);
+        Serial.write(&encoding,            1);
+        Serial.write((uint8_t*)&raw_bytes, 4);
+        Serial.write((uint8_t*)pixels,     raw_bytes);
+        Serial.print("==END-FRAME==");
+    }
+
+    virtual void push_framebuffer_serial() override {
+        if (Serial) this->sendRawFrame();
+    }
+    #endif // ENABLE_REMOTE_VIEWER
 };
 
 #endif

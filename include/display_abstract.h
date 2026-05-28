@@ -155,6 +155,9 @@ class DisplayTranslator {
     virtual void fillCircle(int x, int y, int radius, uint16_t colour) = 0;
 
     virtual void push_framebuffer_serial() {};
+    // Pixel colour order of the framebuffer (used by the remote viewer for correct colour decode).
+    // Override in display subclasses if the framebuffer uses BGR565 order (e.g. TFT_eSPI/Bodmer).
+    virtual const char* viewer_pixel_format() { return "RGB565"; };
 
 };
 

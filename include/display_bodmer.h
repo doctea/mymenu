@@ -103,6 +103,7 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         tft->init(); //SCREEN_WIDTH, SCREEN_HEIGHT);           // Init ST7789 240x135
 
         #ifdef ARDUINO_ARCH_RP2040
+            // actual->setFreeFont(&TomThumb);
             actual->setFreeFont();
         #endif
 
@@ -443,6 +444,7 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         // get the framebuffer data from the actual_espi and push it out over serial
         if (Serial) this->sendRawFrame();
     }
+    virtual const char* viewer_pixel_format() override { return "BGR565"; }
 };
 
 #endif
