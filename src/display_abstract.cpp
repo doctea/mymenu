@@ -1,18 +1,14 @@
 #include "display_abstract.h"
 
-void DisplayTranslator::printf(const char *pattern) { Serial.println(F("WARNING: DisplayTranslator::printf(char*pattern) not overridden!")); };
-void DisplayTranslator::printf(const char *pattern, char *param1)  { Serial.println(F("WARNING: DisplayTranslator::printf(char*pattern, char *param1) not overridden!")); };
-void DisplayTranslator::printf(const char *pattern, char *param1, char *param2) { Serial.println(F("WARNING: DisplayTranslator::printf(char*pattern, char *param1, char *param2) not overridden!")); };
-void DisplayTranslator::printf(const char *pattern, char *param1, char *param2, char *param3) { Serial.println(F("WARNING: DisplayTranslator::printf(char*pattern, char *param1, char *param2, char *param3) not overridden!")); };
-void DisplayTranslator::printf(const char *pattern, char *param1, int param2, int param3) { Serial.println(F("WARNING: DisplayTranslator::printf(char*pattern, char *param1, char *param2, char *param3) not overridden!")); };
-void DisplayTranslator::printf(const char *pattern, int param1, char* param2) { Serial.println(F("WARNING: DisplayTranslator::printf(char *pattern, int param1, char* param2) not overridden!")); }
-void DisplayTranslator::printf(const char *pattern, int param1) { Serial.println(F("WARNING: DisplayTranslator::printf(char *pattern, int param1) not overridden!")); }
-void DisplayTranslator::printf(const char *pattern, int param1, int param2) { Serial.println(F("WARNING: DisplayTranslator::printf(char *pattern, int param1, int param2) not overridden!")); } 
-void DisplayTranslator::printf(const char *pattern, int param1, int param2, int param3) { Serial.println(F("WARNING: DisplayTranslator::printf(char *pattern, int param1, int param2, int param3) not overridden!")); } 
-void DisplayTranslator::printf(const char *pattern, int param1, int param2, int param3, float param4) { Serial.println(F("WARNING: DisplayTranslator::printf(char *pattern, int param1, int param2, int param3, float param4) not overridden!")); } 
-void DisplayTranslator::printf(const char *pattern, int param1, const uint8_t *param2) { Serial.println(F("WARNING: DisplayTranslator::printf(char *pattern, int param1, const uint8_t *param2) not overridden!")); }
-void DisplayTranslator::printf(const char *pattern, char param1, int param2, char *param3) { Serial.println(F("WARNING: DisplayTranslator::printf(char *pattern, int param1, const uint8_t *param2) not overridden!")); }
-void DisplayTranslator::println() { Serial.println(F("WARNING: DisplayTranslator::println(void) not overridden!")); };
+void DisplayTranslator::printf(const char *format, ...) {
+    char buf[256];
+    va_list args;
+    va_start(args, format);
+    vsnprintf(buf, sizeof(buf), format, args);
+    va_end(args);
+    this->print(buf);
+}
+void DisplayTranslator::println() { Serial.println(F("WARNING: DisplayTranslator::println(void) not overridden!"));};
 void DisplayTranslator::println(const char *txt) { Serial.println(F("WARNING: DisplayTranslator::println(const char *) not overridden!"));};
 void DisplayTranslator::printc(char c) { Serial.println(F("WARNING: DisplayTranslator::printc(char) not overridden!")); }
 

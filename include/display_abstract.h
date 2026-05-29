@@ -7,6 +7,7 @@
 #pragma once
 
 #include <Arduino.h>
+#include <stdarg.h>
 
 #define C_WHITE     0xFF
 #define BLACK       0x00
@@ -102,18 +103,7 @@ class DisplayTranslator {
     virtual void setTextColor(uint16_t fg, uint16_t bg) {};
     virtual void setTextSize(int size) {};
     virtual int getTextSize() { return size; };
-    virtual void printf(const char *pattern);
-    virtual void printf(const char *pattern, char *param1);
-    virtual void printf(const char *pattern, char *param1, char *param2);
-    virtual void printf(const char *pattern, char *param1, char *param2, char *param3);
-    virtual void printf(const char *pattern, char *param1, int param2, int param3);
-    virtual void printf(const char *pattern, int param1, char* param2);
-    virtual void printf(const char *pattern, int param1);
-    virtual void printf(const char *pattern, int param1, int param2);
-    virtual void printf(const char *pattern, int param1, int param2, int param3);
-    virtual void printf(const char *pattern, int param1, int param2, int param3, float param4);
-    virtual void printf(const char *pattern, int param1, const uint8_t *param2);
-    virtual void printf(const char *pattern, char param1, int param2, char *param3);
+    virtual void printf(const char *format, ...) __attribute__((format(printf, 2, 3)));
     virtual void println();
     virtual void println(const char *txt);
     virtual void printc(char c);
