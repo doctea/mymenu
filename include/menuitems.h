@@ -25,6 +25,13 @@ extern const char *label_off;
     #define MENU_SELECTIVE_STATIC_REDRAW 0
 #endif
 
+#if MENU_SELECTIVE_STATIC_REDRAW
+    // Wrap optional calls so call sites stay readable while methods only exist in selective-redraw builds.
+    #define MENU_STATIC_REDRAW(code) code
+#else
+    #define MENU_STATIC_REDRAW(code)
+#endif
+
 enum MenuItem_RedrawPolicy {
     REDRAW_ALWAYS = 0,          // always redraw (default, safest)
     REDRAW_ON_SELECTION = 1,    // redraw only if selection state changed
@@ -108,7 +115,10 @@ class MenuItem {
             MenuItem_RedrawPolicy redraw_policy = REDRAW_ALWAYS;
             int8_t last_rendered_selected = -1;
             int8_t last_rendered_opened = -1;
-            bool needs_redraw(bool current_selected, bool current_opened) const {
+            virtual void set_redraw_policy(MenuItem_RedrawPolicy policy) {
+                redraw_policy = policy;
+            }
+            virtual bool needs_redraw(bool current_selected, bool current_opened) const {
                 if (redraw_policy == REDRAW_ALWAYS) return true;
                 if (redraw_policy == REDRAW_ON_SELECTION && (int8_t)current_selected != last_rendered_selected) return true;
                 if (redraw_policy == REDRAW_ON_OPEN_STATE && (int8_t)current_opened != last_rendered_opened) return true;
@@ -118,7 +128,7 @@ class MenuItem {
                 )) return true;
                 return false;
             }
-            void mark_rendered(bool selected, bool opened) {
+            virtual void mark_rendered(bool selected, bool opened) {
                 last_rendered_selected = (int8_t)selected;
                 last_rendered_opened = (int8_t)opened;
             }
@@ -203,7 +213,6 @@ class FixedSizeMenuItem : public MenuItem {
 class PinnedPanelMenuItem : public MenuItem {
     public:
         unsigned long ticks = 0;
-
         #if MENU_SELECTIVE_STATIC_REDRAW
             bool redraw_needed = true;
             int16_t cached_draw_height = 0;
@@ -243,7 +252,7 @@ class DoublePinnedPanelMenuItem : public PinnedPanelMenuItem {
         unsigned long ticks = 0;
         PinnedPanelMenuItem *item1, *item2;
 
-        DoublePinnedPanelMenuItem(PinnedPanelMenuItem *item1, PinnedPanelMenuItem *item2) : PinnedPanelMenuItem(label) {
+        DoublePinnedPanelMenuItem(PinnedPanelMenuItem *item1, PinnedPanelMenuItem *item2) : PinnedPanelMenuItem("") {
             this->item1 = item1;
             this->item2 = item2;
         };
@@ -254,23 +263,23 @@ class DoublePinnedPanelMenuItem : public PinnedPanelMenuItem {
             this->ticks = ticks;
 
             #if MENU_SELECTIVE_STATIC_REDRAW
-                if ((this->item1!=nullptr && this->item1->should_redraw()) ||
-                    (this->item2!=nullptr && this->item2->should_redraw())) {
-                    this->request_redraw();
-                }
+            if ((this->item1!=nullptr && this->item1->should_redraw()) ||
+                (this->item2!=nullptr && this->item2->should_redraw())) {
+                this->request_redraw();
+            }
             #endif
         }
 
         #if MENU_SELECTIVE_STATIC_REDRAW
-            virtual void refresh_redraw_state() override {
-                if (this->item1!=nullptr) this->item1->refresh_redraw_state();
-                if (this->item2!=nullptr) this->item2->refresh_redraw_state();
+        virtual void refresh_redraw_state() override {
+            if (this->item1!=nullptr) this->item1->refresh_redraw_state();
+            if (this->item2!=nullptr) this->item2->refresh_redraw_state();
 
-                if ((this->item1!=nullptr && this->item1->should_redraw()) ||
-                    (this->item2!=nullptr && this->item2->should_redraw())) {
-                    this->request_redraw();
-                }
+            if ((this->item1!=nullptr && this->item1->should_redraw()) ||
+                (this->item2!=nullptr && this->item2->should_redraw())) {
+                this->request_redraw();
             }
+        }
         #endif
 
         int display(Coord pos, bool selected, bool opened) override {
@@ -299,9 +308,7 @@ class SeparatorMenuItem : virtual public MenuItem {
         SeparatorMenuItem(const char *label, int textSize = 0, bool draw_lines = true) : MenuItem(label, false) {
             this->textSize = textSize;
             this->draw_lines = draw_lines;
-            #if MENU_SELECTIVE_STATIC_REDRAW
-                redraw_policy = REDRAW_ON_SELECTION;  // separators only change on selection
-            #endif
+            MENU_STATIC_REDRAW(set_redraw_policy(REDRAW_ON_SELECTION);)  // separators only change on selection
         }
         SeparatorMenuItem(const char *label, uint16_t default_fg, int textSize = 0, bool draw_lines = true) : SeparatorMenuItem(label, textSize, draw_lines) {
             this->default_fg = default_fg;

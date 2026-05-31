@@ -270,6 +270,23 @@ class Menu {
         #if MENU_SELECTIVE_STATIC_REDRAW
             bool message_dirty = true;
             int cached_message_height = -1;
+            void mark_message_dirty() {
+                message_dirty = true;
+            }
+            bool should_redraw_message_row() const {
+                return message_dirty;
+            }
+            int get_cached_message_row_height() const {
+                return cached_message_height;
+            }
+            void set_cached_message_row_height(int h) {
+                cached_message_height = h;
+                message_dirty = false;
+            }
+            void mark_message_dirty_if_changed(const char *msg, uint16_t colour) {
+                if (strncmp(last_message, msg, MENU_C_MAX) != 0 || message_colour != colour)
+                    message_dirty = true;
+            }
         #endif
         DisplayTranslator *tft;
 
@@ -806,18 +823,12 @@ class Menu {
 
         // set the colour of the message (ie red / green for error / success)
         void set_message_colour(uint16_t colour) {
-            #if MENU_SELECTIVE_STATIC_REDRAW
-                if (message_colour != colour)
-                    message_dirty = true;
-            #endif
+            MENU_STATIC_REDRAW(if (message_colour != colour) mark_message_dirty();)
             message_colour = colour;
         }
         // set the message to display at top of display
         void set_last_message(const char *msg, uint16_t colour = C_WHITE) {
-            #if MENU_SELECTIVE_STATIC_REDRAW
-                if (strncmp(last_message, msg, MENU_C_MAX) != 0 || message_colour != colour)
-                    message_dirty = true;
-            #endif
+            MENU_STATIC_REDRAW(mark_message_dirty_if_changed(msg, colour);)
             strncpy(last_message, msg, MENU_C_MAX);
             last_message[MENU_C_MAX - 1] = '\0';
             this->set_message_colour(colour);
@@ -830,13 +841,14 @@ class Menu {
             const int start_y = tft->getCursorY();
             const int row_h = tft->getRowHeight();
             const int min_reserved_h = row_h + 3;
-            #if MENU_SELECTIVE_STATIC_REDRAW
-                if (!message_dirty && cached_message_height > 0) {
-                    const int advance_h = (cached_message_height > min_reserved_h) ? cached_message_height : min_reserved_h;
+            MENU_STATIC_REDRAW(
+                if (!should_redraw_message_row() && get_cached_message_row_height() > 0) {
+                    const int cached_h = get_cached_message_row_height();
+                    const int advance_h = (cached_h > min_reserved_h) ? cached_h : min_reserved_h;
                     tft->setCursor(0, start_y + advance_h);
                     return tft->getCursorY();
                 }
-            #endif
+            )
 
             //tft.setCursor(0,0);
             // draw the last status message
@@ -854,10 +866,7 @@ class Menu {
             target_y += 3;
             tft->setCursor(0, target_y);  // keep spacing below status line stable
 
-            #if MENU_SELECTIVE_STATIC_REDRAW
-                cached_message_height = target_y - start_y;
-                message_dirty = false;
-            #endif
+            MENU_STATIC_REDRAW(set_cached_message_row_height(target_y - start_y);)
 
             return tft->getCursorY();
         }

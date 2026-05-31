@@ -58,7 +58,6 @@ int Menu::display_pinned() {
                 y += pinned_panel->get_cached_draw_height();
             }
         #else
-            //if (debug) { Serial.println("display()=> doing pinned_panel display"); Serial_flush(); }
             y = pinned_panel->display(Coord(0,y), false, false);
         #endif
     }
@@ -125,7 +124,7 @@ int Menu::display() {
         const bool requires_full_clear = is_takeover || mode==DISPLAY_ONE || page_changed || page_index_changed || opened_page_changed || recalculate_bottoms;
         if (requires_full_clear) {
             tft->clear();
-            message_dirty = true;
+            mark_message_dirty();
             if (pinned_panel!=nullptr) {
                 pinned_panel->request_redraw();
             }
@@ -368,9 +367,7 @@ int Menu::display() {
             const bool item_selected = ((int)i==currently_selected);
             const bool item_opened = ((int)i==currently_opened);
             y = item->display(pos, item_selected, item_opened) + 1;
-            #if MENU_SELECTIVE_STATIC_REDRAW
-                item->mark_rendered(item_selected, item_opened);
-            #endif
+            MENU_STATIC_REDRAW(item->mark_rendered(item_selected, item_opened);)
             //Serial.printf("after rendering MenuItem %i, return y is %i, cursor coords are (%i,%i)\n", y, tft->getCursorX(), tft->getCursorY());
             //if (debug) { Serial.printf("display()=> just did display() item %i aka %s\n", i, item->label); Serial_flush(); }
 
