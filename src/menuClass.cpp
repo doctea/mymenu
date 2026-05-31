@@ -335,8 +335,7 @@ int Menu::display() {
             y += 2;
         }
 
-        // Always clear the scrollable list area so stale row fragments do not
-        // accumulate when scrolling or when text lengths/selection visuals change.
+        // Always clear and redraw the entire list area - this is the reliable path
         const int list_start_y = y;
         const int list_h = tft->height() - list_start_y;
         if (list_h > 0) {
@@ -367,7 +366,6 @@ int Menu::display() {
             const bool item_selected = ((int)i==currently_selected);
             const bool item_opened = ((int)i==currently_opened);
             y = item->display(pos, item_selected, item_opened) + 1;
-            MENU_STATIC_REDRAW(item->mark_rendered(item_selected, item_opened);)
             //Serial.printf("after rendering MenuItem %i, return y is %i, cursor coords are (%i,%i)\n", y, tft->getCursorX(), tft->getCursorY());
             //if (debug) { Serial.printf("display()=> just did display() item %i aka %s\n", i, item->label); Serial_flush(); }
 

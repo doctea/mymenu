@@ -20,6 +20,10 @@
 
 extern Menu *menu;
 
+#ifndef ARDUINO_BOARD
+    #define ARDUINO_BOARD "unknown"
+#endif
+
 #define VIEWER_PREFIX_BYTE  ((char)0x01)
 #define VIEWER_MAX_PENDING_KNOB_STEPS    32
 #define VIEWER_MAX_PENDING_BUTTON_PRESSES 8
@@ -30,6 +34,84 @@ extern Menu *menu;
 #ifndef REMOTE_VIEWER_HELLO_MAX_AUTO_SENDS
     #define REMOTE_VIEWER_HELLO_MAX_AUTO_SENDS 1
 #endif
+
+#define RV_STRINGIFY_HELPER(x) #x
+#define RV_STRINGIFY(x) RV_STRINGIFY_HELPER(x)
+
+static const char *remote_viewer_feature_flags() {
+    return
+        "DISPLAY_RGB332_FB_MODE="
+        #if defined(DISPLAY_RGB332_FB_MODE)
+            "1;"
+        #else
+            "0;"
+        #endif
+        "DISPLAY_RGB332_DMA_PINGPONG="
+        #if defined(DISPLAY_RGB332_DMA_PINGPONG)
+            "1;"
+        #else
+            "0;"
+        #endif
+        "DISPLAY_RGB332_DIRTY_FLUSH="
+        #if defined(DISPLAY_RGB332_DIRTY_FLUSH)
+            "1;"
+        #else
+            "0;"
+        #endif
+        "MENU_SELECTIVE_STATIC_REDRAW="
+        #if defined(MENU_SELECTIVE_STATIC_REDRAW)
+            "1;"
+        #else
+            "0;"
+        #endif
+        "REMOTE_VIEWER_LIVE_MAX_FPS="
+        #ifdef REMOTE_VIEWER_LIVE_MAX_FPS
+            "1;"
+        #else
+            "0;"
+        #endif
+        ;
+}
+
+static const char *remote_viewer_build_flags() {
+    return
+        "ENABLE_REMOTE_VIEWER=1;"
+        "ENABLE_SCREEN=1;"
+        "TFT_BODMER=1;"
+        "BODMER_SPRITE=1;"
+        "DISPLAY_RGB332_FB_MODE="
+        #if defined(DISPLAY_RGB332_FB_MODE)
+            "1;"
+        #else
+            "0;"
+        #endif
+        "DISPLAY_RGB332_DMA_PINGPONG="
+        #if defined(DISPLAY_RGB332_DMA_PINGPONG)
+            RV_STRINGIFY(DISPLAY_RGB332_DMA_PINGPONG) ";"
+        #else
+            "0;"
+        #endif
+        "DISPLAY_RGB332_DIRTY_FLUSH="
+        #if defined(DISPLAY_RGB332_DIRTY_FLUSH)
+            RV_STRINGIFY(DISPLAY_RGB332_DIRTY_FLUSH) ";"
+        #else
+            "0;"
+        #endif
+        "DISPLAY_RGB332_DMA_CHUNK_LINES=" RV_STRINGIFY(DISPLAY_RGB332_DMA_CHUNK_LINES) ";"
+        "MENU_SELECTIVE_STATIC_REDRAW="
+        #if defined(MENU_SELECTIVE_STATIC_REDRAW)
+            RV_STRINGIFY(MENU_SELECTIVE_STATIC_REDRAW) ";"
+        #else
+            "0;"
+        #endif
+        "REMOTE_VIEWER_LIVE_MAX_FPS="
+        #ifdef REMOTE_VIEWER_LIVE_MAX_FPS
+            RV_STRINGIFY(REMOTE_VIEWER_LIVE_MAX_FPS) ";"
+        #else
+            "default(8);"
+        #endif
+        ;
+}
 
 struct _ViewerPendingState {
     int32_t  knob_steps      = 0;
@@ -53,10 +135,19 @@ static void send_viewer_hello() {
     Serial.printf("height:%d\n", menu->tft->height());
     Serial.println("prefix:1");
     Serial.printf("pixel_format:%s\n", menu->tft->viewer_pixel_format());
+    Serial.printf("board:%s\n", ARDUINO_BOARD);
+    Serial.printf("cpu_mhz:%lu\n", (unsigned long)(F_CPU / 1000000UL));
+    Serial.printf("pages:%d\n", menu->get_number_pages());
+    Serial.printf("page_index:%d\n", menu->get_selected_page_index());
+    Serial.printf("page_title:%s\n", menu->get_selected_page_title());
+    Serial.printf("profile:%s\n", menu->get_profile_string());
+    Serial.printf("flags:%s\n", remote_viewer_feature_flags());
+    Serial.printf("build_flags:%s\n", remote_viewer_build_flags());
     Serial.print("controls:d=knob_left,f=knob_right,a=button_back,b=button_select");
     #ifdef PIN_BUTTON_C
     Serial.print(",n=button_right");
     #endif
+    Serial.print(",[]=page_prev_next,?=summary");
     Serial.println();
     Serial.println("==END-VIEWER-HELLO==");
 }
@@ -94,6 +185,19 @@ static void _handle_viewer_command(char cmd) {
         case 'L':
             _viewer_state.toggle_live = !_viewer_state.toggle_live;
             _viewer_state.send_frame = true;
+            break;
+        case '[':
+            if (menu) menu->select_previous_page();
+            send_viewer_hello();
+            _viewer_state.send_frame = true;
+            break;
+        case ']':
+            if (menu) menu->select_next_page();
+            send_viewer_hello();
+            _viewer_state.send_frame = true;
+            break;
+        case '?':
+            send_viewer_hello();
             break;
         case 'X':
             _viewer_state.toggle_live = false;

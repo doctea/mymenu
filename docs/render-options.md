@@ -159,6 +159,68 @@ Practical guidance:
 - Message row and header row rendering must reserve stable row height to avoid overlap/flicker.
 - Shared cache experiments across pages can break long-list navigation if page-local assumptions leak.
 
+## Automation Modes
+
+### Page Sweep + Screenshot Capture
+
+What it does:
+- Walks through pages one by one using the viewer/page navigation commands.
+- Pauses on each page for a fixed dwell time.
+- Saves a screenshot for each page automatically.
+
+Why it helps:
+- Fast documentation capture.
+- Regression testing against layout changes.
+- Repeatable visual comparison sets.
+
+Trade-offs:
+- This is only as good as the current frame being presented when the capture happens.
+- If remote live streaming is enabled, the benchmark reflects viewer traffic as well as UI work.
+- If you want a pure UI timing number, keep remote framebuffer streaming off during the timing pass and use the device summary/profile block instead.
+
+### Console Summary Request
+
+What it does:
+- Prints a summary block with board, CPU speed, page info, profile string, and key feature flags.
+
+Why it helps:
+- Lets you attach a reproducible hardware/config snapshot to benchmark logs.
+
+Useful fields to record:
+- board
+- cpu_mhz
+- pages
+- page_index
+- page_title
+- profile
+- flags
+
+## Benchmark Report Template
+
+Use this as a lightweight log format when comparing runs:
+
+```text
+run: 2026-05-31
+board: seeed_xiao_rp2350
+cpu_mhz: 150
+pages: 24
+page_sweep_mode: enabled
+framebuffer_streaming: off
+profile: 18fps | RAM2 143K free
+flags: DISPLAY_RGB332_FB_MODE=1;DISPLAY_RGB332_DMA_PINGPONG=1;DISPLAY_RGB332_DIRTY_FLUSH=0;MENU_SELECTIVE_STATIC_REDRAW=1;
+notes: viewer disconnected, local timing only
+```
+
+## New Control Checklist
+
+When adding a new `MenuItem` subclass:
+1. Keep the default redraw policy `REDRAW_ALWAYS` unless the control is provably static.
+2. Use `REDRAW_ON_SELECTION` or `REDRAW_ON_OPEN_STATE` only when redraw state is truly bounded by those transitions.
+3. If the control reads live state every frame, do not try to force selective redraw without a value-change hook.
+4. For pinned controls, call `request_redraw()` whenever the visible content can change.
+5. If the control renders labels with varying lengths, cache label length or another stable size signal instead of recomputing it every frame.
+6. Test the control on both a quiet page and a mixed page with headers/messages/tabs before enabling selective redraw.
+
 ## Validation Workflow
 
 After changing any option:

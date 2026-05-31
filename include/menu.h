@@ -674,6 +674,26 @@ class Menu {
             return pages->size();
         }
 
+        int get_selected_page_index() const {
+            return this->selected_page_index;
+        }
+
+        int get_opened_page_index() const {
+            return this->opened_page_index;
+        }
+
+        const char *get_selected_page_title() const {
+            return (this->selected_page!=nullptr && this->selected_page->title!=nullptr) ? this->selected_page->title : "";
+        }
+
+        const char *get_profile_string() const {
+            return this->profile_string;
+        }
+
+        bool is_profile_enabled() const {
+            return this->profile_enable;
+        }
+
         page_t *get_previous_page() {
             if (pages->size()==0)
                 return nullptr;

@@ -2,3 +2,6 @@
 *.orig
 *.rej
 .vscode/
+
+remote_viewer/screenshots
+*__pycache__*

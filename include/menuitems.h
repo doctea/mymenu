@@ -115,10 +115,12 @@ class MenuItem {
             MenuItem_RedrawPolicy redraw_policy = REDRAW_ALWAYS;
             int8_t last_rendered_selected = -1;
             int8_t last_rendered_opened = -1;
+            int16_t cached_draw_height = 0;
             virtual void set_redraw_policy(MenuItem_RedrawPolicy policy) {
                 redraw_policy = policy;
             }
             virtual bool needs_redraw(bool current_selected, bool current_opened) const {
+                if (cached_draw_height <= 0) return true;
                 if (redraw_policy == REDRAW_ALWAYS) return true;
                 if (redraw_policy == REDRAW_ON_SELECTION && (int8_t)current_selected != last_rendered_selected) return true;
                 if (redraw_policy == REDRAW_ON_OPEN_STATE && (int8_t)current_opened != last_rendered_opened) return true;
@@ -131,6 +133,14 @@ class MenuItem {
             virtual void mark_rendered(bool selected, bool opened) {
                 last_rendered_selected = (int8_t)selected;
                 last_rendered_opened = (int8_t)opened;
+            }
+            virtual void mark_rendered(bool selected, bool opened, int16_t draw_height) {
+                last_rendered_selected = (int8_t)selected;
+                last_rendered_opened = (int8_t)opened;
+                cached_draw_height = (draw_height > 0) ? draw_height : 0;
+            }
+            virtual int16_t get_cached_draw_height() const {
+                return cached_draw_height;
             }
         #endif
 
