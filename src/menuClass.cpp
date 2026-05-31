@@ -384,9 +384,29 @@ int Menu::display() {
     }
 
     if (send_frame) {
-        this->tft->push_framebuffer_serial();
-        if(!send_frame_live) {
-            send_frame = false;
+        bool should_send = true;
+        #ifdef ENABLE_REMOTE_VIEWER
+            if (send_frame_live) {
+                static uint32_t last_live_frame_sent_at = 0;
+                #ifndef REMOTE_VIEWER_LIVE_MAX_FPS
+                    #define REMOTE_VIEWER_LIVE_MAX_FPS 8
+                #endif
+                const uint32_t max_fps = (REMOTE_VIEWER_LIVE_MAX_FPS > 0) ? (uint32_t)REMOTE_VIEWER_LIVE_MAX_FPS : 1u;
+                const uint32_t min_interval_ms = 1000u / max_fps;
+                uint32_t now_ms = millis();
+                if (now_ms - last_live_frame_sent_at < min_interval_ms) {
+                    should_send = false;
+                } else {
+                    last_live_frame_sent_at = now_ms;
+                }
+            }
+        #endif
+
+        if (should_send) {
+            this->tft->push_framebuffer_serial();
+            if(!send_frame_live) {
+                send_frame = false;
+            }
         }
     }
 
