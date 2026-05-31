@@ -29,7 +29,8 @@ enum MenuItem_RedrawPolicy {
     REDRAW_ALWAYS = 0,          // always redraw (default, safest)
     REDRAW_ON_SELECTION = 1,    // redraw only if selection state changed
     REDRAW_ON_OPEN_STATE = 2,   // redraw only if opened state changed
-    REDRAW_ON_VALUE_CHANGE = 3  // redraw only if value changed (for dynamic controls)
+    REDRAW_ON_SELECTION_OR_OPEN = 3, // redraw if either selection or opened state changed
+    REDRAW_ON_VALUE_CHANGE = 4  // redraw only if value changed (for dynamic controls)
 };
 
 class Coord {
@@ -110,6 +111,10 @@ class MenuItem {
                 if (redraw_policy == REDRAW_ALWAYS) return true;
                 if (redraw_policy == REDRAW_ON_SELECTION && (int8_t)current_selected != last_rendered_selected) return true;
                 if (redraw_policy == REDRAW_ON_OPEN_STATE && (int8_t)current_opened != last_rendered_opened) return true;
+                if (redraw_policy == REDRAW_ON_SELECTION_OR_OPEN && (
+                    (int8_t)current_selected != last_rendered_selected ||
+                    (int8_t)current_opened != last_rendered_opened
+                )) return true;
                 return false;
             }
             void mark_rendered(bool selected, bool opened) {
@@ -197,9 +202,36 @@ class PinnedPanelMenuItem : public MenuItem {
     public:
         unsigned long ticks = 0;
 
+        #if MENU_SELECTIVE_STATIC_REDRAW
+            bool redraw_needed = true;
+            int16_t cached_draw_height = 0;
+
+            virtual void request_redraw() {
+                redraw_needed = true;
+            }
+            virtual void refresh_redraw_state() {
+                // default no-op
+            }
+            virtual bool should_redraw() const {
+                return redraw_needed || cached_draw_height <= 0;
+            }
+            virtual int16_t get_cached_draw_height() const {
+                return cached_draw_height;
+            }
+            virtual void mark_drawn(int16_t draw_height) {
+                cached_draw_height = (draw_height > 0) ? draw_height : 0;
+                redraw_needed = false;
+            }
+        #endif
+
         PinnedPanelMenuItem(const char *label) : MenuItem(label) {};
 
         virtual void update_ticks(unsigned long ticks) override {
+            #if MENU_SELECTIVE_STATIC_REDRAW
+                if (this->ticks != ticks) {
+                    request_redraw();
+                }
+            #endif
             this->ticks = ticks;
         }
 };
@@ -218,7 +250,26 @@ class DoublePinnedPanelMenuItem : public PinnedPanelMenuItem {
             if (this->item1!=nullptr) this->item1->update_ticks(ticks);
             if (this->item2!=nullptr) this->item2->update_ticks(ticks);
             this->ticks = ticks;
+
+            #if MENU_SELECTIVE_STATIC_REDRAW
+                if ((this->item1!=nullptr && this->item1->should_redraw()) ||
+                    (this->item2!=nullptr && this->item2->should_redraw())) {
+                    this->request_redraw();
+                }
+            #endif
         }
+
+        #if MENU_SELECTIVE_STATIC_REDRAW
+            virtual void refresh_redraw_state() override {
+                if (this->item1!=nullptr) this->item1->refresh_redraw_state();
+                if (this->item2!=nullptr) this->item2->refresh_redraw_state();
+
+                if ((this->item1!=nullptr && this->item1->should_redraw()) ||
+                    (this->item2!=nullptr && this->item2->should_redraw())) {
+                    this->request_redraw();
+                }
+            }
+        #endif
 
         int display(Coord pos, bool selected, bool opened) override {
             int y = pos.y;

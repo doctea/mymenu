@@ -2,6 +2,31 @@
 
 #include "submenuitem_bar.h"
 
+static inline void print_fixed_width_label(DisplayTranslator *tft, const char *label, uint_fast16_t width_chars) {
+    if (width_chars == 0) {
+        tft->println();
+        return;
+    }
+
+    if (label == nullptr) {
+        label = "";
+    }
+
+    char one_char[2] = {0, 0};
+    uint_fast16_t n = 0;
+    while (n < width_chars && label[n] != '\0') {
+        one_char[0] = label[n];
+        tft->print(one_char);
+        ++n;
+    }
+    while (n < width_chars) {
+        one_char[0] = ' ';
+        tft->print(one_char);
+        ++n;
+    }
+    tft->println();
+}
+
 /*int SubMenuItemBar::get_max_pixel_width(int item_number) {
     //return (this->tft->width() / this->number_columns());
     return this->get_max_character_width(item_number) * tft->currentCharacterWidth();
@@ -54,6 +79,13 @@ int SubMenuItemBar::display(Coord pos, bool selected, bool opened) {
     // draw all the sub-widgets
     //int width_per_item = this->tft->width() / (this->items->size() /*+1*/);
     uint_fast16_t start_x = 0;
+    bool restore_wrap = false;
+    bool previous_wrap = false;
+    if (this->show_sub_headers) {
+        previous_wrap = tft->isTextWrap();
+        tft->setTextWrap(false);
+        restore_wrap = true;
+    }
     //Debug_printf(F("display in SubMenuItemBar got width_per_item=%i\tfrom tftwidth\t%i / itemsize\t%i\n"), width_per_item, this->tft->width(), this->items->size());
     //if (this->debug) Serial.printf("\tstarting item index loop...\n");    Serial_flush();
     for (uint_fast16_t item_index = 0 ; item_index < this->items->size() ; item_index++) {
@@ -73,6 +105,9 @@ int SubMenuItemBar::display(Coord pos, bool selected, bool opened) {
         start_x += width;
         if (temp_y>finish_y)
             finish_y = temp_y;
+    }
+    if (restore_wrap) {
+        tft->setTextWrap(previous_wrap);
     }
 
     // Some controls (e.g. compact selectors) need a second, full-width overlay pass.
@@ -104,7 +139,8 @@ int SubMenuItemBar::small_display(int index, int x, int y, int width_in_pixels, 
     MenuItem *ctrl = items->get(index);
     //const uint_fast16_t character_width_in_pixels = tft->currentCharacterWidth(); // presumed font width
     tft->setTextSize(0);
-    const uint_fast16_t max_display_width_characters = width_in_pixels / tft->currentCharacterWidth(); //get_max_character_width(index);
+    const uint_fast16_t current_char_width = tft->currentCharacterWidth() > 0 ? tft->currentCharacterWidth() : 1;
+    const uint_fast16_t max_display_width_characters = width_in_pixels / current_char_width; //get_max_character_width(index);
     //if (index==this->number_columns()-1)
     //    max_display_width_characters-=1;   // for the last column, use one less character, to avoid wrapping unnecessarily
 
@@ -118,11 +154,6 @@ int SubMenuItemBar::small_display(int index, int x, int y, int width_in_pixels, 
 
     const uint_fast16_t colour = (ctrl->default_fg != C_WHITE) ? ctrl->default_fg : this->default_fg;
 
-    // prepare label header format
-    char header_fmt[MENU_C_MAX];
-    snprintf(header_fmt, MENU_C_MAX, "%%-%is\n", max_display_width_characters);    // becomes eg "%-6s\n"
-    //if (this->debug) Serial.printf("\tGot format '%s'\n", fmt);
-
     // print label header // TODO: either move this to be the responsibility of the control, or use something like get_label() instead, so that can override in subclass for things like parameter controls where this might change
     if (this->show_sub_headers) {
         //if (this->debug) Serial.printf("\tdrawing header at %i,%i\n", x, y);
@@ -135,10 +166,7 @@ int SubMenuItemBar::small_display(int index, int x, int y, int width_in_pixels, 
         //int textsize = tft->get_textsize_for_width(ctrl->label, get_max_pixel_width(index));
         int textSize = 0;
         tft->setTextSize(textSize);
-        bool was_wrap = tft->isTextWrap();
-        tft->setTextWrap(false);
-        tft->printf(header_fmt, (char*)ctrl->get_label());
-        tft->setTextWrap(was_wrap);
+        print_fixed_width_label(tft, ctrl->get_label(), max_display_width_characters);
 
         if (x < tft->width())
             y = tft->getCursorY();
@@ -180,6 +208,13 @@ int SubMenuItemColumns::display(Coord pos, bool selected, bool opened) {
     // draw all the sub-widgets
     //int width_per_item = this->tft->width() / (this->items->size() /*+1*/);
     uint_fast16_t start_x = 0;
+    bool restore_wrap = false;
+    bool previous_wrap = false;
+    if (this->show_sub_headers) {
+        previous_wrap = tft->isTextWrap();
+        tft->setTextWrap(false);
+        restore_wrap = true;
+    }
     //Debug_printf(F("display in SubMenuItemBar got width_per_item=%i\tfrom tftwidth\t%i / itemsize\t%i\n"), width_per_item, this->tft->width(), this->items->size());
     uint_fast16_t last_y = 0;
     for (uint_fast16_t item_index = 0 ; item_index < this->items->size() ; item_index++) {
@@ -205,6 +240,9 @@ int SubMenuItemColumns::display(Coord pos, bool selected, bool opened) {
         //start_x += width;
         if (temp_y>finish_y)
             finish_y = temp_y;
+    }
+    if (restore_wrap) {
+        tft->setTextWrap(previous_wrap);
     }
 
     tft->setTextColor(this->default_fg, this->default_bg);

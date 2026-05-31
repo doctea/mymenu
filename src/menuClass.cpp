@@ -29,17 +29,38 @@ bool debug_flag = false;
 int Menu::display_pinned() {
     int y = tft->getCursorY();
     if (profile_enable) {
+        tft->setTextSize(tft->default_textsize);
+        const int row_h = tft->getRowHeight();
+        const int profile_h = row_h + 3;
+        tft->fillRect(0, y, tft->width(), profile_h, BLACK);
         tft->setCursor(0, y);
         Serial.println(profile_string);
-        tft->setTextSize(0);
+        bool was_wrap = tft->isTextWrap();
+        tft->setTextWrap(false);
         tft->printf(tft->get_message_format(), profile_string);
-        //tft->println("wtf?");
-        y = tft->getCursorY() + 3;
+        tft->setTextWrap(was_wrap);
+
+        int target_y = tft->getCursorY();
+        if (target_y < y + row_h)
+            target_y = y + row_h;
+        y = target_y + 3;
     }
 
     if (pinned_panel!=nullptr) {
-        //if (debug) { Serial.println("display()=> doing pinned_panel display"); Serial_flush(); }
-        y = pinned_panel->display(Coord(0,y), false, false);
+        #if MENU_SELECTIVE_STATIC_REDRAW
+            pinned_panel->refresh_redraw_state();
+            if (pinned_panel->should_redraw()) {
+                //if (debug) { Serial.println("display()=> doing pinned_panel display"); Serial_flush(); }
+                const int new_y = pinned_panel->display(Coord(0,y), false, false);
+                pinned_panel->mark_drawn(new_y - y);
+                y = new_y;
+            } else {
+                y += pinned_panel->get_cached_draw_height();
+            }
+        #else
+            //if (debug) { Serial.println("display()=> doing pinned_panel display"); Serial_flush(); }
+            y = pinned_panel->display(Coord(0,y), false, false);
+        #endif
     }
 
     return y;
@@ -89,7 +110,29 @@ int Menu::display() {
     MenuItemList *items = selected_page->items;
     //if (debug) { Serial.printf("currently_opened = %i/%i, currently_selected = %i/%i..\n", currently_opened+1, selected_page->items->size(), currently_selected+1, selected_page->items->size()); Serial_flush(); }
 
-    tft->clear();
+    #if MENU_SELECTIVE_STATIC_REDRAW
+        static page_t *last_selected_page = nullptr;
+        static int last_selected_page_index_rendered = -1;
+        static int last_opened_page_index_rendered = -2;
+        const bool page_changed = (last_selected_page != selected_page);
+        const bool page_index_changed = (last_selected_page_index_rendered != selected_page_index);
+        const bool opened_page_changed = (last_opened_page_index_rendered != opened_page_index);
+        last_selected_page = selected_page;
+        last_selected_page_index_rendered = selected_page_index;
+        last_opened_page_index_rendered = opened_page_index;
+
+        const bool is_takeover = is_item_opened() && items->get(currently_opened)->allow_takeover();
+        const bool requires_full_clear = is_takeover || mode==DISPLAY_ONE || page_changed || page_index_changed || opened_page_changed || recalculate_bottoms;
+        if (requires_full_clear) {
+            tft->clear();
+            message_dirty = true;
+            if (pinned_panel!=nullptr) {
+                pinned_panel->request_redraw();
+            }
+        }
+    #else
+        tft->clear();
+    #endif
 
     // now draw the menu
     //if (debug) { Serial.println("display()=> about to check display mode and branch.."); Serial_flush(); }
@@ -288,6 +331,19 @@ int Menu::display() {
             tft->println(selected_page->header_text);
             tft->setTextWrap(wasTextWrap);
             y = tft->getCursorY();
+        } else {
+            // Keep a consistent visual boundary before item rows on pages that
+            // do not render a dedicated page header line.
+            tft->drawLine(0, y, tft->width(), y, C_WHITE);
+            y += 2;
+        }
+
+        // Always clear the scrollable list area so stale row fragments do not
+        // accumulate when scrolling or when text lengths/selection visuals change.
+        const int list_start_y = y;
+        const int list_h = tft->height() - list_start_y;
+        if (list_h > 0) {
+            tft->fillRect(0, list_start_y, tft->width(), list_h, BLACK);
         }
 
         // draw each menu item
@@ -310,20 +366,12 @@ int Menu::display() {
             unsigned long time_micros = 0;
             if (this->debug_times) time_micros = micros();
             tft->setTextSize(0);
-            
+
+            const bool item_selected = ((int)i==currently_selected);
+            const bool item_opened = ((int)i==currently_opened);
+            y = item->display(pos, item_selected, item_opened) + 1;
             #if MENU_SELECTIVE_STATIC_REDRAW
-                bool should_render = item->needs_redraw((int)i==currently_selected, (int)i==currently_opened);
-                if (should_render) {
-                    y = item->display(pos, (int)i==currently_selected, (int)i==currently_opened) + 1;
-                    item->mark_rendered((int)i==currently_selected, (int)i==currently_opened);
-                } else {
-                    // Skip rendering for static items; assume height hasn't changed
-                    // Note: this relies on item layout being stable (no reflow)
-                    // Safe for SeparatorMenuItem and other layout-constant controls
-                    y += item->display(pos, (int)i==currently_selected, (int)i==currently_opened);
-                }
-            #else
-                y = item->display(pos, (int)i==currently_selected, (int)i==currently_opened) + 1;
+                item->mark_rendered(item_selected, item_opened);
             #endif
             //Serial.printf("after rendering MenuItem %i, return y is %i, cursor coords are (%i,%i)\n", y, tft->getCursorX(), tft->getCursorY());
             //if (debug) { Serial.printf("display()=> just did display() item %i aka %s\n", i, item->label); Serial_flush(); }
@@ -334,10 +382,7 @@ int Menu::display() {
                 y = y + tft->getRowHeight();
             }
 
-            if (!bottoms_computed) {
-                panel_bottom[i] = y;// - start_y;
-                //start_y = y;
-            }
+            panel_bottom[i] = y;
 
             if (bottoms_computed && y >= this->tft->height())
                 break;

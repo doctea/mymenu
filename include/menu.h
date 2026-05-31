@@ -267,6 +267,10 @@ class Menu {
 
         char last_message[MENU_C_MAX] = ""; //...started up...";
         uint32_t message_colour = C_WHITE;
+        #if MENU_SELECTIVE_STATIC_REDRAW
+            bool message_dirty = true;
+            int cached_message_height = -1;
+        #endif
         DisplayTranslator *tft;
 
         bool is_item_opened() {
@@ -802,10 +806,18 @@ class Menu {
 
         // set the colour of the message (ie red / green for error / success)
         void set_message_colour(uint16_t colour) {
+            #if MENU_SELECTIVE_STATIC_REDRAW
+                if (message_colour != colour)
+                    message_dirty = true;
+            #endif
             message_colour = colour;
         }
         // set the message to display at top of display
         void set_last_message(const char *msg, uint16_t colour = C_WHITE) {
+            #if MENU_SELECTIVE_STATIC_REDRAW
+                if (strncmp(last_message, msg, MENU_C_MAX) != 0 || message_colour != colour)
+                    message_dirty = true;
+            #endif
             strncpy(last_message, msg, MENU_C_MAX);
             last_message[MENU_C_MAX - 1] = '\0';
             this->set_message_colour(colour);
@@ -814,12 +826,39 @@ class Menu {
 
         // render the last message to screen in the correct colours etc
         int draw_message() {
+            tft->setTextSize(tft->default_textsize);
+            const int start_y = tft->getCursorY();
+            const int row_h = tft->getRowHeight();
+            const int min_reserved_h = row_h + 3;
+            #if MENU_SELECTIVE_STATIC_REDRAW
+                if (!message_dirty && cached_message_height > 0) {
+                    const int advance_h = (cached_message_height > min_reserved_h) ? cached_message_height : min_reserved_h;
+                    tft->setCursor(0, start_y + advance_h);
+                    return tft->getCursorY();
+                }
+            #endif
+
             //tft.setCursor(0,0);
             // draw the last status message
+            tft->fillRect(0, start_y, tft->width(), min_reserved_h, BLACK);
+            tft->setCursor(0, start_y);
             tft->setTextColor(message_colour,BLACK);
-            tft->setTextSize(tft->default_textsize);
+            bool was_wrap = tft->isTextWrap();
+            tft->setTextWrap(false);
             tft->printf(tft->get_message_format(), last_message);
-            tft->setCursor(0,tft->getCursorY()+3);  // workaround for tab positions?
+            tft->setTextWrap(was_wrap);
+
+            int target_y = tft->getCursorY();
+            if (target_y < start_y + row_h)
+                target_y = start_y + row_h;
+            target_y += 3;
+            tft->setCursor(0, target_y);  // keep spacing below status line stable
+
+            #if MENU_SELECTIVE_STATIC_REDRAW
+                cached_message_height = target_y - start_y;
+                message_dirty = false;
+            #endif
+
             return tft->getCursorY();
         }
 

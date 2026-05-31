@@ -27,6 +27,9 @@ extern Menu *menu;
 #ifndef REMOTE_VIEWER_HELLO_RESEND_MS
     #define REMOTE_VIEWER_HELLO_RESEND_MS 2000
 #endif
+#ifndef REMOTE_VIEWER_HELLO_MAX_AUTO_SENDS
+    #define REMOTE_VIEWER_HELLO_MAX_AUTO_SENDS 3
+#endif
 
 struct _ViewerPendingState {
     int32_t  knob_steps      = 0;
@@ -37,6 +40,7 @@ struct _ViewerPendingState {
     bool     toggle_live     = false;
     bool     hello_sent      = false;
     uint32_t last_hello_sent_at = 0;
+    uint8_t  hello_auto_send_count = 0;
 };
 
 static _ViewerPendingState _viewer_state;
@@ -107,16 +111,21 @@ static void read_viewer_serial() {
     if (!Serial) {
         _viewer_state.hello_sent = false;
         _viewer_state.last_hello_sent_at = 0;
+        _viewer_state.hello_auto_send_count = 0;
         // Stop live mode so that a reconnecting serial monitor isn't flooded
         // with binary frame data.  Live mode restarts when '^' is received.
         if (menu) menu->send_frame_live = false;
         return;
     }
     uint32_t now_ms = millis();
-    if (!_viewer_state.hello_sent || (now_ms - _viewer_state.last_hello_sent_at > REMOTE_VIEWER_HELLO_RESEND_MS)) {
+    if (!_viewer_state.hello_sent ||
+        (_viewer_state.hello_auto_send_count < REMOTE_VIEWER_HELLO_MAX_AUTO_SENDS &&
+         now_ms - _viewer_state.last_hello_sent_at > REMOTE_VIEWER_HELLO_RESEND_MS)) {
         send_viewer_hello();
         _viewer_state.hello_sent = true;
         _viewer_state.last_hello_sent_at = now_ms;
+        if (_viewer_state.hello_auto_send_count < 255)
+            _viewer_state.hello_auto_send_count++;
     }
     while (Serial.available() > 0) {
         char c = (char)Serial.peek();
