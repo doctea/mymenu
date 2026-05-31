@@ -254,7 +254,7 @@ int Menu::display() {
             int characters_left = ((tft_width - cursor_x) / current_character_width) - 1;
             if (characters_left<2) {
                 break;
-            } else if (characters_left < (int)strlen(page->title)+1) {
+            } else if (characters_left < (int)page->title_len + 1) {
                 char title[MENU_C_MAX];
                 strncpy(title, page->title, characters_left);
                 title[characters_left] = '\0';
@@ -310,7 +310,21 @@ int Menu::display() {
             unsigned long time_micros = 0;
             if (this->debug_times) time_micros = micros();
             tft->setTextSize(0);
-            y = item->display(pos, (int)i==currently_selected, (int)i==currently_opened) + 1;
+            
+            #if MENU_SELECTIVE_STATIC_REDRAW
+                bool should_render = item->needs_redraw((int)i==currently_selected, (int)i==currently_opened);
+                if (should_render) {
+                    y = item->display(pos, (int)i==currently_selected, (int)i==currently_opened) + 1;
+                    item->mark_rendered((int)i==currently_selected, (int)i==currently_opened);
+                } else {
+                    // Skip rendering for static items; assume height hasn't changed
+                    // Note: this relies on item layout being stable (no reflow)
+                    // Safe for SeparatorMenuItem and other layout-constant controls
+                    y += item->display(pos, (int)i==currently_selected, (int)i==currently_opened);
+                }
+            #else
+                y = item->display(pos, (int)i==currently_selected, (int)i==currently_opened) + 1;
+            #endif
             //Serial.printf("after rendering MenuItem %i, return y is %i, cursor coords are (%i,%i)\n", y, tft->getCursorX(), tft->getCursorY());
             //if (debug) { Serial.printf("display()=> just did display() item %i aka %s\n", i, item->label); Serial_flush(); }
 

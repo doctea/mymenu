@@ -17,6 +17,21 @@ void MenuItem::update_label(const char *new_label) {
     //Debug_printf("%s#update_label('%s')\n", this->label, new_label);
     strncpy(this->label, new_label, MAX_LABEL_LENGTH);
     this->label[MAX_LABEL_LENGTH - 1] = '\0';
+    invalidate_render_cache();
+}
+void MenuItem::invalidate_render_cache() {
+    cached_label_textsize = -1;
+    cached_label_width_px = 0;
+}
+int MenuItem::get_textsize_for_label(uint16_t max_width_px) {
+    if (cached_label_textsize >= 0 && cached_label_width_px == max_width_px) {
+        return cached_label_textsize;
+    }
+
+    const int text_size = tft->get_textsize_for_width(label, max_width_px);
+    cached_label_textsize = (int8_t)text_size;
+    cached_label_width_px = max_width_px;
+    return text_size;
 }
 MenuItem *MenuItem::set_default_colours(uint16_t fg, uint16_t bg) {
     this->default_fg = fg;
@@ -27,7 +42,8 @@ int MenuItem::renderValue(bool selected, bool opened, uint16_t max_character_wid
     //tft->printf("%s [s:%i o:%i]", label, (int)selected, (int)opened);
     colours(selected);
     //tft->setTextSize((strlen(label) < max_character_width/2) ? 2 : 1 );
-    tft->setTextSize(tft->get_textsize_for_width(label, max_character_width*tft->characterWidth()));
+    const uint16_t max_width_px = max_character_width * tft->characterWidth();
+    tft->setTextSize(get_textsize_for_label(max_width_px));
     tft->println(label);
     return tft->getCursorY();
 }

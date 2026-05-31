@@ -24,6 +24,10 @@ extern Menu *menu;
 #define VIEWER_MAX_PENDING_KNOB_STEPS    32
 #define VIEWER_MAX_PENDING_BUTTON_PRESSES 8
 
+#ifndef REMOTE_VIEWER_HELLO_RESEND_MS
+    #define REMOTE_VIEWER_HELLO_RESEND_MS 2000
+#endif
+
 struct _ViewerPendingState {
     int32_t  knob_steps      = 0;
     uint16_t back_presses    = 0;
@@ -32,6 +36,7 @@ struct _ViewerPendingState {
     bool     send_frame      = false;
     bool     toggle_live     = false;
     bool     hello_sent      = false;
+    uint32_t last_hello_sent_at = 0;
 };
 
 static _ViewerPendingState _viewer_state;
@@ -101,14 +106,17 @@ static void _handle_viewer_command(char cmd) {
 static void read_viewer_serial() {
     if (!Serial) {
         _viewer_state.hello_sent = false;
+        _viewer_state.last_hello_sent_at = 0;
         // Stop live mode so that a reconnecting serial monitor isn't flooded
         // with binary frame data.  Live mode restarts when '^' is received.
         if (menu) menu->send_frame_live = false;
         return;
     }
-    if (!_viewer_state.hello_sent) {
+    uint32_t now_ms = millis();
+    if (!_viewer_state.hello_sent || (now_ms - _viewer_state.last_hello_sent_at > REMOTE_VIEWER_HELLO_RESEND_MS)) {
         send_viewer_hello();
         _viewer_state.hello_sent = true;
+        _viewer_state.last_hello_sent_at = now_ms;
     }
     while (Serial.available() > 0) {
         char c = (char)Serial.peek();

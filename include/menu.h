@@ -119,6 +119,7 @@ public:
 
 struct page_t {
     const char *title = "Default"; //[MAX_PAGE_TITLE];
+    uint8_t title_len = 7;
     uint16_t colour = C_WHITE;
     volatile int currently_selected = -1;
     int currently_opened = -1;
@@ -545,6 +546,7 @@ class Menu {
             } else {
                 p->title = title;
             }
+            p->title_len = (uint8_t)((title_len > 255) ? 255 : title_len);
             p->colour = colour;
             p->scrollable = scrollable;
 

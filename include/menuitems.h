@@ -21,6 +21,17 @@ extern const char *set_message;
 extern const char *label_on;
 extern const char *label_off;
 
+#ifndef MENU_SELECTIVE_STATIC_REDRAW
+    #define MENU_SELECTIVE_STATIC_REDRAW 0
+#endif
+
+enum MenuItem_RedrawPolicy {
+    REDRAW_ALWAYS = 0,          // always redraw (default, safest)
+    REDRAW_ON_SELECTION = 1,    // redraw only if selection state changed
+    REDRAW_ON_OPEN_STATE = 2,   // redraw only if opened state changed
+    REDRAW_ON_VALUE_CHANGE = 3  // redraw only if value changed (for dynamic controls)
+};
+
 class Coord {
     public:
         int x, y;
@@ -87,6 +98,26 @@ class MenuItem {
         bool selectable = true;
         bool go_back_on_select = false;
 
+        // Cache text-size decisions for static labels to avoid repeated width scans.
+        int8_t cached_label_textsize = -1;
+        uint16_t cached_label_width_px = 0;
+
+        #if MENU_SELECTIVE_STATIC_REDRAW
+            MenuItem_RedrawPolicy redraw_policy = REDRAW_ALWAYS;
+            int8_t last_rendered_selected = -1;
+            int8_t last_rendered_opened = -1;
+            bool needs_redraw(bool current_selected, bool current_opened) const {
+                if (redraw_policy == REDRAW_ALWAYS) return true;
+                if (redraw_policy == REDRAW_ON_SELECTION && (int8_t)current_selected != last_rendered_selected) return true;
+                if (redraw_policy == REDRAW_ON_OPEN_STATE && (int8_t)current_opened != last_rendered_opened) return true;
+                return false;
+            }
+            void mark_rendered(bool selected, bool opened) {
+                last_rendered_selected = (int8_t)selected;
+                last_rendered_opened = (int8_t)opened;
+            }
+        #endif
+
         MenuItem set_tft(DisplayTranslator *tft) {
             this->tft = tft;
             return *this;
@@ -100,6 +131,8 @@ class MenuItem {
         }
         virtual void on_add();
         virtual void update_label(const char *new_label);
+        virtual void invalidate_render_cache();
+        virtual int get_textsize_for_label(uint16_t max_width_px);
 
         MenuItem *set_default_colours(uint16_t fg, uint16_t bg = BLACK);
 
@@ -213,9 +246,13 @@ class SeparatorMenuItem : virtual public MenuItem {
         SeparatorMenuItem(const char *label, int textSize = 0, bool draw_lines = true) : MenuItem(label, false) {
             this->textSize = textSize;
             this->draw_lines = draw_lines;
+            #if MENU_SELECTIVE_STATIC_REDRAW
+                redraw_policy = REDRAW_ON_SELECTION;  // separators only change on selection
+            #endif
         }
         SeparatorMenuItem(const char *label, uint16_t default_fg, int textSize = 0, bool draw_lines = true) : SeparatorMenuItem(label, textSize, draw_lines) {
             this->default_fg = default_fg;
+            // redraw_policy already set in primary constructor
         }
 
         virtual int display(Coord pos, bool selected, bool opened) override;
