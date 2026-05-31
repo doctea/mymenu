@@ -17,6 +17,7 @@ void MenuItem::update_label(const char *new_label) {
     //Debug_printf("%s#update_label('%s')\n", this->label, new_label);
     strncpy(this->label, new_label, MAX_LABEL_LENGTH);
     this->label[MAX_LABEL_LENGTH - 1] = '\0';
+    this->label_len = strlen(this->label);
     invalidate_render_cache();
 }
 void MenuItem::invalidate_render_cache() {
@@ -108,7 +109,7 @@ int MenuItem::display(Coord pos, bool selected, bool opened) {
     //return (tft->getTextSizeY() * 8) + 2;
     return tft->getCursorY();
 }
-int MenuItem::header(const char *text, Coord pos, bool selected, bool opened, int textSize) {
+int MenuItem::header(const char *text, Coord pos, bool selected, bool opened, int textSize, unsigned int text_len) {
     if (!this->show_header) return pos.y;
 
     tft->drawLine(pos.x, pos.y, tft->width(), pos.y, this->default_fg);
@@ -147,18 +148,19 @@ int FixedSizeMenuItem::renderValue(bool selected, bool opened, uint16_t max_char
     return tft->getCursorY();
 }
 
-int SeparatorMenuItem::header(const char *text, Coord pos, bool selected, bool opened, int textSize) {
+int SeparatorMenuItem::header(const char *text, Coord pos, bool selected, bool opened, int textSize, unsigned int text_len) {
     if (!this->show_header) return pos.y;
 
     tft->setTextSize(textSize);
     colours(false, this->default_fg, this->default_bg);
 
     int end_x;
+    const unsigned int label_width = (text_len != (unsigned int)-1) ? text_len : strlen(text);
 
     if (this->draw_lines) {
         tft->setCursor(pos.x, pos.y+1);
 
-        end_x = (tft->width() - (tft->currentCharacterWidth() * strlen(text))) - 4;
+        end_x = (tft->width() - (tft->currentCharacterWidth() * label_width)) - 4;
         tft->drawLine(0, pos.y,   end_x, pos.y,   this->default_fg);
         tft->drawLine(0, pos.y+2, end_x, pos.y+2, this->default_fg);
         tft->drawLine(0, pos.y+4, end_x, pos.y+4, this->default_fg);
@@ -185,7 +187,7 @@ int SeparatorMenuItem::display(Coord pos, bool selected, bool opened) {
     pos.y += 2;
     
     /*int old_y = pos.y;*/
-    pos.y = header(label, pos, selected, opened, this->textSize);
+    pos.y = header(label, pos, selected, opened, this->textSize, this->label_len);
     /*if (old_y==pos.y) /{
         pos.y += tft->getRowHeight(); // force display down a lne
     }*/

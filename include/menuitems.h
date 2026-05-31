@@ -91,6 +91,7 @@ class MenuItem {
         int menu_c_max = MENU_C_MAX;
 
         char label[MAX_LABEL_LENGTH];
+        unsigned int label_len = 0;
 
         uint16_t default_fg = C_WHITE; //0xFFFF;
         uint16_t default_bg = BLACK;
@@ -131,6 +132,7 @@ class MenuItem {
         MenuItem(const char *in_label, bool selectable = true, bool show_header = true) {
             strncpy(label, in_label, MAX_LABEL_LENGTH);
             label[MAX_LABEL_LENGTH - 1] = '\0';
+            label_len = strlen(label);
             this->selectable = selectable;
             this->show_header = show_header;
         }
@@ -157,7 +159,7 @@ class MenuItem {
         virtual void colours(bool inverted, uint16_t fg);
         virtual void colours(bool inverted, uint16_t fg, uint16_t bg);
         
-        virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false, int textSize = 0);
+        virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false, int textSize = 0, unsigned int text_len = (unsigned int)-1);
 
         // called when item is selected ie opened from the main menu - return true to open, return false to 'refuse to open'
         virtual bool action_opened();
@@ -307,7 +309,7 @@ class SeparatorMenuItem : virtual public MenuItem {
         }
 
         virtual int display(Coord pos, bool selected, bool opened) override;
-        virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false, int textSize = 0);
+        virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false, int textSize = 0, unsigned int text_len = (unsigned int)-1);
 };
 
 #include "menuitems_toggle.h"

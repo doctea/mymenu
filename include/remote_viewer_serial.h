@@ -28,7 +28,7 @@ extern Menu *menu;
     #define REMOTE_VIEWER_HELLO_RESEND_MS 2000
 #endif
 #ifndef REMOTE_VIEWER_HELLO_MAX_AUTO_SENDS
-    #define REMOTE_VIEWER_HELLO_MAX_AUTO_SENDS 3
+    #define REMOTE_VIEWER_HELLO_MAX_AUTO_SENDS 1
 #endif
 
 struct _ViewerPendingState {
@@ -132,6 +132,9 @@ static void read_viewer_serial() {
         if (c == '^') {
             Serial.read();           // consume '^'
             send_viewer_hello();
+            _viewer_state.hello_sent = true;
+            _viewer_state.last_hello_sent_at = now_ms;
+            _viewer_state.hello_auto_send_count = REMOTE_VIEWER_HELLO_MAX_AUTO_SENDS;
             // viewer explicitly connected — start live mode immediately
             if (menu) menu->send_frame_live = true;
             _viewer_state.send_frame = true;
@@ -140,6 +143,9 @@ static void read_viewer_serial() {
             Serial.read();           // consume prefix
             char cmd = (char)Serial.read();
             _handle_viewer_command(cmd);
+            _viewer_state.hello_sent = true;
+            _viewer_state.last_hello_sent_at = now_ms;
+            _viewer_state.hello_auto_send_count = REMOTE_VIEWER_HELLO_MAX_AUTO_SENDS;
         } else {
             break;  // leave unrecognised bytes for the debug console
         }

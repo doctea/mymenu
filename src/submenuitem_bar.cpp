@@ -12,19 +12,19 @@ static inline void print_fixed_width_label(DisplayTranslator *tft, const char *l
         label = "";
     }
 
-    char one_char[2] = {0, 0};
+    const uint_fast16_t max_chars = (width_chars >= (uint_fast16_t)MENU_C_MAX) ? (uint_fast16_t)(MENU_C_MAX - 1) : width_chars;
+    char out[MENU_C_MAX];
     uint_fast16_t n = 0;
-    while (n < width_chars && label[n] != '\0') {
-        one_char[0] = label[n];
-        tft->print(one_char);
+    while (n < max_chars && label[n] != '\0') {
+        out[n] = label[n];
         ++n;
     }
-    while (n < width_chars) {
-        one_char[0] = ' ';
-        tft->print(one_char);
+    while (n < max_chars) {
+        out[n] = ' ';
         ++n;
     }
-    tft->println();
+    out[max_chars] = '\0';
+    tft->println(out);
 }
 
 /*int SubMenuItemBar::get_max_pixel_width(int item_number) {
@@ -40,8 +40,18 @@ uint_fast16_t SubMenuItemBar::get_max_character_width(int item_number) {
 }*/
 
 int SubMenuItemBar::get_max_pixel_width(int item_number) {
-    if (this->cached_pixel_width_per_item==0)
+    const int current_width = this->tft->width();
+    const int columns = this->number_columns();
+    if (columns <= 0)
+        return 0;
+
+    if (this->cached_pixel_width_per_item==0 ||
+        this->cached_screen_width != current_width ||
+        this->cached_column_count != columns) {
         this->cached_pixel_width_per_item = this->tft->width() / this->number_columns();
+        this->cached_screen_width = current_width;
+        this->cached_column_count = columns;
+    }
     return this->cached_pixel_width_per_item - (item_number==number_columns()-1?3:0);
 }
 //int SubMenuItemBar::get_max_characters(int item_)
@@ -140,7 +150,9 @@ int SubMenuItemBar::small_display(int index, int x, int y, int width_in_pixels, 
     //const uint_fast16_t character_width_in_pixels = tft->currentCharacterWidth(); // presumed font width
     tft->setTextSize(0);
     const uint_fast16_t current_char_width = tft->currentCharacterWidth() > 0 ? tft->currentCharacterWidth() : 1;
-    const uint_fast16_t max_display_width_characters = width_in_pixels / current_char_width; //get_max_character_width(index);
+    uint_fast16_t max_display_width_characters = width_in_pixels / current_char_width; //get_max_character_width(index);
+    if (max_display_width_characters == 0)
+        max_display_width_characters = 1;
     //if (index==this->number_columns()-1)
     //    max_display_width_characters-=1;   // for the last column, use one less character, to avoid wrapping unnecessarily
 

@@ -19,14 +19,19 @@
 class MultiToggleItemBase {
     public:
         bool invert_colours = false;
+        unsigned int label_len = 0;
 
         MultiToggleItemBase(const char *label, bool invert_colours = false) {
             this->label = label;
             this->invert_colours = invert_colours;
+            this->label_len = (label != nullptr) ? strlen(label) : 0;
         }
         const char *label;
         inline virtual const char *get_label() {
             return this->label;
+        }
+        inline virtual unsigned int get_label_len() {
+            return this->label_len;
         }
         virtual bool do_getter() = 0;
         virtual void do_setter(bool value) = 0;
@@ -163,7 +168,7 @@ class ObjectMultiToggleControl : public MenuItem {
                 colours(all_selected && opened, all_status ? GREEN : RED, this->default_bg);
                 tft->setCursor(x, pos.y);
                 tft->println(all_label);
-                x += ((strlen(all_label)+1) * FONT_WIDTH);  // 7 being the size if "[ALL] " + 1
+                x += (2 * FONT_WIDTH);  // single-char label plus trailing spacing
                 tft->setCursor(x, pos.y);
             }
 
@@ -188,7 +193,7 @@ class ObjectMultiToggleControl : public MenuItem {
                     last_length = ((tft->width() - tft->getCursorX()) / FONT_WIDTH) - 1;
 
                 const char *item_label = item->get_label();
-                const unsigned int item_label_len = strlen(item_label);
+                const unsigned int item_label_len = item->get_label_len();
                 for (unsigned int segment_start = 0 ; segment_start < item_label_len ; segment_start += last_length) {
                     if (item_label[segment_start]==' ' && last_length>1)   // if the first character is a space, and column is wider than 1, skip the space to improve alignment
                         segment_start++;
@@ -324,7 +329,7 @@ class ObjectMultiToggleColumnControl : public ObjectMultiToggleControl {
                 colours(all_selected && opened, all_status ? GREEN : RED, this->default_bg);
                 tft->setCursor(x, pos.y);
                 tft->println(all_label);
-                x += ((strlen(all_label)+1) * tft->currentCharacterWidth());
+                x += (2 * tft->currentCharacterWidth());
                 tft->setCursor(x, pos.y);
                 tft->println();
             }

@@ -188,17 +188,15 @@ int Menu::display() {
             else
                 this->recalculate_bottoms = false;
         }
+
         int *panel_bottom = selected_page->panel_bottom;
-        /*if (first_display) {
-            panel_bottom = (int*)malloc(this->get_num_panels() * sizeof(int));
-            first_display = false;
-        }*/
-        //static int panel_bottom[MENU_MAX_PANELS];
-        //static bool bottoms_computed = false;
+        if (panel_bottom == nullptr) {
+            return 0;
+        }
 
         // find number of panels to offset in order to ensure that selected panel is on screen?
         int start_panel = 0;
-        if (this->selected_page->scrollable && panel_bottom[currently_selected] >= screen_height_cutoff) {
+        if (bottoms_computed && this->selected_page->scrollable && currently_selected >= 0 && currently_selected < (int)items->size() && panel_bottom[currently_selected] >= screen_height_cutoff) {
             start_panel = currently_selected - 1;
             //#ifdef OLD_SCROLL_METHOD
             // count backwards to find number of panels we have to go to fit currently_selected on screen...
@@ -382,7 +380,12 @@ int Menu::display() {
                 y = y + tft->getRowHeight();
             }
 
-            panel_bottom[i] = y;
+            // panel_bottom stores absolute cumulative bottoms from a full top-to-bottom
+            // pass. During partial viewport renders (bottoms_computed=true), y is
+            // viewport-local and would corrupt the cache, causing scroll snap-back.
+            if (!bottoms_computed) {
+                panel_bottom[i] = y;
+            }
 
             if (bottoms_computed && y >= this->tft->height())
                 break;
