@@ -108,8 +108,9 @@ class ObjectMultiToggleControl : public MenuItem {
         
         LinkedList<MultiToggleItemBase*> items = LinkedList<MultiToggleItemBase*>();
 
-        ObjectMultiToggleControl(const char *label ) : MenuItem(label) {}
-        ObjectMultiToggleControl(const char *label, bool enable_all_option) : ObjectMultiToggleControl(label) {
+        ObjectMultiToggleControl(const char *label) : MenuItem(label) {}
+        ObjectMultiToggleControl(const char *label, bool enable_all_option, bool show_header = false) : ObjectMultiToggleControl(label) {
+            this->show_header = show_header;
             this->all_option = enable_all_option;
         }
 
@@ -145,6 +146,9 @@ class ObjectMultiToggleControl : public MenuItem {
             uint start_y = pos.y;
 
             const uint_fast8_t items_size = items.size();
+            if (items_size == 0) {
+                return pos.y;
+            }
 
             bool all_selected = false;
 
@@ -184,13 +188,15 @@ class ObjectMultiToggleControl : public MenuItem {
                     last_length = ((tft->width() - tft->getCursorX()) / FONT_WIDTH) - 1;
 
                 const char *item_label = item->get_label();
-                for (unsigned int segment_start = 0 ; segment_start < strlen(item_label) ; segment_start += last_length) {
+                const unsigned int item_label_len = strlen(item_label);
+                for (unsigned int segment_start = 0 ; segment_start < item_label_len ; segment_start += last_length) {
                     if (item_label[segment_start]==' ' && last_length>1)   // if the first character is a space, and column is wider than 1, skip the space to improve alignment
                         segment_start++;
-                    strncpy(tmp, &item_label[segment_start], last_length);
-                    last_length = min(last_length, strlen(tmp));
+                    const unsigned int remaining = item_label_len - segment_start;
+                    const unsigned int segment_len = min(last_length, remaining);
+                    strncpy(tmp, &item_label[segment_start], segment_len);
                     tft->setCursor(x, tft->getCursorY());
-                    tmp[last_length] = '\0';
+                    tmp[segment_len] = '\0';
                     //Serial.printf("got '%s'\n", tmp);
                     //tft->printf("%s\n", tmp);
                     tft->println(tmp);
@@ -284,13 +290,10 @@ class ObjectMultiToggleColumnControl : public ObjectMultiToggleControl {
     public:
         uint_fast8_t num_columns = 2;
 
-        ObjectMultiToggleColumnControl(const char *label ) : ObjectMultiToggleControl(label) {}
-        ObjectMultiToggleColumnControl(const char *label, bool enable_all_option, int num_columns = 2) : ObjectMultiToggleColumnControl(label) {
-            this->all_option = enable_all_option;
+        ObjectMultiToggleColumnControl(const char *label, bool enable_all_option = false, int num_columns = 2, bool show_header = true) : ObjectMultiToggleControl(label, enable_all_option, show_header) {
             this->num_columns = num_columns;
         }
 
-        char fmt[MENU_C_MAX] = "-";
         virtual int display(Coord pos, bool selected, bool opened) override {
             pos.y = header(label, pos, selected, opened);
             tft->setCursor(pos.x,pos.y);
@@ -305,6 +308,9 @@ class ObjectMultiToggleColumnControl : public ObjectMultiToggleControl {
             uint_fast16_t start_y = pos.y;
 
             const uint_fast8_t items_size = items.size();
+            if (items_size == 0) {
+                return pos.y;
+            }
 
             bool all_selected = false;
 
@@ -323,13 +329,11 @@ class ObjectMultiToggleColumnControl : public ObjectMultiToggleControl {
                 tft->println();
             }
 
-            const uint width_per_item = (tft->width() / num_columns);
-            const uint items_per_column = 1 + (items_size / num_columns);
-            const uint chars_per_column = width_per_item / tft->currentCharacterWidth();
-
-            if (fmt[0]=='-')
-                snprintf(fmt, MENU_C_MAX, "%%-%is\n", width_per_item/tft->currentCharacterWidth()); // becomes eg "%-6s\n"
-            //tft->printf("got column width %i and format '%s'\n", width_per_item, fmt);
+            const uint_fast8_t safe_columns = this->num_columns > 0 ? this->num_columns : 1;
+            const uint_fast8_t char_width = tft->currentCharacterWidth() > 0 ? tft->currentCharacterWidth() : 1;
+            const uint width_per_item = (tft->width() / safe_columns);
+            const uint items_per_column = 1 + (items_size / safe_columns);
+            const uint chars_per_column = width_per_item / char_width;
 
             start_y = tft->getCursorY();
 
@@ -347,13 +351,16 @@ class ObjectMultiToggleColumnControl : public ObjectMultiToggleControl {
                 //tft->printf((const char*)fmt, (char*)item->get_label());  // limits size but is LOADS 7fps slower!
                 //tft->println(item->get_label());
                 char tmp[MENU_C_MAX];
-                strcpy(tmp, item->get_label()); //, MENU_C_MAX);
-                //tmp[chars_per_column] = '\n';
-                tmp[chars_per_column] = '\0';
+                strncpy(tmp, item->get_label(), MENU_C_MAX - 1);
+                tmp[MENU_C_MAX - 1] = '\0';
+                const uint max_chars = min(chars_per_column, (uint)(MENU_C_MAX - 1));
+                tmp[max_chars] = '\0';
                 tft->println(tmp);
                 //tft->println();
 
                 pos.y = tft->getCursorY();
+                if ((uint_fast16_t)pos.y > max_height_reached)
+                    max_height_reached = (uint_fast16_t)pos.y;
                 ++i;
             }
             

@@ -94,6 +94,7 @@ class MenuItem {
 
         MenuItem(const char *in_label, bool selectable = true, bool show_header = true) {
             strncpy(label, in_label, MAX_LABEL_LENGTH);
+            label[MAX_LABEL_LENGTH - 1] = '\0';
             this->selectable = selectable;
             this->show_header = show_header;
         }

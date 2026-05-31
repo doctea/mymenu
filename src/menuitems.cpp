@@ -16,6 +16,7 @@ void MenuItem::on_add() {
 void MenuItem::update_label(const char *new_label) {
     //Debug_printf("%s#update_label('%s')\n", this->label, new_label);
     strncpy(this->label, new_label, MAX_LABEL_LENGTH);
+    this->label[MAX_LABEL_LENGTH - 1] = '\0';
 }
 MenuItem *MenuItem::set_default_colours(uint16_t fg, uint16_t bg) {
     this->default_fg = fg;

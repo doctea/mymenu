@@ -536,7 +536,15 @@ class Menu {
                 position = this->pages->size();
 
             page_t *p = new page_t;
-            p->title = (new String(title))->c_str();
+            size_t title_len = strlen(title);
+            char *title_copy = (char *)malloc(title_len + 1);
+            if (title_copy != nullptr) {
+                strncpy(title_copy, title, title_len);
+                title_copy[title_len] = '\0';
+                p->title = title_copy;
+            } else {
+                p->title = title;
+            }
             p->colour = colour;
             p->scrollable = scrollable;
 
@@ -797,6 +805,7 @@ class Menu {
         // set the message to display at top of display
         void set_last_message(const char *msg, uint16_t colour = C_WHITE) {
             strncpy(last_message, msg, MENU_C_MAX);
+            last_message[MENU_C_MAX - 1] = '\0';
             this->set_message_colour(colour);
             this->add_message(msg);
         }
