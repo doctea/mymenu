@@ -113,7 +113,7 @@ class PageFileViewerMenuItem : public MenuItem {
     }
 
     int render_list_header(Coord pos) {
-        tft->printf("%s\n(%u bytes)\n", filename, file_size, 0);
+        tft->printf("%s\n(%u bytes)\n", filename, file_size);
         //tft->printf("Lines: %i\n", list_contents->size());
         //tft->printf("...");
         return tft->getCursorY();

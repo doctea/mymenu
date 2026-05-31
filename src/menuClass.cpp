@@ -109,7 +109,7 @@ int Menu::display() {
     } else if (mode==DISPLAY_ONE) {
         //if (debug) { Serial.println("display()=> DISPLAY_ONE branch"); Serial_flush(); }
         // for screens that can only display one option at a time
-        static int last_displayed = 0;
+        // static int last_displayed = 0;
         // if (last_displayed!=currently_selected)
         //     tft->clear();
         tft->setCursor(0, y);
@@ -124,7 +124,7 @@ int Menu::display() {
         if (currently_selected>=0 && currently_selected < (int)items->size()) {
             tft->setTextSize(0);
             items->get(currently_selected)->display(Coord(0,y), true, currently_opened==currently_selected);
-            last_displayed = currently_selected;
+            // last_displayed = currently_selected;
         }
 
         tft->setTextColor(C_WHITE, BLACK);
@@ -202,11 +202,11 @@ int Menu::display() {
             // TODO: fix this behaviour once and for all
         #endif
 
-        static int last_start_panel = -1;
+        // static int last_start_panel = -1;
         // if (last_start_panel!=start_panel) {
         //     tft->clear(true);
         // }
-        last_start_panel = start_panel;
+        // last_start_panel = start_panel;
 
         tft->setCursor(0,y);
 
@@ -293,7 +293,7 @@ int Menu::display() {
         // draw each menu item
         //int start_y = 0;
         //if (debug) { Serial.println("display()=> about to start drawing the items.."); Serial_flush(); }
-        const uint_fast16_t size = items->size();
+        // const uint_fast16_t size = items->size();
         auto it = items->begin();
         for (uint_fast16_t s = 0; s < start_panel && it != items->end(); ++s, ++it) {}
         for (uint_fast16_t i = start_panel; it != items->end(); ++it, ++i) {
@@ -316,7 +316,7 @@ int Menu::display() {
 
             if (this->debug_times) {
                 tft->setTextSize(1);
-                tft->printf("Took: %u\n", micros() - time_micros);
+                tft->printf("Took: %lu\n", micros() - time_micros);
                 y = y + tft->getRowHeight();
             }
 
