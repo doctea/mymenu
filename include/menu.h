@@ -159,6 +159,33 @@ class Menu {
 
     bool button_mode_rise_on_click = true;
 
+    void cycle_top_level_page(int direction) {
+        const int page_count = (this->pages==nullptr) ? 0 : (int)this->pages->size();
+        if (page_count <= 0)
+            return;
+
+        const int previous_index = this->selected_page_index;
+        int next_index = previous_index + direction;
+        if (next_index < 0)
+            next_index = page_count - 1;
+        else if (next_index >= page_count)
+            next_index = 0;
+
+        this->select_page(next_index);
+
+        // Defensive fallback: if selection didn't move despite available pages,
+        // force one extra step so each detent changes tab at top level.
+        if (page_count > 1 && this->selected_page_index == previous_index) {
+            next_index += direction;
+            if (next_index < 0)
+                next_index = page_count - 1;
+            else if (next_index >= page_count)
+                next_index = 0;
+
+            this->select_page(next_index);
+        }
+    }
+
     void unwind_page_opened_state(page_t *page) {
         if (page==nullptr || page->items==nullptr)
             return;
@@ -293,10 +320,7 @@ class Menu {
         bool knob_left() {
             Debug_println("knob_left()");
             if (!is_page_opened()) {
-                selected_page_index--;
-                if (selected_page_index<0)
-                    selected_page_index = pages->size() - 1;
-                select_page(selected_page_index);
+                this->cycle_top_level_page(-1);
             } else if (is_item_opened()) { // && items->get(currently_opened)->knob_left()) {
                 //Serial.printf(F("knob_left on currently_opened menuitem %i\n"), selected_page->currently_opened);
                 selected_page->items->get(selected_page->currently_opened)->knob_left();
@@ -313,10 +337,7 @@ class Menu {
         bool knob_right() {
             Debug_println("knob_right()");
             if (!is_page_opened()) {
-                selected_page_index++;
-                if (selected_page_index>=(int)pages->size())
-                    selected_page_index = 0;
-                select_page(selected_page_index);
+                this->cycle_top_level_page(1);
             } else if (is_item_opened()) { //&& items->get(currently_opened)->knob_right()) {
                 //Serial.printf(F("knob_right on currently_opened menuitem %i\n"), selected_page->currently_opened);
                 selected_page->items->get(selected_page->currently_opened)->knob_right();
@@ -729,7 +750,28 @@ class Menu {
             this->remember_opened_page(page_index);
 
             //Serial.printf("=> currently_selected is now %i\n", selected_page->currently_selected);
-        }       
+        }
+
+        int get_selected_page_index() const {
+            return this->selected_page_index;
+        }
+
+        int get_opened_page_index() const {
+            return this->opened_page_index;
+        }
+
+        const char *get_selected_page_title() const {
+            return (this->selected_page!=nullptr && this->selected_page->title!=nullptr) ? this->selected_page->title : "";
+        }
+
+        const char *get_profile_string() const {
+            return this->profile_string;
+        }
+
+        bool is_profile_enabled() const {
+            return this->profile_enable;
+        }
+
 
         // add a linkedlist of menuitems; delete the LinkedList object when finished!
         FLASHMEM 
