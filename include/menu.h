@@ -237,15 +237,16 @@ class Menu {
             this->screen_height_cutoff = (int)(0.75f*(float)tft->height());
 
             //this->button_mode_rise_on_click = button_mode_rise_on_click;
-            #ifdef PIN_BUTTON_A
-                pushButtonA.setPressedState(button_mode_rise_on_click);
-            #endif
-            #ifdef PIN_BUTTON_B
-                pushButtonB.setPressedState(button_mode_rise_on_click);
-            #endif
-            #ifdef PIN_BUTTON_C
-                pushButtonC.setPressedState(button_mode_rise_on_click);
-            #endif
+            // TODO: this below might have been fucking with us -- check !!
+            // #ifdef PIN_BUTTON_A
+            //     pushButtonA.setPressedState(button_mode_rise_on_click);
+            // #endif
+            // #ifdef PIN_BUTTON_B
+            //     pushButtonB.setPressedState(button_mode_rise_on_click);
+            // #endif
+            // #ifdef PIN_BUTTON_C
+            //     pushButtonC.setPressedState(button_mode_rise_on_click);
+            // #endif
         }
 
         void setDebugTimes(bool value) {

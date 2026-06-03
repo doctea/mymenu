@@ -16,10 +16,6 @@
     #include <Adafruit_GFX_Buffer.h>
     #include <Adafruit_GFX.h>
 #endif
-/*#include <SPI.h>
-//#include "ST7789_t3.h"
-#include <Adafruit_ST7789.h>
-*/
 #define USE_SPI_DMA
 #include <TFT_eSPI.h>
 
@@ -97,6 +93,7 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
     }
     virtual void setup() {
         Debug_println(F("DisplayTranslator_Bodmer setup()..")); Serial_flush();
+
         real_actual_espi = new TFT_eSPI();
         actual = new TFT_eSprite_Wrapper(real_actual_espi);
         tft = actual;
@@ -115,7 +112,7 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         #else
             #ifdef BODMER_SPRITE
                 real_actual_espi->setRotation(SCREEN_ROTATION);
-                
+
                 #ifdef ARDUINO_ARCH_RP2040
                     real_actual_espi->initDMA();
                 #endif
@@ -272,9 +269,9 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
 
     virtual void updateDisplay() override {
         #ifdef BODMER_SPRITE
-            //Serial.println("updateDisplay sprite mode");
-            //spr.fillSprite(random(0,pow(2,16)));
+        //spr.fillSprite(random(0,pow(2,16)));
             if (this->ready()) {
+                // Serial.println("updateDisplay sprite mode");
                 int s_w, s_h;
                 if (SCREEN_ROTATION%2==1) {
                     s_w = SCREEN_HEIGHT;
@@ -344,7 +341,7 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         uint32_t total = (uint32_t)w * (uint32_t)h;
 
         // pointer to pixel data (16-bit words)
-        uint16_t *pixels = (uint16_t*)actual->_img;
+        uint16_t *pixels = (uint16_t*)actual->getPointer();
 
         // First pass: compute encoded payload size for RLE without allocating
         uint32_t encoded_bytes = 0;
@@ -375,7 +372,7 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
 
         if (encoding == 0) {
             // send raw bytes (little-endian 16-bit words)
-            uint8_t *ptr = (uint8_t*)actual->_img;
+            uint8_t *ptr = (uint8_t*)actual->getPointer();
             uint32_t remaining = size;
             while (remaining > 0) {
                 uint32_t chunk = remaining;
