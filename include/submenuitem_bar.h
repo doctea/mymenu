@@ -8,6 +8,8 @@ class SubMenuItemBar : public SubMenuItem {
 
     bool show_sub_headers = true;
     int_fast16_t cached_pixel_width_per_item = 0;
+    int_fast16_t cached_screen_width = 0;
+    int_fast16_t cached_column_count = 0;
 
     SubMenuItemBar(const char *label, bool show_sub_headers = true, bool show_header = true) : SubMenuItem(label, show_header) {
         this->show_sub_headers = show_sub_headers;
@@ -45,6 +47,8 @@ class SubMenuItemBarCustomProportions : public SubMenuItemBar {
             this->number_columns_proportions[column_index] = proportion;
             // invalidate cached pixel width so it gets recalculated with new proportions
             this->cached_pixel_width_per_item = 0;
+            this->cached_screen_width = 0;
+            this->cached_column_count = 0;
         }
     }
 
@@ -91,8 +95,13 @@ class DualMenuItem : public SubMenuItemColumns {
 
         int get_max_pixel_width(int item_number) override {
             if (item_1_width==0) {
-                if (this->cached_pixel_width_per_item==0)
+                if (this->cached_pixel_width_per_item==0 ||
+                    this->cached_screen_width != (int_fast16_t)this->tft->width() ||
+                    this->cached_column_count != (int_fast16_t)this->number_columns()) {
                     this->cached_pixel_width_per_item = this->tft->width() / this->number_columns();
+                    this->cached_screen_width = this->tft->width();
+                    this->cached_column_count = this->number_columns();
+                }
                 return this->cached_pixel_width_per_item - (item_number==number_columns()-1?3:0);
             } else {
                 if (item_number==0) {

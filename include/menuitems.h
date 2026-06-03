@@ -21,6 +21,25 @@ extern const char *set_message;
 extern const char *label_on;
 extern const char *label_off;
 
+#ifndef MENU_SELECTIVE_STATIC_REDRAW
+    #define MENU_SELECTIVE_STATIC_REDRAW 0
+#endif
+
+#if MENU_SELECTIVE_STATIC_REDRAW
+    // Wrap optional calls so call sites stay readable while methods only exist in selective-redraw builds.
+    #define MENU_STATIC_REDRAW(code) code
+#else
+    #define MENU_STATIC_REDRAW(code)
+#endif
+
+enum MenuItem_RedrawPolicy {
+    REDRAW_ALWAYS = 0,          // always redraw (default, safest)
+    REDRAW_ON_SELECTION = 1,    // redraw only if selection state changed
+    REDRAW_ON_OPEN_STATE = 2,   // redraw only if opened state changed
+    REDRAW_ON_SELECTION_OR_OPEN = 3, // redraw if either selection or opened state changed
+    REDRAW_ON_VALUE_CHANGE = 4  // redraw only if value changed (for dynamic controls)
+};
+
 class Coord {
     public:
         int x, y;
@@ -79,6 +98,7 @@ class MenuItem {
         int menu_c_max = MENU_C_MAX;
 
         char label[MAX_LABEL_LENGTH];
+        unsigned int label_len = 0;
 
         uint16_t default_fg = C_WHITE; //0xFFFF;
         uint16_t default_bg = BLACK;
@@ -86,6 +106,43 @@ class MenuItem {
         bool show_header = true;
         bool selectable = true;
         bool go_back_on_select = false;
+
+        // Cache text-size decisions for static labels to avoid repeated width scans.
+        int8_t cached_label_textsize = -1;
+        uint16_t cached_label_width_px = 0;
+
+        #if MENU_SELECTIVE_STATIC_REDRAW
+            MenuItem_RedrawPolicy redraw_policy = REDRAW_ALWAYS;
+            int8_t last_rendered_selected = -1;
+            int8_t last_rendered_opened = -1;
+            int16_t cached_draw_height = 0;
+            virtual void set_redraw_policy(MenuItem_RedrawPolicy policy) {
+                redraw_policy = policy;
+            }
+            virtual bool needs_redraw(bool current_selected, bool current_opened) const {
+                if (cached_draw_height <= 0) return true;
+                if (redraw_policy == REDRAW_ALWAYS) return true;
+                if (redraw_policy == REDRAW_ON_SELECTION && (int8_t)current_selected != last_rendered_selected) return true;
+                if (redraw_policy == REDRAW_ON_OPEN_STATE && (int8_t)current_opened != last_rendered_opened) return true;
+                if (redraw_policy == REDRAW_ON_SELECTION_OR_OPEN && (
+                    (int8_t)current_selected != last_rendered_selected ||
+                    (int8_t)current_opened != last_rendered_opened
+                )) return true;
+                return false;
+            }
+            virtual void mark_rendered(bool selected, bool opened) {
+                last_rendered_selected = (int8_t)selected;
+                last_rendered_opened = (int8_t)opened;
+            }
+            virtual void mark_rendered(bool selected, bool opened, int16_t draw_height) {
+                last_rendered_selected = (int8_t)selected;
+                last_rendered_opened = (int8_t)opened;
+                cached_draw_height = (draw_height > 0) ? draw_height : 0;
+            }
+            virtual int16_t get_cached_draw_height() const {
+                return cached_draw_height;
+            }
+        #endif
 
         MenuItem set_tft(DisplayTranslator *tft) {
             this->tft = tft;
@@ -95,11 +152,14 @@ class MenuItem {
         MenuItem(const char *in_label, bool selectable = true, bool show_header = true) {
             strncpy(label, in_label, MAX_LABEL_LENGTH);
             label[MAX_LABEL_LENGTH - 1] = '\0';
+            label_len = strlen(label);
             this->selectable = selectable;
             this->show_header = show_header;
         }
         virtual void on_add();
         virtual void update_label(const char *new_label);
+        virtual void invalidate_render_cache();
+        virtual int get_textsize_for_label(uint16_t max_width_px);
 
         MenuItem *set_default_colours(uint16_t fg, uint16_t bg = BLACK);
 
@@ -119,7 +179,7 @@ class MenuItem {
         virtual void colours(bool inverted, uint16_t fg);
         virtual void colours(bool inverted, uint16_t fg, uint16_t bg);
         
-        virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false, int textSize = 0);
+        virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false, int textSize = 0, unsigned int text_len = (unsigned int)-1);
 
         // called when item is selected ie opened from the main menu - return true to open, return false to 'refuse to open'
         virtual bool action_opened();
@@ -163,10 +223,36 @@ class FixedSizeMenuItem : public MenuItem {
 class PinnedPanelMenuItem : public MenuItem {
     public:
         unsigned long ticks = 0;
+        #if MENU_SELECTIVE_STATIC_REDRAW
+            bool redraw_needed = true;
+            int16_t cached_draw_height = 0;
+
+            virtual void request_redraw() {
+                redraw_needed = true;
+            }
+            virtual void refresh_redraw_state() {
+                // default no-op
+            }
+            virtual bool should_redraw() const {
+                return redraw_needed || cached_draw_height <= 0;
+            }
+            virtual int16_t get_cached_draw_height() const {
+                return cached_draw_height;
+            }
+            virtual void mark_drawn(int16_t draw_height) {
+                cached_draw_height = (draw_height > 0) ? draw_height : 0;
+                redraw_needed = false;
+            }
+        #endif
 
         PinnedPanelMenuItem(const char *label) : MenuItem(label) {};
 
         virtual void update_ticks(unsigned long ticks) override {
+            #if MENU_SELECTIVE_STATIC_REDRAW
+                if (this->ticks != ticks) {
+                    request_redraw();
+                }
+            #endif
             this->ticks = ticks;
         }
 };
@@ -176,7 +262,7 @@ class DoublePinnedPanelMenuItem : public PinnedPanelMenuItem {
         unsigned long ticks = 0;
         PinnedPanelMenuItem *item1, *item2;
 
-        DoublePinnedPanelMenuItem(PinnedPanelMenuItem *item1, PinnedPanelMenuItem *item2) : PinnedPanelMenuItem(label) {
+        DoublePinnedPanelMenuItem(PinnedPanelMenuItem *item1, PinnedPanelMenuItem *item2) : PinnedPanelMenuItem("") {
             this->item1 = item1;
             this->item2 = item2;
         };
@@ -185,7 +271,26 @@ class DoublePinnedPanelMenuItem : public PinnedPanelMenuItem {
             if (this->item1!=nullptr) this->item1->update_ticks(ticks);
             if (this->item2!=nullptr) this->item2->update_ticks(ticks);
             this->ticks = ticks;
+
+            #if MENU_SELECTIVE_STATIC_REDRAW
+            if ((this->item1!=nullptr && this->item1->should_redraw()) ||
+                (this->item2!=nullptr && this->item2->should_redraw())) {
+                this->request_redraw();
+            }
+            #endif
         }
+
+        #if MENU_SELECTIVE_STATIC_REDRAW
+        virtual void refresh_redraw_state() override {
+            if (this->item1!=nullptr) this->item1->refresh_redraw_state();
+            if (this->item2!=nullptr) this->item2->refresh_redraw_state();
+
+            if ((this->item1!=nullptr && this->item1->should_redraw()) ||
+                (this->item2!=nullptr && this->item2->should_redraw())) {
+                this->request_redraw();
+            }
+        }
+        #endif
 
         int display(Coord pos, bool selected, bool opened) override {
             int y = pos.y;
@@ -213,13 +318,15 @@ class SeparatorMenuItem : virtual public MenuItem {
         SeparatorMenuItem(const char *label, int textSize = 0, bool draw_lines = true) : MenuItem(label, false) {
             this->textSize = textSize;
             this->draw_lines = draw_lines;
+            MENU_STATIC_REDRAW(set_redraw_policy(REDRAW_ON_SELECTION);)  // separators only change on selection
         }
         SeparatorMenuItem(const char *label, uint16_t default_fg, int textSize = 0, bool draw_lines = true) : SeparatorMenuItem(label, textSize, draw_lines) {
             this->default_fg = default_fg;
+            // redraw_policy already set in primary constructor
         }
 
         virtual int display(Coord pos, bool selected, bool opened) override;
-        virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false, int textSize = 0);
+        virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false, int textSize = 0, unsigned int text_len = (unsigned int)-1);
 };
 
 #include "menuitems_toggle.h"

@@ -21,6 +21,10 @@ Also extended by the [parameters](https://github.com/doctea/parameters) library 
 - (on rp2040 only) [patched bodme/TFT_eSPI library](https://github.com/doctea/TFT_eSPI) needed to fix bug with wrapping not working (leading to missing headers from menus?)
 - [Functional-Vlpp](https://registry.platformio.org/libraries/khoih-prog/Functional-Vlpp/installation) library for lambda support
 
+## Rendering/Viewer Build Options
+
+- See [docs/render-options.md](docs/render-options.md) for the current display/render/viewer flags, trade-offs, and known pitfalls.
+
 ## todo
 
 - Refactor to improve inheritance and reusability of the menu item code?

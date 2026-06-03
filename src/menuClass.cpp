@@ -29,17 +29,37 @@ bool debug_flag = false;
 int Menu::display_pinned() {
     int y = tft->getCursorY();
     if (profile_enable) {
+        tft->setTextSize(tft->default_textsize);
+        const int row_h = tft->getRowHeight();
+        const int profile_h = row_h + 3;
+        tft->fillRect(0, y, tft->width(), profile_h, BLACK);
         tft->setCursor(0, y);
         Serial.println(profile_string);
-        tft->setTextSize(0);
+        bool was_wrap = tft->isTextWrap();
+        tft->setTextWrap(false);
         tft->printf(tft->get_message_format(), profile_string);
-        //tft->println("wtf?");
-        y = tft->getCursorY() + 3;
+        tft->setTextWrap(was_wrap);
+
+        int target_y = tft->getCursorY();
+        if (target_y < y + row_h)
+            target_y = y + row_h;
+        y = target_y + 3;
     }
 
     if (pinned_panel!=nullptr) {
-        //if (debug) { Serial.println("display()=> doing pinned_panel display"); Serial_flush(); }
-        y = pinned_panel->display(Coord(0,y), false, false);
+        #if MENU_SELECTIVE_STATIC_REDRAW
+            pinned_panel->refresh_redraw_state();
+            if (pinned_panel->should_redraw()) {
+                //if (debug) { Serial.println("display()=> doing pinned_panel display"); Serial_flush(); }
+                const int new_y = pinned_panel->display(Coord(0,y), false, false);
+                pinned_panel->mark_drawn(new_y - y);
+                y = new_y;
+            } else {
+                y += pinned_panel->get_cached_draw_height();
+            }
+        #else
+            y = pinned_panel->display(Coord(0,y), false, false);
+        #endif
     }
 
     return y;
@@ -89,7 +109,29 @@ int Menu::display() {
     MenuItemList *items = selected_page->items;
     //if (debug) { Serial.printf("currently_opened = %i/%i, currently_selected = %i/%i..\n", currently_opened+1, selected_page->items->size(), currently_selected+1, selected_page->items->size()); Serial_flush(); }
 
-    tft->clear();
+    #if MENU_SELECTIVE_STATIC_REDRAW
+        static page_t *last_selected_page = nullptr;
+        static int last_selected_page_index_rendered = -1;
+        static int last_opened_page_index_rendered = -2;
+        const bool page_changed = (last_selected_page != selected_page);
+        const bool page_index_changed = (last_selected_page_index_rendered != selected_page_index);
+        const bool opened_page_changed = (last_opened_page_index_rendered != opened_page_index);
+        last_selected_page = selected_page;
+        last_selected_page_index_rendered = selected_page_index;
+        last_opened_page_index_rendered = opened_page_index;
+
+        const bool is_takeover = is_item_opened() && items->get(currently_opened)->allow_takeover();
+        const bool requires_full_clear = is_takeover || mode==DISPLAY_ONE || page_changed || page_index_changed || opened_page_changed || recalculate_bottoms;
+        if (requires_full_clear) {
+            tft->clear();
+            mark_message_dirty();
+            if (pinned_panel!=nullptr) {
+                pinned_panel->request_redraw();
+            }
+        }
+    #else
+        tft->clear();
+    #endif
 
     // now draw the menu
     //if (debug) { Serial.println("display()=> about to check display mode and branch.."); Serial_flush(); }
@@ -145,17 +187,15 @@ int Menu::display() {
             else
                 this->recalculate_bottoms = false;
         }
+
         int *panel_bottom = selected_page->panel_bottom;
-        /*if (first_display) {
-            panel_bottom = (int*)malloc(this->get_num_panels() * sizeof(int));
-            first_display = false;
-        }*/
-        //static int panel_bottom[MENU_MAX_PANELS];
-        //static bool bottoms_computed = false;
+        if (panel_bottom == nullptr) {
+            return 0;
+        }
 
         // find number of panels to offset in order to ensure that selected panel is on screen?
         int start_panel = 0;
-        if (this->selected_page->scrollable && panel_bottom[currently_selected] >= screen_height_cutoff) {
+        if (bottoms_computed && this->selected_page->scrollable && currently_selected >= 0 && currently_selected < (int)items->size() && panel_bottom[currently_selected] >= screen_height_cutoff) {
             start_panel = currently_selected - 1;
             //#ifdef OLD_SCROLL_METHOD
             // count backwards to find number of panels we have to go to fit currently_selected on screen...
@@ -254,7 +294,7 @@ int Menu::display() {
             int characters_left = ((tft_width - cursor_x) / current_character_width) - 1;
             if (characters_left<2) {
                 break;
-            } else if (characters_left < (int)strlen(page->title)+1) {
+            } else if (characters_left < (int)page->title_len + 1) {
                 char title[MENU_C_MAX];
                 strncpy(title, page->title, characters_left);
                 title[characters_left] = '\0';
@@ -288,6 +328,18 @@ int Menu::display() {
             tft->println(selected_page->header_text);
             tft->setTextWrap(wasTextWrap);
             y = tft->getCursorY();
+        } else {
+            // Keep a consistent visual boundary before item rows on pages that
+            // do not render a dedicated page header line.
+            tft->drawLine(0, y, tft->width(), y, C_WHITE);
+            y += 2;
+        }
+
+        // Always clear and redraw the entire list area - this is the reliable path
+        const int list_start_y = y;
+        const int list_h = tft->height() - list_start_y;
+        if (list_h > 0) {
+            tft->fillRect(0, list_start_y, tft->width(), list_h, BLACK);
         }
 
         // draw each menu item
@@ -310,7 +362,10 @@ int Menu::display() {
             unsigned long time_micros = 0;
             if (this->debug_times) time_micros = micros();
             tft->setTextSize(0);
-            y = item->display(pos, (int)i==currently_selected, (int)i==currently_opened) + 1;
+
+            const bool item_selected = ((int)i==currently_selected);
+            const bool item_opened = ((int)i==currently_opened);
+            y = item->display(pos, item_selected, item_opened) + 1;
             //Serial.printf("after rendering MenuItem %i, return y is %i, cursor coords are (%i,%i)\n", y, tft->getCursorX(), tft->getCursorY());
             //if (debug) { Serial.printf("display()=> just did display() item %i aka %s\n", i, item->label); Serial_flush(); }
 
@@ -320,9 +375,11 @@ int Menu::display() {
                 y = y + tft->getRowHeight();
             }
 
+            // panel_bottom stores absolute cumulative bottoms from a full top-to-bottom
+            // pass. During partial viewport renders (bottoms_computed=true), y is
+            // viewport-local and would corrupt the cache, causing scroll snap-back.
             if (!bottoms_computed) {
-                panel_bottom[i] = y;// - start_y;
-                //start_y = y;
+                panel_bottom[i] = y;
             }
 
             if (bottoms_computed && y >= this->tft->height())
@@ -384,9 +441,29 @@ int Menu::display() {
     }
 
     if (send_frame) {
-        this->tft->push_framebuffer_serial();
-        if(!send_frame_live) {
-            send_frame = false;
+        bool should_send = true;
+        #ifdef ENABLE_REMOTE_VIEWER
+            if (send_frame_live) {
+                static uint32_t last_live_frame_sent_at = 0;
+                #ifndef REMOTE_VIEWER_LIVE_MAX_FPS
+                    #define REMOTE_VIEWER_LIVE_MAX_FPS 8
+                #endif
+                const uint32_t max_fps = (REMOTE_VIEWER_LIVE_MAX_FPS > 0) ? (uint32_t)REMOTE_VIEWER_LIVE_MAX_FPS : 1u;
+                const uint32_t min_interval_ms = 1000u / max_fps;
+                uint32_t now_ms = millis();
+                if (now_ms - last_live_frame_sent_at < min_interval_ms) {
+                    should_send = false;
+                } else {
+                    last_live_frame_sent_at = now_ms;
+                }
+            }
+        #endif
+
+        if (should_send) {
+            this->tft->push_framebuffer_serial();
+            if(!send_frame_live) {
+                send_frame = false;
+            }
         }
     }
 
