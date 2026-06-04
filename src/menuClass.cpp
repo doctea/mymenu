@@ -268,11 +268,11 @@ int Menu::display() {
 
         int pinned_start_y = y;
         #if MENU_SELECTIVE_STATIC_REDRAW
-        // Peek at should_redraw() AFTER refresh so we know if display_pinned() will actually re-render
-        if (pinned_panel != nullptr) pinned_panel->refresh_redraw_state();
-        const bool pinned_did_redraw = (pinned_panel == nullptr) || pinned_panel->should_redraw();
+            // Peek at should_redraw() AFTER refresh so we know if display_pinned() will actually re-render
+            if (pinned_panel != nullptr) pinned_panel->refresh_redraw_state();
+            const bool pinned_did_redraw = (pinned_panel == nullptr) || pinned_panel->should_redraw();
         #else
-        const bool pinned_did_redraw = true;
+            const bool pinned_did_redraw = true;
         #endif
         y = display_pinned();
         // Only mark dirty if pinned panel actually re-rendered
@@ -284,9 +284,9 @@ int Menu::display() {
         //if (debug) { Debug_println(F("display()=> about to draw_message()")); Serial_flush(); }
         int msg_start_y = y;
         #if MENU_SELECTIVE_STATIC_REDRAW
-        const bool msg_did_redraw = should_redraw_message_row();
+            const bool msg_did_redraw = should_redraw_message_row();
         #else
-        const bool msg_did_redraw = true;
+            const bool msg_did_redraw = true;
         #endif
         int new_y = draw_message();
         if (new_y==y)
@@ -358,11 +358,11 @@ int Menu::display() {
         
         // Mark tabs dirty only if page selection changed (tabs text changed)
         #if MENU_SELECTIVE_STATIC_REDRAW
-        if (page_index_changed || opened_page_changed) {
-            tft->set_dirty_region(tabs_start_y, y);
-        }
+            if (page_index_changed || opened_page_changed) {
+                tft->set_dirty_region(tabs_start_y, y);
+            }
         #else
-        tft->set_dirty_region(tabs_start_y, y);
+            tft->set_dirty_region(tabs_start_y, y);
         #endif
         
         tft->setTextSize(0);
@@ -388,21 +388,21 @@ int Menu::display() {
         
         // Mark header dirty only if page changed
         #if MENU_SELECTIVE_STATIC_REDRAW
-        if (page_changed || page_index_changed) {
-            tft->set_dirty_region(header_start_y, y);
-        }
+            if (page_changed || page_index_changed) {
+                tft->set_dirty_region(header_start_y, y);
+            }
         #else
-        tft->set_dirty_region(header_start_y, y);
+            tft->set_dirty_region(header_start_y, y);
         #endif
 
         // Always clear and redraw the entire list area - this is the reliable path
         const int list_start_y = y;
         #if !MENU_SELECTIVE_STATIC_REDRAW
-        // Without selective redraw, blank the whole list area up front
-        const int list_h = tft->height() - list_start_y;
-        if (list_h > 0) {
-            tft->fillRect(0, list_start_y, tft->width(), list_h, BLACK);
-        }
+            // Without selective redraw, blank the whole list area up front
+            const int list_h = tft->height() - list_start_y;
+            if (list_h > 0) {
+                tft->fillRect(0, list_start_y, tft->width(), list_h, BLACK);
+            }
         #endif
 
         // draw each menu item
@@ -432,31 +432,31 @@ int Menu::display() {
             int item_start_y = y;
 
             #if MENU_SELECTIVE_STATIC_REDRAW
-            if (item->needs_redraw(item_selected, item_opened)) {
-                // Blank just this item's area before redrawing
-                const int16_t cached_h = item->get_cached_draw_height();
-                const int erase_h = (cached_h > 0) ? cached_h : tft->getRowHeight() * 2;
-                tft->fillRect(0, item_start_y, tft->width(), erase_h, BLACK);
-                
-                y = item->display(pos, item_selected, item_opened) + 1;
-                item->mark_rendered(item_selected, item_opened, y - item_start_y - 1);
-                tft->set_dirty_region(item_start_y, y);
-            } else {
-                // Skip render, advance y by cached height
-                const int16_t cached_h = item->get_cached_draw_height();
-                if (cached_h > 0) {
-                    y = item_start_y + cached_h + 1;
-                } else {
-                    // No cache yet, must render
-                    tft->fillRect(0, item_start_y, tft->width(), tft->getRowHeight() * 2, BLACK);
+                if (item->needs_redraw(item_selected, item_opened)) {
+                    // Blank just this item's area before redrawing
+                    const int16_t cached_h = item->get_cached_draw_height();
+                    const int erase_h = (cached_h > 0) ? cached_h : tft->getRowHeight() * 2;
+                    tft->fillRect(0, item_start_y, tft->width(), erase_h, BLACK);
+                    
                     y = item->display(pos, item_selected, item_opened) + 1;
                     item->mark_rendered(item_selected, item_opened, y - item_start_y - 1);
                     tft->set_dirty_region(item_start_y, y);
+                } else {
+                    // Skip render, advance y by cached height
+                    const int16_t cached_h = item->get_cached_draw_height();
+                    if (cached_h > 0) {
+                        y = item_start_y + cached_h + 1;
+                    } else {
+                        // No cache yet, must render
+                        tft->fillRect(0, item_start_y, tft->width(), tft->getRowHeight() * 2, BLACK);
+                        y = item->display(pos, item_selected, item_opened) + 1;
+                        item->mark_rendered(item_selected, item_opened, y - item_start_y - 1);
+                        tft->set_dirty_region(item_start_y, y);
+                    }
                 }
-            }
             #else
-            y = item->display(pos, item_selected, item_opened) + 1;
-            tft->set_dirty_region(item_start_y, y);
+                y = item->display(pos, item_selected, item_opened) + 1;
+                tft->set_dirty_region(item_start_y, y);
             #endif
 
             //Serial.printf("after rendering MenuItem %i, return y is %i, cursor coords are (%i,%i)\n", y, tft->getCursorX(), tft->getCursorY());
@@ -482,20 +482,20 @@ int Menu::display() {
         }
         
         #if MENU_SELECTIVE_STATIC_REDRAW
-        // Clear and dirty blank space only when list height actually changes.
-        // Do NOT trigger on every item redraw — that defeats the whole optimisation.
-        static int last_list_bottom_y = -1;
-        if (list_bottom_y != last_list_bottom_y) {
-            if (list_bottom_y < tft->height()) {
-                tft->fillRect(0, list_bottom_y, tft->width(), tft->height() - list_bottom_y, BLACK);
-                tft->set_dirty_region(list_bottom_y, tft->height());
+            // Clear and dirty blank space only when list height actually changes.
+            // Do NOT trigger on every item redraw — that defeats the whole optimisation.
+            static int last_list_bottom_y = -1;
+            if (list_bottom_y != last_list_bottom_y) {
+                if (list_bottom_y < tft->height()) {
+                    tft->fillRect(0, list_bottom_y, tft->width(), tft->height() - list_bottom_y, BLACK);
+                    tft->set_dirty_region(list_bottom_y, tft->height());
+                }
+                last_list_bottom_y = list_bottom_y;
             }
-            last_list_bottom_y = list_bottom_y;
-        }
         #else
-        if (y < tft->height()) {
-            tft->set_dirty_region(y, tft->height());
-        }
+            if (y < tft->height()) {
+                tft->set_dirty_region(y, tft->height());
+            }
         #endif
         
         bottoms_computed = true;

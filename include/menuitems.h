@@ -273,23 +273,23 @@ class DoublePinnedPanelMenuItem : public PinnedPanelMenuItem {
             this->ticks = ticks;
 
             #if MENU_SELECTIVE_STATIC_REDRAW
-            if ((this->item1!=nullptr && this->item1->should_redraw()) ||
-                (this->item2!=nullptr && this->item2->should_redraw())) {
-                this->request_redraw();
-            }
+                if ((this->item1!=nullptr && this->item1->should_redraw()) ||
+                    (this->item2!=nullptr && this->item2->should_redraw())) {
+                    this->request_redraw();
+                }
             #endif
         }
 
         #if MENU_SELECTIVE_STATIC_REDRAW
-        virtual void refresh_redraw_state() override {
-            if (this->item1!=nullptr) this->item1->refresh_redraw_state();
-            if (this->item2!=nullptr) this->item2->refresh_redraw_state();
+            virtual void refresh_redraw_state() override {
+                if (this->item1!=nullptr) this->item1->refresh_redraw_state();
+                if (this->item2!=nullptr) this->item2->refresh_redraw_state();
 
-            if ((this->item1!=nullptr && this->item1->should_redraw()) ||
-                (this->item2!=nullptr && this->item2->should_redraw())) {
-                this->request_redraw();
+                if ((this->item1!=nullptr && this->item1->should_redraw()) ||
+                    (this->item2!=nullptr && this->item2->should_redraw())) {
+                    this->request_redraw();
+                }
             }
-        }
         #endif
 
         int display(Coord pos, bool selected, bool opened) override {
