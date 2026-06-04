@@ -124,6 +124,11 @@ class DisplayTranslator {
 
     virtual void updateDisplay() {};
 
+    // Dirty rectangle tracking for selective Y-range rendering
+    virtual void set_dirty_region(int y_min, int y_max) {};
+    virtual void reset_dirty_region() {};
+    virtual bool has_dirty_region() const { return false; };
+
     // by ktownsend from https://forums.adafruit.com/viewtopic.php?t=21536
     // get a 565-format colour for an rgb value
     uint16_t rgb(uint8_t r, uint8_t g, uint8_t b);

@@ -129,8 +129,18 @@ int Menu::display() {
                 pinned_panel->request_redraw();
             }
         }
+        
+        // Initialize dirty region tracking for selective Y-range DMA push
+        tft->reset_dirty_region();
+        // After a full clear the entire framebuffer is black; seed dirty region so
+        // everything gets pushed once, including sections that skip their own redraw check.
+        if (requires_full_clear) {
+            tft->set_dirty_region(0, tft->height());
+        }
     #else
         tft->clear();
+        // Initialize dirty region tracking even without MENU_SELECTIVE_STATIC_REDRAW
+        tft->reset_dirty_region();
     #endif
 
     // now draw the menu
@@ -148,6 +158,9 @@ int Menu::display() {
         //if (debug) { Serial.printf("display()=> got item to display '%s'\n", items->get(currently_opened)->label); Serial_flush(); }
         items->get(currently_opened)->display(Coord(0,y), true, true);
         //if (debug) { Serial.println("display()=> finished display\n"); Serial_flush(); }
+        
+        // Mark entire screen as dirty for takeover mode
+        tft->set_dirty_region(0, tft->height());
     } else if (mode==DISPLAY_ONE) {
         //if (debug) { Serial.println("display()=> DISPLAY_ONE branch"); Serial_flush(); }
         // for screens that can only display one option at a time
@@ -173,6 +186,9 @@ int Menu::display() {
         while(tft->getCursorY() < tft->height())
             tft->println("");
         tft->println("");
+        
+        // Mark entire screen as dirty for DISPLAY_ONE mode
+        tft->set_dirty_region(0, tft->height());
 
     } else {
         //if (debug) { Serial.println("display()=> default branch"); Serial_flush(); }
@@ -250,21 +266,45 @@ int Menu::display() {
 
         tft->setCursor(0,y);
 
+        int pinned_start_y = y;
+        #if MENU_SELECTIVE_STATIC_REDRAW
+        // Peek at should_redraw() AFTER refresh so we know if display_pinned() will actually re-render
+        if (pinned_panel != nullptr) pinned_panel->refresh_redraw_state();
+        const bool pinned_did_redraw = (pinned_panel == nullptr) || pinned_panel->should_redraw();
+        #else
+        const bool pinned_did_redraw = true;
+        #endif
         y = display_pinned();
-
+        // Only mark dirty if pinned panel actually re-rendered
+        if (pinned_did_redraw && y > pinned_start_y) {
+            tft->set_dirty_region(pinned_start_y, y);
+        }
         tft->setCursor(0, y);
         
         //if (debug) { Debug_println(F("display()=> about to draw_message()")); Serial_flush(); }
+        int msg_start_y = y;
+        #if MENU_SELECTIVE_STATIC_REDRAW
+        const bool msg_did_redraw = should_redraw_message_row();
+        #else
+        const bool msg_did_redraw = true;
+        #endif
         int new_y = draw_message();
         if (new_y==y)
             tft->println(); // force dropping a line if draw_message hasn't for some reason (needed to get the tabs line to show on bodmer/rp2040?)
         y = tft->getCursorY();
+        // Only mark dirty if message row actually re-rendered
+        if (msg_did_redraw && y > msg_start_y) {
+            tft->set_dirty_region(msg_start_y, y);
+        }
         //tft->setCursor(0, new_y);
 
         tft->setTextSize(tab_textsize);
 
         const int tft_width = tft->width();
         const int current_character_width = tft->currentCharacterWidth();
+        
+        // Track tabs section for dirty region
+        int tabs_start_y = y;
 
         /////// draw tabs for the pages
         // NOTE: left as index-based loop — starts at selected_page_index and wraps with modulo,
@@ -315,10 +355,21 @@ int Menu::display() {
             tft->println();
         }
         y = tft->getCursorY();
+        
+        // Mark tabs dirty only if page selection changed (tabs text changed)
+        #if MENU_SELECTIVE_STATIC_REDRAW
+        if (page_index_changed || opened_page_changed) {
+            tft->set_dirty_region(tabs_start_y, y);
+        }
+        #else
+        tft->set_dirty_region(tabs_start_y, y);
+        #endif
+        
         tft->setTextSize(0);
         /// finished drawing tabs
 
         // draw pinned page header (column labels etc) if set
+        int header_start_y = y;
         if (selected_page->header_text != nullptr) {
             tft->setTextColor(C_WHITE, BLACK);
             tft->setTextSize(selected_page->header_text_size);
@@ -334,13 +385,25 @@ int Menu::display() {
             tft->drawLine(0, y, tft->width(), y, C_WHITE);
             y += 2;
         }
+        
+        // Mark header dirty only if page changed
+        #if MENU_SELECTIVE_STATIC_REDRAW
+        if (page_changed || page_index_changed) {
+            tft->set_dirty_region(header_start_y, y);
+        }
+        #else
+        tft->set_dirty_region(header_start_y, y);
+        #endif
 
         // Always clear and redraw the entire list area - this is the reliable path
         const int list_start_y = y;
+        #if !MENU_SELECTIVE_STATIC_REDRAW
+        // Without selective redraw, blank the whole list area up front
         const int list_h = tft->height() - list_start_y;
         if (list_h > 0) {
             tft->fillRect(0, list_start_y, tft->width(), list_h, BLACK);
         }
+        #endif
 
         // draw each menu item
         //int start_y = 0;
@@ -348,11 +411,12 @@ int Menu::display() {
         // const uint_fast16_t size = items->size();
         auto it = items->begin();
         for (uint_fast16_t s = 0; s < start_panel && it != items->end(); ++s, ++it) {}
+        
+        int list_bottom_y = list_start_y; // track where list actually ends
+        
         for (uint_fast16_t i = start_panel; it != items->end(); ++it, ++i) {
             //if (debug) { Serial.printf("display()=> about to get item %i\n", i); Serial_flush(); }
             MenuItem *item = *it;
-            /*if(item->label[0]=='T')
-                delay(5000);*/
 
             //int time = millis();
             //Serial.printf("Menu rendering item %i [selected #%i, opened #%i]\n", i, currently_selected, currently_opened);
@@ -365,7 +429,36 @@ int Menu::display() {
 
             const bool item_selected = ((int)i==currently_selected);
             const bool item_opened = ((int)i==currently_opened);
+            int item_start_y = y;
+
+            #if MENU_SELECTIVE_STATIC_REDRAW
+            if (item->needs_redraw(item_selected, item_opened)) {
+                // Blank just this item's area before redrawing
+                const int16_t cached_h = item->get_cached_draw_height();
+                const int erase_h = (cached_h > 0) ? cached_h : tft->getRowHeight() * 2;
+                tft->fillRect(0, item_start_y, tft->width(), erase_h, BLACK);
+                
+                y = item->display(pos, item_selected, item_opened) + 1;
+                item->mark_rendered(item_selected, item_opened, y - item_start_y - 1);
+                tft->set_dirty_region(item_start_y, y);
+            } else {
+                // Skip render, advance y by cached height
+                const int16_t cached_h = item->get_cached_draw_height();
+                if (cached_h > 0) {
+                    y = item_start_y + cached_h + 1;
+                } else {
+                    // No cache yet, must render
+                    tft->fillRect(0, item_start_y, tft->width(), tft->getRowHeight() * 2, BLACK);
+                    y = item->display(pos, item_selected, item_opened) + 1;
+                    item->mark_rendered(item_selected, item_opened, y - item_start_y - 1);
+                    tft->set_dirty_region(item_start_y, y);
+                }
+            }
+            #else
             y = item->display(pos, item_selected, item_opened) + 1;
+            tft->set_dirty_region(item_start_y, y);
+            #endif
+
             //Serial.printf("after rendering MenuItem %i, return y is %i, cursor coords are (%i,%i)\n", y, tft->getCursorX(), tft->getCursorY());
             //if (debug) { Serial.printf("display()=> just did display() item %i aka %s\n", i, item->label); Serial_flush(); }
 
@@ -374,6 +467,8 @@ int Menu::display() {
                 tft->printf("Took: %lu\n", micros() - time_micros);
                 y = y + tft->getRowHeight();
             }
+
+            list_bottom_y = y;
 
             // panel_bottom stores absolute cumulative bottoms from a full top-to-bottom
             // pass. During partial viewport renders (bottoms_computed=true), y is
@@ -384,12 +479,27 @@ int Menu::display() {
 
             if (bottoms_computed && y >= this->tft->height())
                 break;
-            //Serial.printf("menuitem %i took %i to refresh\n", i, millis()-time);
-            //if (y >= tft->height()) // stop rendering if we've reached the bottom of the screen?
-            //    break;
         }
+        
+        #if MENU_SELECTIVE_STATIC_REDRAW
+        // Clear and dirty blank space only when list height actually changes.
+        // Do NOT trigger on every item redraw — that defeats the whole optimisation.
+        static int last_list_bottom_y = -1;
+        if (list_bottom_y != last_list_bottom_y) {
+            if (list_bottom_y < tft->height()) {
+                tft->fillRect(0, list_bottom_y, tft->width(), tft->height() - list_bottom_y, BLACK);
+                tft->set_dirty_region(list_bottom_y, tft->height());
+            }
+            last_list_bottom_y = list_bottom_y;
+        }
+        #else
+        if (y < tft->height()) {
+            tft->set_dirty_region(y, tft->height());
+        }
+        #endif
+        
         bottoms_computed = true;
-
+        
         // control debug output (knob positions / button presses)
         /*if (y < tft->height()) {
             tft->setCursor(0, y);

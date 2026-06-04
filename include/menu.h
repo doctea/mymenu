@@ -895,7 +895,7 @@ class Menu {
 
             //tft.setCursor(0,0);
             // draw the last status message
-            tft->fillRect(0, start_y, tft->width(), min_reserved_h, BLACK);
+            // tft->fillRect(0, start_y, tft->width(), min_reserved_h, BLACK);
             tft->setCursor(0, start_y);
             tft->setTextColor(message_colour,BLACK);
             bool was_wrap = tft->isTextWrap();
@@ -1112,6 +1112,8 @@ class Menu {
             index%=(sizeof(colours)/sizeof(uint16_t));
             return colours[index++];
         }
+
+
 
     // tell the DisplayTranslator to display its buffer
     void updateDisplay() {

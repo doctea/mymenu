@@ -86,6 +86,11 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
             //TFT_eSprite actual = TFT_eSprite(&real_actual_espi);
             TFT_eSprite_Wrapper *actual = nullptr;
             uint16_t* sprPtr = nullptr;
+            
+            // Dirty rectangle tracking for selective Y-range DMA push
+            int dirty_y_min = INT_MAX;
+            int dirty_y_max = 0;
+            
             #ifdef DISPLAY_RGB332_FB_MODE
                 uint8_t* sprPtr8 = nullptr;
                 uint16_t* dmaStageA = nullptr;
@@ -239,7 +244,7 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         tft = actual;
         tft->init(); //SCREEN_WIDTH, SCREEN_HEIGHT);           // Init ST7789 240x135
 
-        #ifdef ARDUINO_ARCH_RP2040
+        #if defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_ARCH_RP2350)
             // actual->setFreeFont(&TomThumb);
             actual->setFreeFont();
         #endif
@@ -253,7 +258,7 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
             #ifdef BODMER_SPRITE
                 real_actual_espi->setRotation(SCREEN_ROTATION);
 
-                #ifdef ARDUINO_ARCH_RP2040
+                #if defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_ARCH_RP2350)
                     real_actual_espi->initDMA();
                 #endif
                 real_actual_espi->setSwapBytes(false);
@@ -418,6 +423,29 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         //tft->fillRect(0, 0, tft->width(), tft->height(), BLACK);
     }
 
+    // Dirty rectangle tracking methods for selective Y-range DMA push
+    virtual void set_dirty_region(int y_min, int y_max) override {
+        #ifdef BODMER_SPRITE
+        if (y_min < dirty_y_min) dirty_y_min = y_min;
+        if (y_max > dirty_y_max) dirty_y_max = y_max;
+        #endif
+    }
+    
+    virtual void reset_dirty_region() override {
+        #ifdef BODMER_SPRITE
+        dirty_y_min = INT_MAX;
+        dirty_y_max = 0;
+        #endif
+    }
+    
+    virtual bool has_dirty_region() const override {
+        #ifdef BODMER_SPRITE
+        return dirty_y_max > dirty_y_min;
+        #else
+        return false;
+        #endif
+    }
+
     virtual void start() override {
         DisplayTranslator::start();
         Debug_println("Display start.."); Serial_flush();
@@ -461,7 +489,7 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
                         }
                     #endif
 
-                    #ifdef ARDUINO_ARCH_RP2040
+                    #if defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_ARCH_RP2350)
                         if (!ensureDMAStageBuffers(flushW)) return;
 
                         uint32_t y = (uint32_t)flushY;
@@ -548,10 +576,37 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
                         clearDirty();
                     #endif
                 #else
-                    #ifdef ARDUINO_ARCH_RP2040
-                        real_actual_espi->pushImageDMA(0, 0, s_w, s_h, sprPtr);
+                    #if defined(USE_DMA) || defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_ARCH_RP2350)
+                        // Use selective Y-range DMA push if dirty region is available
+                        static int frame_count = 0;
+                        bool dirty_valid = has_dirty_region();
+                        
+                        // Debug output every 10 frames to see what's happening
+                        if ((frame_count++ % 10) == 0) {
+                            Serial.printf("Frame %d: has_dirty=%d, dirty_y_min=%d, dirty_y_max=%d\n", 
+                                          frame_count, dirty_valid, dirty_y_min, dirty_y_max);
+                        }
+                        
+                        if (dirty_valid) {
+                            int push_y_min = dirty_y_min;
+                            int push_y_max = dirty_y_max;
+                            
+                            // Constrain dirty region to valid screen bounds
+                            push_y_min = constrain(push_y_min, 0, s_h - 1);
+                            push_y_max = constrain(push_y_max, push_y_min + 1, s_h);
+                            
+                            int push_height = push_y_max - push_y_min;
+                            if (push_height > 0) {
+                                // Calculate offset into sprite buffer: each row is s_w pixels, 2 bytes per pixel
+                                uint16_t *push_ptr = sprPtr + (push_y_min * s_w);
+                                real_actual_espi->pushImageDMA(0, push_y_min, s_w, push_height, push_ptr);
+                            }
+                        } else {
+                            // Fallback: push entire frame if no dirty region tracking
+                            real_actual_espi->pushImageDMA(0, 0, s_w, s_h, sprPtr);
+                        }
                     #else
-                        real_actual_espi->pushImage(0, 0, s_w, s_h, sprPtr);
+                        // real_actual_espi->pushImage(0, 0, s_w, s_h, sprPtr);
                     #endif
                 #endif
             }
@@ -563,7 +618,7 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
 
     #ifdef BODMER_SPRITE
         virtual bool ready() override {
-            #ifdef ARDUINO_ARCH_RP2040
+            #if defined(USE_DMA) || defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_ARCH_RP2350)
                 return !real_actual_espi->dmaBusy();
             #else
                 return true;
