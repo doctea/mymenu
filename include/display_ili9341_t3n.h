@@ -225,6 +225,36 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
         if (Serial) this->sendRawFrame();
     }
     #endif // ENABLE_REMOTE_VIEWER
+
+    // -------------------------------------------------------------------------
+    // Partial-update dirty region tracking (MENU_PERF_PARTIAL_UPDATES).
+    //
+    // ILI9341_t3n supports partial window writes via setAddrWindow() + pushPixels()
+    // / DMA, so a real implementation could push only the dirty Y-range rows.
+    // For now these are conservative stubs — they track the dirty range but the
+    // updateDisplay() call still pushes the full framebuffer via the library's own
+    // changed-areas tracking (updateChangedAreasOnly(true) is set in setup()).
+    //
+    // TODO: implement selective row push using:
+    //   tft->setAddrWindow(0, dirty_y_min, width()-1, dirty_y_max-1);
+    //   tft->pushPixels(framebuffer_ptr + dirty_y_min*width(), push_height*width());
+    #if MENU_PERF_PARTIAL_UPDATES
+    private:
+        int _dirty_y_min = INT_MAX;
+        int _dirty_y_max = 0;
+    public:
+        virtual void set_dirty_region(int y_min, int y_max) override {
+            if (y_min < _dirty_y_min) _dirty_y_min = y_min;
+            if (y_max > _dirty_y_max) _dirty_y_max = y_max;
+        }
+        virtual void reset_dirty_region() override {
+            _dirty_y_min = INT_MAX;
+            _dirty_y_max = 0;
+        }
+        virtual bool has_dirty_region() const override {
+            return _dirty_y_max > _dirty_y_min;
+        }
+    #endif // MENU_PERF_PARTIAL_UPDATES
 };
 
 #endif

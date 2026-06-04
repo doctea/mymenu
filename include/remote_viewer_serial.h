@@ -58,8 +58,8 @@ static const char *remote_viewer_feature_flags() {
         #else
             "0;"
         #endif
-        "MENU_SELECTIVE_STATIC_REDRAW="
-        #if defined(MENU_SELECTIVE_STATIC_REDRAW)
+        "MENU_PERF_PARTIAL_UPDATES="
+        #if defined(MENU_PERF_PARTIAL_UPDATES)
             "1;"
         #else
             "0;"
@@ -98,9 +98,9 @@ static const char *remote_viewer_build_flags() {
             "0;"
         #endif
         "DISPLAY_RGB332_DMA_CHUNK_LINES=" RV_STRINGIFY(DISPLAY_RGB332_DMA_CHUNK_LINES) ";"
-        "MENU_SELECTIVE_STATIC_REDRAW="
-        #if defined(MENU_SELECTIVE_STATIC_REDRAW)
-            RV_STRINGIFY(MENU_SELECTIVE_STATIC_REDRAW) ";"
+        "MENU_PERF_PARTIAL_UPDATES="
+        #if defined(MENU_PERF_PARTIAL_UPDATES)
+            RV_STRINGIFY(MENU_PERF_PARTIAL_UPDATES) ";"
         #else
             "0;"
         #endif

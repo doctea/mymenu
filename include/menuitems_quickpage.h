@@ -33,12 +33,12 @@ class QuickPagesMenuItem : public MenuItem {
             for (int i = 0 ; i < menu->NUM_QUICK_PAGE_HISTORY ; i++) {
                 int o = (i + selected_value_index) % menu->NUM_QUICK_PAGE_HISTORY;
 
-                this->display_entry(o, opened);
+                pos.y = this->display_entry(o, opened);
 
                 if (tft->getCursorY()>=tft->height())
                     break;
             }
-            return pos.y;
+            return tft->getCursorY();
         }
 
         virtual bool knob_left() override {

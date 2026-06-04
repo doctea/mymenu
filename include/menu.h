@@ -295,7 +295,7 @@ class Menu {
 
         char last_message[MENU_C_MAX] = ""; //...started up...";
         uint32_t message_colour = C_WHITE;
-        #if MENU_SELECTIVE_STATIC_REDRAW
+        #if MENU_PERF_PARTIAL_UPDATES
             bool message_dirty = true;
             int cached_message_height = -1;
             void mark_message_dirty() {

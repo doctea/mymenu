@@ -21,24 +21,65 @@ extern const char *set_message;
 extern const char *label_on;
 extern const char *label_off;
 
-#ifndef MENU_SELECTIVE_STATIC_REDRAW
-    #define MENU_SELECTIVE_STATIC_REDRAW 0
+// Feature flag: enable partial-update rendering optimisations (selective item redraw,
+// dirty-region DMA push). Set to 1 in your build flags to enable.
+#ifndef MENU_PERF_PARTIAL_UPDATES
+    #define MENU_PERF_PARTIAL_UPDATES 0
+#endif
+// Legacy alias so projects that defined the old name still compile.
+#ifdef MENU_SELECTIVE_STATIC_REDRAW
+    #if MENU_SELECTIVE_STATIC_REDRAW && !MENU_PERF_PARTIAL_UPDATES
+        #undef  MENU_PERF_PARTIAL_UPDATES
+        #define MENU_PERF_PARTIAL_UPDATES 1
+    #endif
 #endif
 
-#if MENU_SELECTIVE_STATIC_REDRAW
-    // Wrap optional calls so call sites stay readable while methods only exist in selective-redraw builds.
+#if MENU_PERF_PARTIAL_UPDATES
+    // Wrap optional calls so call sites stay readable while methods only exist in partial-update builds.
     #define MENU_STATIC_REDRAW(code) code
 #else
     #define MENU_STATIC_REDRAW(code)
 #endif
 
-enum MenuItem_RedrawPolicy {
-    REDRAW_ALWAYS = 0,          // always redraw (default, safest)
-    REDRAW_ON_SELECTION = 1,    // redraw only if selection state changed
-    REDRAW_ON_OPEN_STATE = 2,   // redraw only if opened state changed
-    REDRAW_ON_SELECTION_OR_OPEN = 3, // redraw if either selection or opened state changed
-    REDRAW_ON_VALUE_CHANGE = 4  // redraw only if value changed (for dynamic controls)
-};
+// ---------------------------------------------------------------------------
+// MenuItem redraw policy — bitmask of events that should trigger a redraw.
+//
+// Items carry a `pending_redraw_events` bitmask. The menu posts event bits
+// to items at the appropriate callsites (page switch, selection change, tick,
+// input, etc.). needs_redraw() returns true if any pending bit matches the
+// item's policy. mark_rendered() clears the pending bits.
+//
+// Bit assignments (uint16_t):
+typedef uint16_t MenuItem_RedrawPolicy;
+
+// Individual event bits -------------------------------------------------------
+static const MenuItem_RedrawPolicy REDRAW_ON_TICK         = 1 << 0;  ///< Any clock tick (update_ticks)
+static const MenuItem_RedrawPolicy REDRAW_ON_SELECTION    = 1 << 1;  ///< Cursor moved onto this item
+static const MenuItem_RedrawPolicy REDRAW_ON_DESELECTION  = 1 << 2;  ///< Cursor moved off this item
+static const MenuItem_RedrawPolicy REDRAW_ON_OPEN         = 1 << 3;  ///< Item was opened
+static const MenuItem_RedrawPolicy REDRAW_ON_CLOSE        = 1 << 4;  ///< Item was closed
+static const MenuItem_RedrawPolicy REDRAW_ON_OWN_INPUT    = 1 << 5;  ///< Knob/button event targeted at this item (selected/opened)
+static const MenuItem_RedrawPolicy REDRAW_ON_ANY_INPUT    = 1 << 6;  ///< Any input on the current page (global)
+static const MenuItem_RedrawPolicy REDRAW_ON_PAGE_ENTER   = 1 << 7;  ///< Page containing this item became active
+static const MenuItem_RedrawPolicy REDRAW_ON_INVALIDATE   = 1 << 8;  ///< Explicit request_redraw() call
+static const MenuItem_RedrawPolicy REDRAW_ON_CUSTOM       = 1 << 9;  ///< Gates check_needs_redraw() virtual hook
+// Bits 10-14 reserved for user-defined project-specific events
+static const MenuItem_RedrawPolicy REDRAW_NEVER           = 0;       ///< Never redraw (use sparingly)
+static const MenuItem_RedrawPolicy REDRAW_ALWAYS          = 0x7FFF;  ///< Always redraw (backwards compat / escape hatch)
+
+// Preset composite policies ---------------------------------------------------
+/// Default for most items: redraws on all state-change events but NOT on every tick.
+static const MenuItem_RedrawPolicy REDRAW_STATIC =
+    REDRAW_ON_PAGE_ENTER | REDRAW_ON_SELECTION | REDRAW_ON_DESELECTION |
+    REDRAW_ON_OPEN | REDRAW_ON_CLOSE | REDRAW_ON_INVALIDATE;
+
+/// For items displaying live data (BPM, clock position, graphs, etc.)
+static const MenuItem_RedrawPolicy REDRAW_LIVE = REDRAW_STATIC | REDRAW_ON_TICK;
+
+// Backward-compatible aliases for old enum names ---------------------------------
+static const MenuItem_RedrawPolicy REDRAW_ON_OPEN_STATE         = REDRAW_ON_OPEN | REDRAW_ON_CLOSE;
+static const MenuItem_RedrawPolicy REDRAW_ON_SELECTION_OR_OPEN  = REDRAW_ON_SELECTION | REDRAW_ON_DESELECTION | REDRAW_ON_OPEN | REDRAW_ON_CLOSE;
+static const MenuItem_RedrawPolicy REDRAW_ON_VALUE_CHANGE       = REDRAW_ON_CUSTOM;  ///< Use check_needs_redraw() hook
 
 class Coord {
     public:
@@ -111,33 +152,50 @@ class MenuItem {
         int8_t cached_label_textsize = -1;
         uint16_t cached_label_width_px = 0;
 
-        #if MENU_SELECTIVE_STATIC_REDRAW
-            MenuItem_RedrawPolicy redraw_policy = REDRAW_ALWAYS;
+        #if MENU_PERF_PARTIAL_UPDATES
+            /// Policy: bitmask of REDRAW_ON_* bits that trigger a redraw.
+            /// Default is REDRAW_STATIC — redraws on state changes but not every tick.
+            MenuItem_RedrawPolicy redraw_policy = REDRAW_STATIC;
+            /// Accumulated event bits since last mark_rendered(). Checked by needs_redraw().
+            MenuItem_RedrawPolicy pending_redraw_events = REDRAW_ON_PAGE_ENTER; // force first render
             int8_t last_rendered_selected = -1;
             int8_t last_rendered_opened = -1;
             int16_t cached_draw_height = 0;
+
             virtual void set_redraw_policy(MenuItem_RedrawPolicy policy) {
                 redraw_policy = policy;
             }
+            virtual MenuItem_RedrawPolicy get_redraw_policy() const {
+                return redraw_policy;
+            }
+            /// Post an event bit to this item. The menu calls this at the right callsites.
+            virtual void post_event(MenuItem_RedrawPolicy event_bit) {
+                pending_redraw_events |= event_bit;
+            }
+            /// Explicit invalidation — always triggers a redraw regardless of policy.
+            virtual void request_redraw() {
+                pending_redraw_events |= REDRAW_ON_INVALIDATE;
+            }
+            /// Returns true if this item should be redrawn this frame.
             virtual bool needs_redraw(bool current_selected, bool current_opened) const {
                 if (cached_draw_height <= 0) return true;
                 if (redraw_policy == REDRAW_ALWAYS) return true;
-                if (redraw_policy == REDRAW_ON_SELECTION && (int8_t)current_selected != last_rendered_selected) return true;
-                if (redraw_policy == REDRAW_ON_OPEN_STATE && (int8_t)current_opened != last_rendered_opened) return true;
-                if (redraw_policy == REDRAW_ON_SELECTION_OR_OPEN && (
-                    (int8_t)current_selected != last_rendered_selected ||
-                    (int8_t)current_opened != last_rendered_opened
-                )) return true;
+                if (pending_redraw_events & redraw_policy) return true;
+                if ((redraw_policy & REDRAW_ON_CUSTOM) && check_needs_redraw()) return true;
                 return false;
             }
+            /// Override to implement custom redraw logic (checked when policy has REDRAW_ON_CUSTOM).
+            virtual bool check_needs_redraw() const { return false; }
             virtual void mark_rendered(bool selected, bool opened) {
                 last_rendered_selected = (int8_t)selected;
                 last_rendered_opened = (int8_t)opened;
+                pending_redraw_events = REDRAW_NEVER;
             }
             virtual void mark_rendered(bool selected, bool opened, int16_t draw_height) {
                 last_rendered_selected = (int8_t)selected;
                 last_rendered_opened = (int8_t)opened;
                 cached_draw_height = (draw_height > 0) ? draw_height : 0;
+                pending_redraw_events = REDRAW_NEVER;
             }
             virtual int16_t get_cached_draw_height() const {
                 return cached_draw_height;
@@ -223,7 +281,7 @@ class FixedSizeMenuItem : public MenuItem {
 class PinnedPanelMenuItem : public MenuItem {
     public:
         unsigned long ticks = 0;
-        #if MENU_SELECTIVE_STATIC_REDRAW
+        #if MENU_PERF_PARTIAL_UPDATES
             bool redraw_needed = true;
             int16_t cached_draw_height = 0;
 
@@ -248,7 +306,7 @@ class PinnedPanelMenuItem : public MenuItem {
         PinnedPanelMenuItem(const char *label) : MenuItem(label) {};
 
         virtual void update_ticks(unsigned long ticks) override {
-            #if MENU_SELECTIVE_STATIC_REDRAW
+            #if MENU_PERF_PARTIAL_UPDATES
                 if (this->ticks != ticks) {
                     request_redraw();
                 }
@@ -272,7 +330,7 @@ class DoublePinnedPanelMenuItem : public PinnedPanelMenuItem {
             if (this->item2!=nullptr) this->item2->update_ticks(ticks);
             this->ticks = ticks;
 
-            #if MENU_SELECTIVE_STATIC_REDRAW
+            #if MENU_PERF_PARTIAL_UPDATES
                 if ((this->item1!=nullptr && this->item1->should_redraw()) ||
                     (this->item2!=nullptr && this->item2->should_redraw())) {
                     this->request_redraw();
@@ -280,7 +338,7 @@ class DoublePinnedPanelMenuItem : public PinnedPanelMenuItem {
             #endif
         }
 
-        #if MENU_SELECTIVE_STATIC_REDRAW
+        #if MENU_PERF_PARTIAL_UPDATES
             virtual void refresh_redraw_state() override {
                 if (this->item1!=nullptr) this->item1->refresh_redraw_state();
                 if (this->item2!=nullptr) this->item2->refresh_redraw_state();
@@ -318,7 +376,9 @@ class SeparatorMenuItem : virtual public MenuItem {
         SeparatorMenuItem(const char *label, int textSize = 0, bool draw_lines = true) : MenuItem(label, false) {
             this->textSize = textSize;
             this->draw_lines = draw_lines;
-            MENU_STATIC_REDRAW(set_redraw_policy(REDRAW_ON_SELECTION);)  // separators only change on selection
+            // Separators can't be selected, so use PAGE_ENTER + INVALIDATE only.
+            // They will be redrawn when the page is entered or explicitly invalidated.
+            MENU_STATIC_REDRAW(set_redraw_policy(REDRAW_ON_PAGE_ENTER | REDRAW_ON_INVALIDATE);)
         }
         SeparatorMenuItem(const char *label, uint16_t default_fg, int textSize = 0, bool draw_lines = true) : SeparatorMenuItem(label, textSize, draw_lines) {
             this->default_fg = default_fg;

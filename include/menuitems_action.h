@@ -18,7 +18,7 @@ class ActionItem : public MenuItem {
         this->on_open = on_open;
         this->show_header = show_header;
         snprintf(button_label, MENU_C_MAX, "> %s <", label);
-        MENU_STATIC_REDRAW(set_redraw_policy(REDRAW_ON_SELECTION);)
+        MENU_STATIC_REDRAW(set_redraw_policy(REDRAW_ON_SELECTION | REDRAW_ON_DESELECTION);)
     }
 
     virtual int display(Coord pos, bool selected, bool opened) override {
@@ -179,7 +179,7 @@ class ActionConfirmItem : public ActionItem {
 
     ActionConfirmItem(const char *label, void (*on_open)(), bool show_header = true) : ActionItem(label, on_open, show_header) {
         go_back_on_select = true;
-        MENU_STATIC_REDRAW(set_redraw_policy(REDRAW_ON_SELECTION_OR_OPEN);)
+        MENU_STATIC_REDRAW(set_redraw_policy(REDRAW_ON_SELECTION_OR_OPEN);)  // expands to SELECTION|DESELECTION|OPEN|CLOSE
     }
 
     /*virtual int display(Coord pos, bool selected, bool opened) override {

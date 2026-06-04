@@ -47,7 +47,7 @@ int Menu::display_pinned() {
     }
 
     if (pinned_panel!=nullptr) {
-        #if MENU_SELECTIVE_STATIC_REDRAW
+        #if MENU_PERF_PARTIAL_UPDATES
             pinned_panel->refresh_redraw_state();
             if (pinned_panel->should_redraw()) {
                 //if (debug) { Serial.println("display()=> doing pinned_panel display"); Serial_flush(); }
@@ -109,13 +109,17 @@ int Menu::display() {
     MenuItemList *items = selected_page->items;
     //if (debug) { Serial.printf("currently_opened = %i/%i, currently_selected = %i/%i..\n", currently_opened+1, selected_page->items->size(), currently_selected+1, selected_page->items->size()); Serial_flush(); }
 
-    #if MENU_SELECTIVE_STATIC_REDRAW
+    #if MENU_PERF_PARTIAL_UPDATES
         static page_t *last_selected_page = nullptr;
         static int last_selected_page_index_rendered = -1;
         static int last_opened_page_index_rendered = -2;
+        static int last_currently_selected = -2;
+        static int last_currently_opened = -2;
         const bool page_changed = (last_selected_page != selected_page);
         const bool page_index_changed = (last_selected_page_index_rendered != selected_page_index);
         const bool opened_page_changed = (last_opened_page_index_rendered != opened_page_index);
+        const bool selection_changed = (last_currently_selected != currently_selected);
+        const bool opened_changed = (last_currently_opened != currently_opened);
         last_selected_page = selected_page;
         last_selected_page_index_rendered = selected_page_index;
         last_opened_page_index_rendered = opened_page_index;
@@ -128,7 +132,27 @@ int Menu::display() {
             if (pinned_panel!=nullptr) {
                 pinned_panel->request_redraw();
             }
+            // Post PAGE_ENTER to all items on the incoming page
+            for (auto* item : *items) {
+                item->post_event(REDRAW_ON_PAGE_ENTER);
+            }
+        } else {
+            // Post selection/deselection/open/close events to affected items
+            if (selection_changed) {
+                if (last_currently_selected >= 0 && last_currently_selected < (int)items->size())
+                    items->get(last_currently_selected)->post_event(REDRAW_ON_DESELECTION);
+                if (currently_selected >= 0 && currently_selected < (int)items->size())
+                    items->get(currently_selected)->post_event(REDRAW_ON_SELECTION);
+            }
+            if (opened_changed) {
+                if (last_currently_opened >= 0 && last_currently_opened < (int)items->size())
+                    items->get(last_currently_opened)->post_event(REDRAW_ON_CLOSE);
+                if (currently_opened >= 0 && currently_opened < (int)items->size())
+                    items->get(currently_opened)->post_event(REDRAW_ON_OPEN);
+            }
         }
+        last_currently_selected = currently_selected;
+        last_currently_opened = currently_opened;
         
         // Initialize dirty region tracking for selective Y-range DMA push
         tft->reset_dirty_region();
@@ -139,7 +163,6 @@ int Menu::display() {
         }
     #else
         tft->clear();
-        // Initialize dirty region tracking even without MENU_SELECTIVE_STATIC_REDRAW
         tft->reset_dirty_region();
     #endif
 
@@ -267,7 +290,7 @@ int Menu::display() {
         tft->setCursor(0,y);
 
         int pinned_start_y = y;
-        #if MENU_SELECTIVE_STATIC_REDRAW
+        #if MENU_PERF_PARTIAL_UPDATES
             // Peek at should_redraw() AFTER refresh so we know if display_pinned() will actually re-render
             if (pinned_panel != nullptr) pinned_panel->refresh_redraw_state();
             const bool pinned_did_redraw = (pinned_panel == nullptr) || pinned_panel->should_redraw();
@@ -283,7 +306,7 @@ int Menu::display() {
         
         //if (debug) { Debug_println(F("display()=> about to draw_message()")); Serial_flush(); }
         int msg_start_y = y;
-        #if MENU_SELECTIVE_STATIC_REDRAW
+        #if MENU_PERF_PARTIAL_UPDATES
             const bool msg_did_redraw = should_redraw_message_row();
         #else
             const bool msg_did_redraw = true;
@@ -357,7 +380,7 @@ int Menu::display() {
         y = tft->getCursorY();
         
         // Mark tabs dirty only if page selection changed (tabs text changed)
-        #if MENU_SELECTIVE_STATIC_REDRAW
+        #if MENU_PERF_PARTIAL_UPDATES
             if (page_index_changed || opened_page_changed) {
                 tft->set_dirty_region(tabs_start_y, y);
             }
@@ -387,7 +410,7 @@ int Menu::display() {
         }
         
         // Mark header dirty only if page changed
-        #if MENU_SELECTIVE_STATIC_REDRAW
+        #if MENU_PERF_PARTIAL_UPDATES
             if (page_changed || page_index_changed) {
                 tft->set_dirty_region(header_start_y, y);
             }
@@ -395,9 +418,8 @@ int Menu::display() {
             tft->set_dirty_region(header_start_y, y);
         #endif
 
-        // Always clear and redraw the entire list area - this is the reliable path
         const int list_start_y = y;
-        #if !MENU_SELECTIVE_STATIC_REDRAW
+        #if !MENU_PERF_PARTIAL_UPDATES
             // Without selective redraw, blank the whole list area up front
             const int list_h = tft->height() - list_start_y;
             if (list_h > 0) {
@@ -431,11 +453,14 @@ int Menu::display() {
             const bool item_opened = ((int)i==currently_opened);
             int item_start_y = y;
 
-            #if MENU_SELECTIVE_STATIC_REDRAW
+            #if MENU_PERF_PARTIAL_UPDATES
                 if (item->needs_redraw(item_selected, item_opened)) {
-                    // Blank just this item's area before redrawing
+                    // Blank this item's area. For opened items use full remaining height
+                    // to prevent ghost pixels from the previous (shorter) closed state.
                     const int16_t cached_h = item->get_cached_draw_height();
-                    const int erase_h = (cached_h > 0) ? cached_h : tft->getRowHeight() * 2;
+                    const int erase_h = item_opened
+                        ? (tft->height() - item_start_y)
+                        : ((cached_h > 0) ? cached_h : tft->getRowHeight() * 2);
                     tft->fillRect(0, item_start_y, tft->width(), erase_h, BLACK);
                     
                     y = item->display(pos, item_selected, item_opened) + 1;
@@ -481,9 +506,8 @@ int Menu::display() {
                 break;
         }
         
-        #if MENU_SELECTIVE_STATIC_REDRAW
+        #if MENU_PERF_PARTIAL_UPDATES
             // Clear and dirty blank space only when list height actually changes.
-            // Do NOT trigger on every item redraw — that defeats the whole optimisation.
             static int last_list_bottom_y = -1;
             if (list_bottom_y != last_list_bottom_y) {
                 if (list_bottom_y < tft->height()) {

@@ -124,10 +124,23 @@ class DisplayTranslator {
 
     virtual void updateDisplay() {};
 
-    // Dirty rectangle tracking for selective Y-range rendering
-    virtual void set_dirty_region(int y_min, int y_max) {};
-    virtual void reset_dirty_region() {};
-    virtual bool has_dirty_region() const { return false; };
+    // ---------------------------------------------------------------------------
+    // Partial-update dirty region tracking.
+    // Guarded by MENU_PERF_PARTIAL_UPDATES.
+    //
+    // Contract for implementors:
+    //   set_dirty_region(y_min, y_max) — expand the tracked dirty Y-range to include [y_min, y_max).
+    //     Must be idempotent/accumulative (union, not replace).
+    //   reset_dirty_region()           — clear the tracked range, called at the start of each frame.
+    //   has_dirty_region()             — returns true if any region has been marked dirty this frame.
+    //
+    // Future extension: mark_dirty_rect(x, y, w, h) for sub-row granularity.
+    // Recommended implementation strategy: tile-grid bitmask (e.g. 16×16 tiles).
+    #if MENU_PERF_PARTIAL_UPDATES
+        virtual void set_dirty_region(int y_min, int y_max) {};
+        virtual void reset_dirty_region() {};
+        virtual bool has_dirty_region() const { return false; };
+    #endif
 
     // by ktownsend from https://forums.adafruit.com/viewtopic.php?t=21536
     // get a 565-format colour for an rgb value

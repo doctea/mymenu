@@ -87,9 +87,12 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
             TFT_eSprite_Wrapper *actual = nullptr;
             uint16_t* sprPtr = nullptr;
             
-            // Dirty rectangle tracking for selective Y-range DMA push
+            #if MENU_PERF_PARTIAL_UPDATES
+            // Dirty Y-range for selective DMA push. Accumulated during a frame;
+            // reset_dirty_region() clears it at frame start.
             int dirty_y_min = INT_MAX;
             int dirty_y_max = 0;
+            #endif
             
             #ifdef DISPLAY_RGB332_FB_MODE
                 uint8_t* sprPtr8 = nullptr;
@@ -424,6 +427,7 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
     }
 
     // Dirty rectangle tracking methods for selective Y-range DMA push
+    #if MENU_PERF_PARTIAL_UPDATES
     virtual void set_dirty_region(int y_min, int y_max) override {
         #ifdef BODMER_SPRITE
         if (y_min < dirty_y_min) dirty_y_min = y_min;
@@ -445,6 +449,7 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         return false;
         #endif
     }
+    #endif // MENU_PERF_PARTIAL_UPDATES
 
     virtual void start() override {
         DisplayTranslator::start();
@@ -577,34 +582,23 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
                     #endif
                 #else
                     #if defined(USE_DMA) || defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_ARCH_RP2350)
-                        // Use selective Y-range DMA push if dirty region is available
-                        static int frame_count = 0;
-                        bool dirty_valid = has_dirty_region();
-                        
-                        // Debug output every 10 frames to see what's happening
-                        if ((frame_count++ % 10) == 0) {
-                            Serial.printf("Frame %d: has_dirty=%d, dirty_y_min=%d, dirty_y_max=%d\n", 
-                                          frame_count, dirty_valid, dirty_y_min, dirty_y_max);
-                        }
-                        
-                        if (dirty_valid) {
-                            int push_y_min = dirty_y_min;
-                            int push_y_max = dirty_y_max;
-                            
-                            // Constrain dirty region to valid screen bounds
-                            push_y_min = constrain(push_y_min, 0, s_h - 1);
-                            push_y_max = constrain(push_y_max, push_y_min + 1, s_h);
-                            
+                        #if MENU_PERF_PARTIAL_UPDATES
+                        // Selective Y-range DMA push — only transfer rows that were marked dirty.
+                        if (has_dirty_region()) {
+                            int push_y_min = constrain(dirty_y_min, 0, s_h - 1);
+                            int push_y_max = constrain(dirty_y_max, push_y_min + 1, s_h);
                             int push_height = push_y_max - push_y_min;
                             if (push_height > 0) {
-                                // Calculate offset into sprite buffer: each row is s_w pixels, 2 bytes per pixel
                                 uint16_t *push_ptr = sprPtr + (push_y_min * s_w);
                                 real_actual_espi->pushImageDMA(0, push_y_min, s_w, push_height, push_ptr);
                             }
                         } else {
-                            // Fallback: push entire frame if no dirty region tracking
                             real_actual_espi->pushImageDMA(0, 0, s_w, s_h, sprPtr);
                         }
+                        #else
+                        // Full-frame push (MENU_PERF_PARTIAL_UPDATES disabled).
+                        real_actual_espi->pushImageDMA(0, 0, s_w, s_h, sprPtr);
+                        #endif // MENU_PERF_PARTIAL_UPDATES
                     #else
                         // real_actual_espi->pushImage(0, 0, s_w, s_h, sprPtr);
                     #endif
