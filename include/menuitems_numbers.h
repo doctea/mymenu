@@ -9,9 +9,29 @@
 // type-agnostic ancestor
 class NumberControlBase : public MenuItem {
     public:
-        NumberControlBase(const char *label) : MenuItem(label) {};
+        NumberControlBase(const char *label) : MenuItem(label) {
+            this->add_redraw_policy(REDRAW_ON_OWN_INPUT | REDRAW_ON_CUSTOM);
+        };
 
-        //virtual int renderValue(bool selected, bool opened, uint16_t max_character_width);
+        // double version because otherwise we can't set breakpoints on the method in the derived class due to the template!
+        // double last_value = (double)0;
+        // // pass in a value, and if it's different from the last value passed in, 
+        // // request a redraw and update last_value. returns the value passed in (for convenience in calling code).
+        // // todo: we might want to consider doing something like storing a last_updated value against the source and checking that instead (eg if its a parameter that we are tracking the value of, we could check if the parameter has been updated since the last time we rendered, and if so, trigger a redraw). 
+        // // this would be more robust in cases where the value is being changed by something other than this menu item and require less caching of values overall, with a known datatype also. (eg another menu item, or an external change to the parameter).
+        // double request_redraw_if_changed(double current_value, bool return_bool_if_changed = false) {
+        //     Serial.printf("%s: request_redraw_if_changed() called with value %g\n", this->label, (double)current_value);
+        //     if (current_value != last_value) {
+        //         // flag needs redraw if the value has changed since the last time we rendered
+        //         Serial.printf("%s: request_redraw_if_changed() value changed from %f to %f, requesting redraw\n", this->label, (float)last_value, (float)current_value);
+        //         this->request_redraw();
+        //         last_value = current_value;
+        //         if (return_bool_if_changed) {
+        //             return true;
+        //         }
+        //     }
+        //     return current_value;
+        // }
 };
 
 // generic control for selecting a number
@@ -115,9 +135,11 @@ class NumberControl : public NumberControlBase {
             return fmt;
         }*/
         virtual const char *getFormattedValue(bool value) {
+            // this->request_redraw_if_changed((DataType)value);
             return value ? label_on : label_off;
         }
         virtual const char *getFormattedValue(int value) {
+            // this->request_redraw_if_changed((DataType)value);
             static char fmt[15] = "      ";
             if (this->debug)
                 snprintf(fmt, 14, "%-5i [int]", value);
@@ -126,6 +148,7 @@ class NumberControl : public NumberControlBase {
             return fmt;
         }
         virtual const char *getFormattedValue(uint32_t value) {
+            // this->request_redraw_if_changed((DataType)value);
             static char fmt[15] = "      ";
             if (this->debug)
                 snprintf(fmt, 14, "%-5u [ulong]", (unsigned int) value);
@@ -142,6 +165,7 @@ class NumberControl : public NumberControlBase {
             return fmt;
         }*/
         virtual const char *getFormattedValue(int32_t value) {
+            // this->request_redraw_if_changed((DataType)value);
             static char fmt[15] = "      ";
             if (this->debug)
                 snprintf(fmt, 14, "%-5i [long]", (int)value);
@@ -150,6 +174,7 @@ class NumberControl : public NumberControlBase {
             return fmt;
         }
         virtual const char *getFormattedValue(double value) {
+            // this->request_redraw_if_changed((DataType)value);
             static char fmt[20] = "      ";
             if (this->debug)
                 snprintf(fmt, 20, "%-3.2f [double]", value);
@@ -166,13 +191,33 @@ class NumberControl : public NumberControlBase {
             return this->float_unit;
         }
 
+        virtual DataType get_test_value(bool currently_selected, bool currently_opened) {
+            return currently_opened ? this->get_internal_value() : this->get_current_value();
+        }
+        DataType last_value = (DataType)0;
+        virtual bool check_needs_redraw_custom(bool currently_selected, bool currently_opened) override {
+            DataType test_value = get_test_value(currently_selected, currently_opened);
+            if (last_value != test_value) {
+                last_value = test_value;
+                return true;
+            }
+            last_value = test_value;
+            return false;
+        }
+
         virtual const char *getFormattedValue() {
+            // this->request_redraw_if_changed(this->get_current_value());
             if (this->debug) Serial.printf("%s:\tNumberControl#getFormattedValue() returning get_current_value=%3.3f\n", this->label, (float)this->get_current_value());
-            return this->getFormattedValue((DataType)this->get_current_value());
+            return this->getFormattedValue(this->get_current_value());
         }
         virtual const char *getFormattedInternalValue() {
             static char tmp[MAX_LABEL_LENGTH];
-            snprintf(tmp, MAX_LABEL_LENGTH-1, "%s", this->getFormattedValue((DataType)this->get_internal_value()));
+            snprintf(
+                tmp, 
+                MAX_LABEL_LENGTH-1, 
+                "%s", 
+                this->getFormattedValue((DataType)this->get_internal_value())
+            );
             if (this->debug) { Serial.printf("%s:\tNumberControl#getFormattedInternalValue() returning '%s'\n", this->label, tmp); Serial_flush(); }
             return tmp;
         }
@@ -180,6 +225,21 @@ class NumberControl : public NumberControlBase {
         virtual DataType get_internal_value() {
             return this->internal_value;
         }
+
+        // DataType last_value = (DataType)0;
+        // DataType request_redraw_if_changed(DataType current_value, bool return_bool_if_changed = false) {
+        //     Serial.printf("%s: request_redraw_if_changed() called with value %g\n", this->label, current_value);
+        //     if (current_value != last_value) {
+        //         // flag needs redraw if the value has changed since the last time we rendered
+        //         Serial.printf("%s: request_redraw_if_changed() value changed from %g to %g, requesting redraw\n", this->label, last_value, current_value);
+        //         this->request_redraw();
+        //         last_value = current_value;
+        //         if (return_bool_if_changed) {
+        //             return (DataType)true;
+        //         }
+        //     }
+        //     return current_value;
+        // }
 
         virtual int display(Coord pos, bool selected, bool opened) override {
             if (this->debug) Serial.printf("==== NumberControl#display %s ====\n", this->label);

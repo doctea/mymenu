@@ -23,16 +23,9 @@ extern const char *label_off;
 
 // Feature flag: enable partial-update rendering optimisations (selective item redraw,
 // dirty-region DMA push). Set to 1 in your build flags to enable.
-#ifndef MENU_PERF_PARTIAL_UPDATES
-    #define MENU_PERF_PARTIAL_UPDATES 0
-#endif
-// Legacy alias so projects that defined the old name still compile.
-#ifdef MENU_SELECTIVE_STATIC_REDRAW
-    #if MENU_SELECTIVE_STATIC_REDRAW && !MENU_PERF_PARTIAL_UPDATES
-        #undef  MENU_PERF_PARTIAL_UPDATES
-        #define MENU_PERF_PARTIAL_UPDATES 1
-    #endif
-#endif
+// #ifndef MENU_PERF_PARTIAL_UPDATES
+//     #define MENU_PERF_PARTIAL_UPDATES 0
+// #endif
 
 #if MENU_PERF_PARTIAL_UPDATES
     // Wrap optional calls so call sites stay readable while methods only exist in partial-update builds.
@@ -62,25 +55,31 @@ static const MenuItem_RedrawPolicy REDRAW_ON_OWN_INPUT    = 1 << 5;  ///< Knob/b
 static const MenuItem_RedrawPolicy REDRAW_ON_ANY_INPUT    = 1 << 6;  ///< Any input on the current page (global)
 static const MenuItem_RedrawPolicy REDRAW_ON_PAGE_ENTER   = 1 << 7;  ///< Page containing this item became active
 static const MenuItem_RedrawPolicy REDRAW_ON_INVALIDATE   = 1 << 8;  ///< Explicit request_redraw() call
-static const MenuItem_RedrawPolicy REDRAW_ON_CUSTOM       = 1 << 9;  ///< Gates check_needs_redraw() virtual hook
-// Bits 10-14 reserved for user-defined project-specific events
+static const MenuItem_RedrawPolicy REDRAW_ON_CUSTOM            = 1 << 9;  ///< Gates check_needs_redraw_custom() virtual hook
+// Musical timing / transport events (post via menu or subclass) ---------------
+static const MenuItem_RedrawPolicy REDRAW_ON_STEP              = 1 << 10; ///< Clock step/tick (sub-beat resolution)
+static const MenuItem_RedrawPolicy REDRAW_ON_BEAT              = 1 << 11; ///< Quarter-note beat boundary
+static const MenuItem_RedrawPolicy REDRAW_ON_BAR               = 1 << 12; ///< Bar/measure boundary
+static const MenuItem_RedrawPolicy REDRAW_ON_BPM_CLOCK_CHANGE  = 1 << 13; ///< Transport state change (start/stop/continue/restart) or BPM change
+// Bit 14 reserved for user-defined project-specific events
 static const MenuItem_RedrawPolicy REDRAW_NEVER           = 0;       ///< Never redraw (use sparingly)
-static const MenuItem_RedrawPolicy REDRAW_ALWAYS          = 0x7FFF;  ///< Always redraw (backwards compat / escape hatch)
+static const MenuItem_RedrawPolicy REDRAW_ALWAYS          = 0x7FFF;  ///< Always redraw (backwards compat / escape hatch — covers bits 0-14)
 
 // Preset composite policies ---------------------------------------------------
 /// Default for most items: redraws on all state-change events but NOT on every tick.
 static const MenuItem_RedrawPolicy REDRAW_STATIC =
     REDRAW_ON_PAGE_ENTER | REDRAW_ON_SELECTION | REDRAW_ON_DESELECTION |
-    REDRAW_ON_OPEN | REDRAW_ON_CLOSE | REDRAW_ON_INVALIDATE;
+    REDRAW_ON_OPEN | REDRAW_ON_CLOSE | REDRAW_ON_INVALIDATE | REDRAW_ON_OWN_INPUT | REDRAW_ON_INVALIDATE;
 
 /// For items displaying live data (BPM, clock position, graphs, etc.)
-static const MenuItem_RedrawPolicy REDRAW_LIVE = REDRAW_STATIC | REDRAW_ON_TICK;
+static const MenuItem_RedrawPolicy REDRAW_LIVE = REDRAW_STATIC | REDRAW_ON_TICK | REDRAW_ON_BPM_CLOCK_CHANGE;
 
 // Backward-compatible aliases for old enum names ---------------------------------
 static const MenuItem_RedrawPolicy REDRAW_ON_OPEN_STATE         = REDRAW_ON_OPEN | REDRAW_ON_CLOSE;
 static const MenuItem_RedrawPolicy REDRAW_ON_SELECTION_OR_OPEN  = REDRAW_ON_SELECTION | REDRAW_ON_DESELECTION | REDRAW_ON_OPEN | REDRAW_ON_CLOSE;
-static const MenuItem_RedrawPolicy REDRAW_ON_VALUE_CHANGE       = REDRAW_ON_CUSTOM;  ///< Use check_needs_redraw() hook
+static const MenuItem_RedrawPolicy REDRAW_ON_VALUE_CHANGE       = REDRAW_ON_CUSTOM;  ///< Use check_needs_redraw_custom() hook
 
+char *get_redraw_policies_description(MenuItem_RedrawPolicy policy);
 class Coord {
     public:
         int x, y;
@@ -163,7 +162,12 @@ class MenuItem {
             int16_t cached_draw_height = 0;
 
             virtual void set_redraw_policy(MenuItem_RedrawPolicy policy) {
-                redraw_policy = policy;
+                // Always preserve PAGE_ENTER and INVALIDATE so items respond to full-screen
+                // clears and explicit request_redraw() calls regardless of the custom policy set.
+                redraw_policy = policy | REDRAW_ON_PAGE_ENTER | REDRAW_ON_INVALIDATE;
+            }
+            virtual void add_redraw_policy(MenuItem_RedrawPolicy policy) {
+                redraw_policy |= policy;
             }
             virtual MenuItem_RedrawPolicy get_redraw_policy() const {
                 return redraw_policy;
@@ -173,19 +177,32 @@ class MenuItem {
                 pending_redraw_events |= event_bit;
             }
             /// Explicit invalidation — always triggers a redraw regardless of policy.
-            virtual void request_redraw() {
-                pending_redraw_events |= REDRAW_ON_INVALIDATE;
+            virtual void request_redraw(MenuItem_RedrawPolicy reason = REDRAW_ON_INVALIDATE) {
+                pending_redraw_events |= reason;
             }
             /// Returns true if this item should be redrawn this frame.
-            virtual bool needs_redraw(bool current_selected, bool current_opened) const {
-                if (cached_draw_height <= 0) return true;
-                if (redraw_policy == REDRAW_ALWAYS) return true;
-                if (pending_redraw_events & redraw_policy) return true;
-                if ((redraw_policy & REDRAW_ON_CUSTOM) && check_needs_redraw()) return true;
+            virtual bool needs_redraw(bool currently_selected, bool currently_opened) {
+                bool debug = true;
+                if (cached_draw_height <= 0) {
+                    if (debug) Serial.printf("%s: needs_redraw() true because cached_draw_height is %i\n", this->label, cached_draw_height);
+                    return true;
+                }
+                if (redraw_policy == REDRAW_ALWAYS) {
+                    if (debug) Serial.printf("%s: needs_redraw() true because redraw_policy is REDRAW_ALWAYS\n", this->label);
+                    return true;
+                }
+                if (pending_redraw_events & redraw_policy) {
+                    if (debug) Serial.printf("%s: needs_redraw() true because policy %s met by %s\n", this->label, get_redraw_policies_description(redraw_policy), get_redraw_policies_description(pending_redraw_events));
+                    return true;
+                }
+                if ((redraw_policy & REDRAW_ON_CUSTOM) && check_needs_redraw_custom(currently_selected, currently_opened)) {
+                    if (debug) Serial.printf("%s: needs_redraw() true because REDRAW_ON_CUSTOM is set and check_needs_redraw_custom() returned true\n", this->label);
+                    return true;
+                }
                 return false;
             }
             /// Override to implement custom redraw logic (checked when policy has REDRAW_ON_CUSTOM).
-            virtual bool check_needs_redraw() const { return false; }
+            virtual bool check_needs_redraw_custom(bool currently_selected, bool currently_opened) { return false; }
             virtual void mark_rendered(bool selected, bool opened) {
                 last_rendered_selected = (int8_t)selected;
                 last_rendered_opened = (int8_t)opened;
@@ -303,14 +320,11 @@ class PinnedPanelMenuItem : public MenuItem {
             }
         #endif
 
-        PinnedPanelMenuItem(const char *label) : MenuItem(label) {};
+        PinnedPanelMenuItem(const char *label) : MenuItem(label) {
+            redraw_policy |= REDRAW_ON_TICK | REDRAW_ON_CUSTOM | REDRAW_ON_BPM_CLOCK_CHANGE;
+        };
 
         virtual void update_ticks(unsigned long ticks) override {
-            #if MENU_PERF_PARTIAL_UPDATES
-                if (this->ticks != ticks) {
-                    request_redraw();
-                }
-            #endif
             this->ticks = ticks;
         }
 };

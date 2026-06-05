@@ -28,6 +28,36 @@ class SubMenuItemBar : public SubMenuItem {
 
     virtual int display(Coord pos, bool selected, bool opened) override;
     virtual int small_display(int index, int x, int y, int width_in_pixels, bool is_selected, bool is_opened, bool outer_selected);
+
+    virtual bool needs_redraw(bool currently_selected, bool currently_opened) override {
+        if (SubMenuItem::needs_redraw(currently_selected, currently_opened)) return true;
+
+        // Check children, so that we redraw if any of them need redraw
+        for (auto* item : *this->items) {
+            if (item->needs_redraw(
+                item == this->items->get(currently_selected), 
+                item == this->items->get(currently_opened)
+            )) return true;
+        }
+        return false;
+    }
+    virtual void mark_rendered(bool currently_selected, bool currently_opened, int16_t draw_height) override {
+        SubMenuItem::mark_rendered(currently_selected, currently_opened, draw_height);
+        for (auto* item : *this->items) {
+            item->mark_rendered(
+                item == this->items->get(currently_selected), 
+                item == this->items->get(currently_opened),
+                draw_height // we need to pass something in so that the draw_height check doesn't force a render
+            );
+        }
+    }
+    virtual void post_event(MenuItem_RedrawPolicy event_bit) override {
+        SubMenuItem::post_event(event_bit);
+        for (auto* item : *this->items) {
+            item->post_event(event_bit);
+        }
+    }
+    
 };
 
 class SubMenuItemBarCustomProportions : public SubMenuItemBar {

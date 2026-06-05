@@ -125,7 +125,9 @@ int Menu::display() {
         last_opened_page_index_rendered = opened_page_index;
 
         const bool is_takeover = is_item_opened() && items->get(currently_opened)->allow_takeover();
-        const bool requires_full_clear = is_takeover || mode==DISPLAY_ONE || page_changed || page_index_changed || opened_page_changed || recalculate_bottoms;
+        // opened_changed is included because an item changing height (open/close) shifts all items
+        // below it — those items must repaint at their new Y positions even if their content is stale.
+        const bool requires_full_clear = is_takeover || mode==DISPLAY_ONE || page_changed || page_index_changed || opened_page_changed || opened_changed || recalculate_bottoms;
         if (requires_full_clear) {
             tft->clear();
             mark_message_dirty();
@@ -153,7 +155,16 @@ int Menu::display() {
         }
         last_currently_selected = currently_selected;
         last_currently_opened = currently_opened;
-        
+
+        // Drain any pending timing/transport events into the current page's items.
+        // These are accumulated by on_step() / on_beat() / on_bar() / on_bpm_clock_change()
+        // between display() calls and delivered here so only visible items receive them.
+        if (pending_page_events != REDRAW_NEVER) {
+            for (auto* item : *items)
+                item->post_event(pending_page_events);
+            pending_page_events = REDRAW_NEVER;
+        }
+
         // Initialize dirty region tracking for selective Y-range DMA push
         tft->reset_dirty_region();
         // After a full clear the entire framebuffer is black; seed dirty region so
@@ -427,6 +438,23 @@ int Menu::display() {
             }
         #endif
 
+        // When the scroll position changes, items render at different Y coordinates than last frame.
+        // Clear the list area and force all items to repaint so no stale content is left behind.
+        #if MENU_PERF_PARTIAL_UPDATES
+        {
+            static int last_start_panel_rendered = -1;
+            if (start_panel != last_start_panel_rendered) {
+                const int clear_h = tft->height() - list_start_y;
+                if (clear_h > 0)
+                    tft->fillRect(0, list_start_y, tft->width(), clear_h, BLACK);
+                tft->set_dirty_region(list_start_y, tft->height());
+                for (auto* item : *items)
+                    item->request_redraw();
+                last_start_panel_rendered = start_panel;
+            }
+        }
+        #endif
+
         // draw each menu item
         //int start_y = 0;
         //if (debug) { Serial.println("display()=> about to start drawing the items.."); Serial_flush(); }
@@ -540,6 +568,10 @@ int Menu::display() {
     // Draw deferred overlay after the page has fully rendered so it appears on top.
     if (this->pending_overlay_item!=nullptr) {
         this->pending_overlay_item->display(Coord(0, this->pending_overlay_y), true, true);
+        // The overlay paints on top of the already-rendered list, potentially covering
+        // a region taller than the base item's cached height. Mark from the overlay
+        // start to the bottom of the screen dirty so the DMA push includes it all.
+        tft->set_dirty_region(this->pending_overlay_y, tft->height());
     }
 
     //tft->updateScreenAsync(false);

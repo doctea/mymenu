@@ -31,6 +31,8 @@
 
 #include "debug.h"
 
+#include "bpm.h"       // PPQN, TICKS_PER_STEP, TICKS_PER_BAR, BPM_PHASE_TICKS
+
 #include "mymenu.h"
 #include "menu_io.h"
 
@@ -145,6 +147,11 @@ class Menu {
     int button_count = 0;
 
     int pending_knob_steps = 0;
+    /// Pending timing/transport event bits to be delivered to the current page at the next display() call.
+    /// External callers set bits via on_step() / on_beat() / on_bar() / on_bpm_clock_change();
+    /// display() drains them into selected_page items and clears the field.
+    MenuItem_RedrawPolicy pending_page_events = REDRAW_NEVER;
+
     bool pending_select_press = false;
     bool pending_select_release = false;
     bool pending_back_short = false;
@@ -206,7 +213,17 @@ class Menu {
             }
         }
     }
-    
+
+    /// Post REDRAW_ON_OWN_INPUT to a specific item (if non-null) and queue
+    /// REDRAW_ON_ANY_INPUT for the whole current page via pending_page_events.
+    /// Called automatically from every input-routing path. No-op when MENU_PERF_PARTIAL_UPDATES is off.
+    inline void post_input_received(MenuItem* item = nullptr) {
+        MENU_STATIC_REDRAW(
+            if (item != nullptr) item->post_event(REDRAW_ON_OWN_INPUT);
+            pending_page_events |= REDRAW_ON_ANY_INPUT;
+        )
+    }
+
     public:
         bool debug = false;
         bool debug_times = false;
@@ -344,11 +361,13 @@ class Menu {
             Debug_println("knob_left()");
             if (!is_page_opened()) {
                 this->cycle_top_level_page(-1);
-            } else if (is_item_opened()) { // && items->get(currently_opened)->knob_left()) {
-                //Serial.printf(F("knob_left on currently_opened menuitem %i\n"), selected_page->currently_opened);
-                selected_page->items->get(selected_page->currently_opened)->knob_left();
+            } else if (is_item_opened()) {
+                MenuItem* item = selected_page->items->get(selected_page->currently_opened);
+                item->knob_left();
+                post_input_received(item);
             } else {
                 select_previous_selectable_item();
+                post_input_received();  // REDRAW_ON_ANY_INPUT only — SELECTION/DESELECTION handled in display()
             }
             /*if (debug) {
                 char msg[tft->get_c_max()] = "";
@@ -361,11 +380,13 @@ class Menu {
             Debug_println("knob_right()");
             if (!is_page_opened()) {
                 this->cycle_top_level_page(1);
-            } else if (is_item_opened()) { //&& items->get(currently_opened)->knob_right()) {
-                //Serial.printf(F("knob_right on currently_opened menuitem %i\n"), selected_page->currently_opened);
-                selected_page->items->get(selected_page->currently_opened)->knob_right();
+            } else if (is_item_opened()) {
+                MenuItem* item = selected_page->items->get(selected_page->currently_opened);
+                item->knob_right();
+                post_input_received(item);
             } else {
                 select_next_selectable_item();
+                post_input_received();  // REDRAW_ON_ANY_INPUT only
             }
             /*if (debug) {
                 char msg[tft->get_c_max()] = "";
@@ -468,15 +489,21 @@ class Menu {
                 open_page(selected_page_index);
             } else if (!is_item_opened()) {
                 Debug_printf("button_select with currently_opened menuitem -1 - opening %i\n", selected_page->currently_selected);
-                if (selected_page->items->get(selected_page->currently_selected)->action_opened()) {
+                MenuItem* sel = selected_page->items->get(selected_page->currently_selected);
+                if (sel->action_opened()) {
                     selected_page->currently_opened = selected_page->currently_selected;
-                    return false;
+                    return false;  // REDRAW_ON_OPEN will fire in display()
                 }
+                // action_opened() returned false: item handled the click inline without opening
+                // (e.g. direct toggle, ActionItem). Post an input event so it redraws immediately.
+                post_input_received(sel);
             } else {
                 Debug_printf("Menu#button_select() subselecting already-opened %i (%s)\n", selected_page->currently_opened, selected_page->items->get(selected_page->currently_opened)->label);
-                if (selected_page->items->get(selected_page->currently_opened)->button_select()) 
+                MenuItem* item = selected_page->items->get(selected_page->currently_opened);
+                post_input_received(item);
+                if (item->button_select())
                     button_back();
-            } 
+            }
             return true;
         }
         bool button_select_released() {
@@ -484,16 +511,14 @@ class Menu {
             if (!is_page_opened()) {
                 // do nothing?
             } else if (!is_item_opened()) {
-                /*Serial.printf(F("button_select_released with currently_opened menuitem -1 - opening %i\n"), currently_selected);
-                if (items->get(currently_selected)->action_opened()) {
-                    currently_opened = currently_selected;
-                    return false;
-                }*/
+                // do nothing (opening is handled in button_select)
             } else {
                 Debug_printf("Menu#button_select_released() subselecting already-opened %i (%s)\n", selected_page->currently_opened, selected_page->items->get(selected_page->currently_opened)->label);
-                if (selected_page->items->get(selected_page->currently_opened)->button_select_released()) 
+                MenuItem* item = selected_page->items->get(selected_page->currently_opened);
+                post_input_received(item);
+                if (item->button_select_released())
                     button_back();
-            } 
+            }
             return true;
         }
 
@@ -536,11 +561,13 @@ class Menu {
             if (!is_page_opened()) {
                 open_page(selected_page_index);
             } else if (is_item_opened()) {
-                if (selected_page->items->get(selected_page->currently_opened)->button_right()) {
+                MenuItem* item = selected_page->items->get(selected_page->currently_opened);
+                if (item->button_right()) {
                     Debug_printf("right with currently_opened menuitem %i subhandled!\n", selected_page->currently_opened);
                 } else {
                     Debug_printf("right with currently_opened menuitem %i not subhandled!\n", selected_page->currently_opened);
                 }
+                post_input_received(item);
             } else {
                 Debug_printf("right with nothing currently_opened\n"); //setting to -1\n", currently_opened);
             }
@@ -926,7 +953,25 @@ class Menu {
             static uint32_t last_updated_ticks = 0;
             if (ticks==last_updated_ticks)
                 return;
+            const uint32_t prev_ticks = last_updated_ticks;
             last_updated_ticks = ticks;
+
+            // Auto-detect step/beat/bar boundaries using bpm.h macros.
+            // BPM_PHASE_TICKS adjusts for time-signature phase offset when ENABLE_TIME_SIGNATURE is active.
+            #if MENU_PERF_PARTIAL_UPDATES
+            {
+                // Every tick: items with REDRAW_ON_TICK (e.g. REDRAW_LIVE) always get this.
+                pending_page_events |= REDRAW_ON_TICK;
+                const uint32_t cur  = BPM_PHASE_TICKS(ticks);
+                const uint32_t prev = BPM_PHASE_TICKS(prev_ticks);
+                if (TICKS_PER_STEP > 0 && (cur / TICKS_PER_STEP) != (prev / TICKS_PER_STEP))
+                    pending_page_events |= REDRAW_ON_STEP;
+                if (PPQN > 0 && (cur / PPQN) != (prev / PPQN))
+                    pending_page_events |= REDRAW_ON_BEAT;
+                if (TICKS_PER_BAR > 0 && (cur / TICKS_PER_BAR) != (prev / TICKS_PER_BAR))
+                    pending_page_events |= REDRAW_ON_BAR;
+            }
+            #endif
 
             if (pinned_panel!=nullptr)
                 pinned_panel->update_ticks(ticks);
@@ -939,6 +984,19 @@ class Menu {
             }
             //Serial.printf("updated_ticks %i\n", ticks);
         }
+
+        /// Signal a clock step. The event will be delivered to the current page's items at the next display() call.
+        void on_step()             { pending_page_events |= REDRAW_ON_STEP; }
+
+        /// Signal a beat (quarter-note boundary). Delivered to current page at next display().
+        void on_beat()             { pending_page_events |= REDRAW_ON_BEAT; }
+
+        /// Signal a bar/measure boundary. Delivered to current page at next display().
+        void on_bar()              { pending_page_events |= REDRAW_ON_BAR; }
+
+        /// Signal a transport/BPM change (start/stop/continue/restart, BPM edit).
+        /// Delivered to current page's items at next display().
+        void on_bpm_clock_change() { pending_page_events |= REDRAW_ON_BPM_CLOCK_CHANGE; }
 
         // check encoder and buttons and fire off events if necessary
         void poll_inputs() {
@@ -959,6 +1017,7 @@ class Menu {
                 if (pushButtonA.update()) {
                     if ( pushButtonA.pressed() ) {
                         this->pending_select_press = true;
+                        pending_page_events |= REDRAW_ON_ANY_INPUT;
                     } else if ( pushButtonA.released() ) {
                         this->pending_select_release = true;
                     }
@@ -968,6 +1027,7 @@ class Menu {
                 if (pushButtonB.update()) {
                     if ( pushButtonB.released() && pushButtonB.previousDuration()<=LONGPRESS_MILLIS) {
                         this->pending_back_short = true;
+                        pending_page_events |= REDRAW_ON_ANY_INPUT;
                     } else if ( pushButtonB.released() && pushButtonB.previousDuration()>LONGPRESS_MILLIS && !back_held ) {
                         // The loop stalled longer than LONGPRESS_MILLIS (e.g. deferred recomputes),
                         // so the regular else-if below never fired while the button was held.

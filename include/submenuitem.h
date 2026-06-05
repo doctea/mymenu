@@ -48,8 +48,8 @@ class SubMenuItem : public MenuItem {
             if (items->size()==1 && items->get(0)->is_openable())   // if there's only one item, open it
                 button_select();
 
-            if (!always_show) 
-                this->needs_redraw = true;
+            // if (!always_show) 
+            //     this->needs_redraw = true;
 
             Debug_println("calling MenuItem::action_opened"); Serial_flush();
             return MenuItem::action_opened();
@@ -90,7 +90,7 @@ class SubMenuItem : public MenuItem {
             }
         }
 
-        bool needs_redraw = true;
+        //bool needs_redraw = true;
         int previously_selected = -2;
         virtual int display(Coord pos, bool selected, bool opened) override {
             //Serial.printf("submenuitem#display currently_selected=%i, previously_selected=%i\n", currently_selected, previously_selected); Serial.flush();            
@@ -107,7 +107,7 @@ class SubMenuItem : public MenuItem {
                 //Serial.printf("%s is clearing due to needs_redraw (%s) or opened!=previously_opened (currently_opened=%i, previously_opened=%i)\n", this->label, needs_redraw?"true":"false", opened, previously_opened);
                 //tft->clear();
             //}
-            needs_redraw = false;
+            //needs_redraw = false;
             //previously_opened = currently_opened;
             //previously_opened = opened;
 
@@ -199,24 +199,24 @@ class SubMenuItem : public MenuItem {
                 if (currently_selected>=0) {
                     if (items->get(currently_selected)->action_opened()) {
                         currently_opened = currently_selected;
-                        //Serial.printf("submenuitem#button_select() opened subitem %i (%s)\n", currently_opened, items.get(currently_selected)->label);
+                        MENU_STATIC_REDRAW(items->get(currently_opened)->post_event(REDRAW_ON_OPEN);)
                         return false;
                     } else {
+                        MENU_STATIC_REDRAW(items->get(currently_selected)->post_event(REDRAW_ON_OWN_INPUT);)
                         return false;
                     }
                 }
             } else {
                 //Serial.printf("in submenuitem(%s)#button_select() on currently_opened=%i (%s)\n", this->get_label(), currently_opened, items->get(currently_opened)->get_label());
                 // an item is currently opened, so call select on that item
+                MENU_STATIC_REDRAW(items->get(currently_opened)->post_event(REDRAW_ON_OWN_INPUT);)
                 if (items->get(currently_opened)->button_select()) {
-                    //Serial.println("\tbutton_select returned true! setting currently_opened=-1 and returning false..");
-                    //Serial.println("submenuitem#button_select() calling button_back and then returning false");
-                    //button_back();
+                    const int just_closed = currently_opened;
                     currently_selected = currently_opened;
                     currently_opened = -1;
+                    MENU_STATIC_REDRAW(items->get(just_closed)->post_event(REDRAW_ON_CLOSE | REDRAW_ON_DESELECTION);)
                     return false;
                 } else {
-                    //Serial.println("\tbutton_select returned false! so also returning false!");
                     return false;
                 }
             }
@@ -224,16 +224,19 @@ class SubMenuItem : public MenuItem {
         }
 
         virtual bool button_back() override {
-            needs_redraw = true;    // force a redraw if we've selected
+            //needs_redraw = true;    // force a redraw if we've selected
             if (is_opened() && !items->get(currently_opened)->button_back()) {
                 //Serial.println("submenuitem#button_back() got a false back from the selected item's button_back, setting currently_opened etc then returning true");
+                const int just_closed = currently_opened;
                 currently_selected = currently_opened;
                 currently_opened = -1;
+                // Post close+deselection so the item redraws out of its highlighted/opened visual state.
+                MENU_STATIC_REDRAW(items->get(just_closed)->post_event(REDRAW_ON_CLOSE | REDRAW_ON_DESELECTION | REDRAW_ON_OWN_INPUT);)
                 if (items->size()==1)       // if there's only one item, exit out of the submenu
-                    return button_back();
+                    return button_back();   // todo: recursive?! maybe we meant to call parent?
             } else if (!is_opened()) {
                 //Serial.println("submenuitem#button_back() nothing selected so settiong currently_selected then returning false");
-                //currently_opened = 0;                
+                //currently_opened = 0;
                 currently_selected = -1;
                 return false;
             }

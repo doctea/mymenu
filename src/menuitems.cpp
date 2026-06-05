@@ -8,6 +8,25 @@ const char *set_message = "Set %s to %s (%i)";
 const char *label_on    = "On";
 const char *label_off   = "Off";
 
+char *get_redraw_policies_description(MenuItem_RedrawPolicy policy) {
+    static char description[256];
+    description[0] = '\0';
+    if (policy == REDRAW_NEVER) {
+        strcat(description, "Never");
+    } else {
+        if (policy & REDRAW_ALWAYS) strcat(description, "REDRAW_ALWAYS ");
+        if (policy & REDRAW_ON_SELECTION) strcat(description, "REDRAW_ON_SELECTION ");
+        if (policy & REDRAW_ON_DESELECTION) strcat(description, "REDRAW_ON_DESELECTION ");
+        if (policy & REDRAW_ON_OPEN) strcat(description, "REDRAW_ON_OPEN ");
+        if (policy & REDRAW_ON_CLOSE) strcat(description, "REDRAW_ON_CLOSE ");
+        if (policy & REDRAW_ON_BPM_CLOCK_CHANGE) strcat(description, "REDRAW_ON_BPM_CLOCK_CHANGE ");
+        if (policy & REDRAW_ON_TICK) strcat(description, "REDRAW_ON_TICK ");
+        if (policy & REDRAW_ON_CUSTOM) strcat(description, "REDRAW_ON_CUSTOM ");
+    }
+    return description;
+}
+
+
 // called when this menuitem is added to menu
 void MenuItem::on_add() {
     //Debug_printf(F("MenuItem#on_add in %s\n"), this->label);
