@@ -292,12 +292,6 @@ int Menu::display() {
             // TODO: fix this behaviour once and for all
         #endif
 
-        // static int last_start_panel = -1;
-        // if (last_start_panel!=start_panel) {
-        //     tft->clear(true);
-        // }
-        // last_start_panel = start_panel;
-
         tft->setCursor(0,y);
 
         int pinned_start_y = y;
@@ -322,16 +316,20 @@ int Menu::display() {
         #else
             const bool msg_did_redraw = true;
         #endif
+
+        // todo: check whether this new_y stuff has any effect, remove if not
         int new_y = draw_message();
         if (new_y==y)
             tft->println(); // force dropping a line if draw_message hasn't for some reason (needed to get the tabs line to show on bodmer/rp2040?)
         y = tft->getCursorY();
+
         // Only mark dirty if message row actually re-rendered
         if (msg_did_redraw && y > msg_start_y) {
             tft->set_dirty_region(msg_start_y, y);
         }
         //tft->setCursor(0, new_y);
 
+        // draw page tab strip
         tft->setTextSize(tab_textsize);
 
         const int tft_width = tft->width();
@@ -420,6 +418,8 @@ int Menu::display() {
             y += 2;
         }
         
+        const int list_start_y = y;
+
         // Mark header dirty only if page changed
         #if MENU_PERF_PARTIAL_UPDATES
             if (page_changed || page_index_changed) {
@@ -427,10 +427,7 @@ int Menu::display() {
             }
         #else
             tft->set_dirty_region(header_start_y, y);
-        #endif
 
-        const int list_start_y = y;
-        #if !MENU_PERF_PARTIAL_UPDATES
             // Without selective redraw, blank the whole list area up front
             const int list_h = tft->height() - list_start_y;
             if (list_h > 0) {
@@ -441,44 +438,41 @@ int Menu::display() {
         // When the scroll position changes, items render at different Y coordinates than last frame.
         // Clear the list area and force all items to repaint so no stale content is left behind.
         #if MENU_PERF_PARTIAL_UPDATES
-        {
-            static int last_start_panel_rendered = -1;
-            if (start_panel != last_start_panel_rendered) {
-                const int clear_h = tft->height() - list_start_y;
-                if (clear_h > 0)
-                    tft->fillRect(0, list_start_y, tft->width(), clear_h, BLACK);
-                tft->set_dirty_region(list_start_y, tft->height());
+            {
+                static int last_start_panel_rendered = -1;
+                if (start_panel != last_start_panel_rendered) {
+                    const int clear_h = tft->height() - list_start_y;
+                    if (clear_h > 0)
+                        tft->fillRect(0, list_start_y, tft->width(), clear_h, BLACK);
+                    tft->set_dirty_region(list_start_y, tft->height());
+                    for (auto* item : *items)
+                        item->request_redraw();
+                    last_start_panel_rendered = start_panel;
+                }
+            }
+
+            if (this->prev_overlay_item_tracking != nullptr) {
+                // An overlay was active last frame. First, black-fill the entire overlay region
+                // so that stale overlay pixels (graph fragments, box borders, gaps between items)
+                // are gone before anything renders. Items then repaint cleanly on top of the black.
+                // This is done in the same pass as the normal item renders so only one frame is sent.
+                const int prev_fill_h = tft->height() - this->prev_overlay_y_tracking;
+                if (prev_fill_h > 0) {
+                    tft->fillRect(0, this->prev_overlay_y_tracking, tft->width(), prev_fill_h, BLACK);
+                    tft->set_dirty_region(this->prev_overlay_y_tracking, tft->height());
+                }
+                // Force all items to redraw so their pixels are repainted over the now-black region.
+                // Covers both cases with no blank-frame transition:
+                //   • Overlay still open:  items render under the live overlay as normal.
+                //   • Overlay just closed: items cover the stale overlay pixels immediately.
                 for (auto* item : *items)
                     item->request_redraw();
-                last_start_panel_rendered = start_panel;
             }
-        }
-        #endif
-
-        #if MENU_PERF_PARTIAL_UPDATES
-        if (this->prev_overlay_item_tracking != nullptr) {
-            // An overlay was active last frame. First, black-fill the entire overlay region
-            // so that stale overlay pixels (graph fragments, box borders, gaps between items)
-            // are gone before anything renders. Items then repaint cleanly on top of the black.
-            // This is done in the same pass as the normal item renders so only one frame is sent.
-            const int prev_fill_h = tft->height() - this->prev_overlay_y_tracking;
-            if (prev_fill_h > 0) {
-                tft->fillRect(0, this->prev_overlay_y_tracking, tft->width(), prev_fill_h, BLACK);
-                tft->set_dirty_region(this->prev_overlay_y_tracking, tft->height());
-            }
-            // Force all items to redraw so their pixels are repainted over the now-black region.
-            // Covers both cases with no blank-frame transition:
-            //   • Overlay still open:  items render under the live overlay as normal.
-            //   • Overlay just closed: items cover the stale overlay pixels immediately.
-            for (auto* item : *items)
-                item->request_redraw();
-        }
         #endif
 
         // draw each menu item
-        //int start_y = 0;
         //if (debug) { Serial.println("display()=> about to start drawing the items.."); Serial_flush(); }
-        // const uint_fast16_t size = items->size();
+        // start_panel is the number of panels to skip from the top in order to get the selected panel on screen, so we need to get an iterator to that point in the list before we start rendering
         auto it = items->begin();
         for (uint_fast16_t s = 0; s < start_panel && it != items->end(); ++s, ++it) {}
         
