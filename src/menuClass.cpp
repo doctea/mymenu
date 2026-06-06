@@ -455,6 +455,26 @@ int Menu::display() {
         }
         #endif
 
+        #if MENU_PERF_PARTIAL_UPDATES
+        if (this->prev_overlay_item_tracking != nullptr) {
+            // An overlay was active last frame. First, black-fill the entire overlay region
+            // so that stale overlay pixels (graph fragments, box borders, gaps between items)
+            // are gone before anything renders. Items then repaint cleanly on top of the black.
+            // This is done in the same pass as the normal item renders so only one frame is sent.
+            const int prev_fill_h = tft->height() - this->prev_overlay_y_tracking;
+            if (prev_fill_h > 0) {
+                tft->fillRect(0, this->prev_overlay_y_tracking, tft->width(), prev_fill_h, BLACK);
+                tft->set_dirty_region(this->prev_overlay_y_tracking, tft->height());
+            }
+            // Force all items to redraw so their pixels are repainted over the now-black region.
+            // Covers both cases with no blank-frame transition:
+            //   • Overlay still open:  items render under the live overlay as normal.
+            //   • Overlay just closed: items cover the stale overlay pixels immediately.
+            for (auto* item : *items)
+                item->request_redraw();
+        }
+        #endif
+
         // draw each menu item
         //int start_y = 0;
         //if (debug) { Serial.println("display()=> about to start drawing the items.."); Serial_flush(); }
@@ -584,26 +604,10 @@ int Menu::display() {
         tft->set_dirty_region(this->pending_overlay_y, tft->height());
     }
 
-    // Overlay exit cleanup: when an overlay was drawn last frame but not this frame,
-    // fill the region it occupied with black and force all items to repaint next frame.
-    // This prevents stale overlay pixels lingering after the user closes the overlay.
-    {
-        static MenuItem *last_overlay_item = nullptr;
-        static int last_overlay_y = 0;
-        if (last_overlay_item != nullptr && this->pending_overlay_item == nullptr) {
-            const int clear_h = tft->height() - last_overlay_y;
-            if (clear_h > 0) {
-                tft->fillRect(0, last_overlay_y, tft->width(), clear_h, BLACK);
-                tft->set_dirty_region(last_overlay_y, tft->height());
-            }
-            #if MENU_PERF_PARTIAL_UPDATES
-            for (auto* item : *items)
-                item->request_redraw();
-            #endif
-        }
-        last_overlay_item = this->pending_overlay_item;
-        last_overlay_y = this->pending_overlay_y;
-    }
+    // Update overlay tracking for next frame (read at the START of the next display() call,
+    // before the items loop, so items can be pre-dirtied when the overlay closes).
+    this->prev_overlay_item_tracking = this->pending_overlay_item;
+    this->prev_overlay_y_tracking    = this->pending_overlay_y;
 
     //tft->updateScreenAsync(false);
     if (debug) { Debug_println("display()=> about to tft->updateDisplay()"); Serial_flush(); }

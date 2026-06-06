@@ -239,6 +239,10 @@ class Menu {
         // popouts render on top of subsequent rows.
         MenuItem *pending_overlay_item = nullptr;
         int pending_overlay_y = 0;
+        /// Previous frame's overlay state — used to pre-emptively mark items dirty before the
+        /// items loop so that stale overlay pixels are covered in the same frame as close.
+        MenuItem *prev_overlay_item_tracking = nullptr;
+        int prev_overlay_y_tracking = 0;
         
         bool auto_update = true;    // whether to send update to tft at end of every display() call, or to allow host app to decide
     
