@@ -313,27 +313,26 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
                     s_h = SCREEN_HEIGHT;
                 }
 
-
                 #if defined(USE_DMA) || defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_ARCH_RP2350)
                     #if MENU_PERF_PARTIAL_UPDATES
-                    // Selective Y-range DMA push — only transfer rows that were marked dirty.
-                    if (has_dirty_region()) {
-                        int push_y_min = constrain(dirty_y_min, 0, s_h - 1);
-                        int push_y_max = constrain(dirty_y_max, push_y_min + 1, s_h);
-                        int push_height = push_y_max - push_y_min;
-                        if (push_height > 0) {
-                            uint16_t *push_ptr = sprPtr + (push_y_min * s_w);
-                            real_actual_espi->pushImageDMA(0, push_y_min, s_w, push_height, push_ptr);
+                        // Selective Y-range DMA push — only transfer rows that were marked dirty.
+                        if (has_dirty_region()) {
+                            int push_y_min = constrain(dirty_y_min, 0, s_h - 1);
+                            int push_y_max = constrain(dirty_y_max, push_y_min + 1, s_h);
+                            int push_height = push_y_max - push_y_min;
+                            if (push_height > 0) {
+                                uint16_t *push_ptr = sprPtr + (push_y_min * s_w);
+                                real_actual_espi->pushImageDMA(0, push_y_min, s_w, push_height, push_ptr);
+                            }
+                        } else {
+                            real_actual_espi->pushImageDMA(0, 0, s_w, s_h, sprPtr);
                         }
-                    } else {
-                        real_actual_espi->pushImageDMA(0, 0, s_w, s_h, sprPtr);
-                    }
                     #else
-                    // Full-frame push (MENU_PERF_PARTIAL_UPDATES disabled).
-                    real_actual_espi->pushImageDMA(0, 0, s_w, s_h, sprPtr);
+                        // Full-frame push (MENU_PERF_PARTIAL_UPDATES disabled).
+                        real_actual_espi->pushImageDMA(0, 0, s_w, s_h, sprPtr);
                     #endif // MENU_PERF_PARTIAL_UPDATES
                 #else
-                    // real_actual_espi->pushImage(0, 0, s_w, s_h, sprPtr);
+                    real_actual_espi->pushImage(0, 0, s_w, s_h, sprPtr);
                 #endif
             }
         #endif
