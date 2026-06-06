@@ -218,7 +218,7 @@ class Menu {
     /// REDRAW_ON_ANY_INPUT for the whole current page via pending_page_events.
     /// Called automatically from every input-routing path. No-op when MENU_PERF_PARTIAL_UPDATES is off.
     inline void post_input_received(MenuItem* item = nullptr) {
-        MENU_STATIC_REDRAW(
+        IF_MENU_PERF_PARTIAL_UPDATES(
             if (item != nullptr) item->post_event(REDRAW_ON_OWN_INPUT);
             pending_page_events |= REDRAW_ON_ANY_INPUT;
         )
@@ -910,12 +910,12 @@ class Menu {
 
         // set the colour of the message (ie red / green for error / success)
         void set_message_colour(uint16_t colour) {
-            MENU_STATIC_REDRAW(if (message_colour != colour) mark_message_dirty();)
+            IF_MENU_PERF_PARTIAL_UPDATES(if (message_colour != colour) mark_message_dirty();)
             message_colour = colour;
         }
         // set the message to display at top of display
         void set_last_message(const char *msg, uint16_t colour = C_WHITE) {
-            MENU_STATIC_REDRAW(mark_message_dirty_if_changed(msg, colour);)
+            IF_MENU_PERF_PARTIAL_UPDATES(mark_message_dirty_if_changed(msg, colour);)
             strncpy(last_message, msg, MENU_C_MAX);
             last_message[MENU_C_MAX - 1] = '\0';
             this->set_message_colour(colour);
@@ -928,7 +928,7 @@ class Menu {
             const int start_y = tft->getCursorY();
             const int row_h = tft->getRowHeight();
             const int min_reserved_h = row_h + 3;
-            MENU_STATIC_REDRAW(
+            IF_MENU_PERF_PARTIAL_UPDATES(
                 if (!should_redraw_message_row() && get_cached_message_row_height() > 0) {
                     const int cached_h = get_cached_message_row_height();
                     const int advance_h = (cached_h > min_reserved_h) ? cached_h : min_reserved_h;
@@ -953,7 +953,7 @@ class Menu {
             target_y += 3;
             tft->setCursor(0, target_y);  // keep spacing below status line stable
 
-            MENU_STATIC_REDRAW(set_cached_message_row_height(target_y - start_y);)
+            IF_MENU_PERF_PARTIAL_UPDATES(set_cached_message_row_height(target_y - start_y);)
 
             return tft->getCursorY();
         }

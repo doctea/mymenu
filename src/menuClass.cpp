@@ -185,7 +185,7 @@ int Menu::display() {
         }
     #else
         tft->clear();
-        tft->reset_dirty_region();
+        IF_MENU_PERF_PARTIAL_UPDATES(tft->reset_dirty_region();)
     #endif
 
     // now draw the menu
@@ -205,7 +205,7 @@ int Menu::display() {
         //if (debug) { Serial.println("display()=> finished display\n"); Serial_flush(); }
         
         // Mark entire screen as dirty for takeover mode
-        tft->set_dirty_region(0, tft->height());
+        IF_MENU_PERF_PARTIAL_UPDATES(tft->set_dirty_region(0, tft->height());)
     } else if (mode==DISPLAY_ONE) {
         //if (debug) { Serial.println("display()=> DISPLAY_ONE branch"); Serial_flush(); }
         // for screens that can only display one option at a time
@@ -233,7 +233,7 @@ int Menu::display() {
         tft->println("");
         
         // Mark entire screen as dirty for DISPLAY_ONE mode
-        tft->set_dirty_region(0, tft->height());
+        IF_MENU_PERF_PARTIAL_UPDATES(tft->set_dirty_region(0, tft->height());)
 
     } else {
         //if (debug) { Serial.println("display()=> default branch"); Serial_flush(); }
@@ -316,7 +316,7 @@ int Menu::display() {
         y = display_pinned();
         // Only mark dirty if pinned panel actually re-rendered
         if (pinned_did_redraw && y > pinned_start_y) {
-            tft->set_dirty_region(pinned_start_y, y);
+            IF_MENU_PERF_PARTIAL_UPDATES(tft->set_dirty_region(pinned_start_y, y);)
         }
         tft->setCursor(0, y);
         
@@ -336,7 +336,7 @@ int Menu::display() {
 
         // Only mark dirty if message row actually re-rendered
         if (msg_did_redraw && y > msg_start_y) {
-            tft->set_dirty_region(msg_start_y, y);
+            IF_MENU_PERF_PARTIAL_UPDATES(tft->set_dirty_region(msg_start_y, y);)
         }
         //tft->setCursor(0, new_y);
 
@@ -405,7 +405,7 @@ int Menu::display() {
                 tft->set_dirty_region(tabs_start_y, y);
             }
         #else
-            tft->set_dirty_region(tabs_start_y, y);
+            IF_MENU_PERF_PARTIAL_UPDATES(tft->set_dirty_region(tabs_start_y, y);)
         #endif
         
         tft->setTextSize(0);
@@ -437,7 +437,7 @@ int Menu::display() {
                 tft->set_dirty_region(header_start_y, y);
             }
         #else
-            tft->set_dirty_region(header_start_y, y);
+            IF_MENU_PERF_PARTIAL_UPDATES(tft->set_dirty_region(header_start_y, y);)
 
             // Without selective redraw, blank the whole list area up front
             const int list_h = tft->height() - list_start_y;
@@ -527,7 +527,7 @@ int Menu::display() {
                 }
             #else
                 y = item->display(pos, item_selected, item_opened) + 1;
-                tft->set_dirty_region(item_start_y, y);
+                IF_MENU_PERF_PARTIAL_UPDATES(tft->set_dirty_region(item_start_y, y);)
             #endif
 
             //Serial.printf("after rendering MenuItem %i, return y is %i, cursor coords are (%i,%i)\n", y, tft->getCursorX(), tft->getCursorY());
@@ -564,7 +564,7 @@ int Menu::display() {
             }
         #else
             if (y < tft->height()) {
-                tft->set_dirty_region(y, tft->height());
+                IF_MENU_PERF_PARTIAL_UPDATES(tft->set_dirty_region(y, tft->height());)
             }
         #endif
         
@@ -612,8 +612,10 @@ int Menu::display() {
         // left at box_y + box_h + 1 after menu_draw_selector_takeover_overlay returns.
         this->active_overlay_box_y      = this->active_overlay_y;
         this->active_overlay_box_bottom = tft->getCursorY();
-        // Constrain DMA push to the overlay box only (not the full area below the anchor row).
-        tft->set_dirty_region(this->active_overlay_box_y, this->active_overlay_box_bottom);
+        IF_MENU_PERF_PARTIAL_UPDATES(
+            // Constrain DMA push to the overlay box only (not the full area below the anchor row).
+            tft->set_dirty_region(this->active_overlay_box_y, this->active_overlay_box_bottom);
+        )
     }
 
     //tft->updateScreenAsync(false);

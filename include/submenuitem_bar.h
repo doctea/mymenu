@@ -1,5 +1,4 @@
-#ifndef SUBMENUTITEMBAR__INCLUDED
-#define SUBMENUTITEMBAR__INCLUDED
+#pragma once
 #include "submenuitem.h"
 
 // originally adapted from ParameterAmountControls
@@ -29,57 +28,57 @@ class SubMenuItemBar : public SubMenuItem {
     virtual int display(Coord pos, bool selected, bool opened) override;
     virtual int small_display(int index, int x, int y, int width_in_pixels, bool is_selected, bool is_opened, bool outer_selected);
 
-    virtual bool needs_redraw(bool selected, bool opened) override {
-        if (SubMenuItem::needs_redraw(selected, opened)) return true;
+    #if MENU_PERF_PARTIAL_UPDATES
+        virtual bool needs_redraw(bool selected, bool opened) override {
+            if (SubMenuItem::needs_redraw(selected, opened)) return true;
 
-        // While a fullscreen-overlay child is open, only force a bar redraw when the
-        // overlay's declared policy fires (e.g. OWN_INPUT for static selectors, TICK for
-        // graphs). This prevents the bar from re-rendering every frame for static overlays,
-        // which was the main cause of fps drop. The overlay itself is kept alive via
-        // Menu::active_overlay_item, so it can still be drawn even when the bar skips.
-        #if MENU_PERF_PARTIAL_UPDATES
-            if (opened && this->currently_opened >= 0 && this->currently_opened < (int)this->items->size()) {
-                MenuItem *overlay_item = this->items->get(this->currently_opened);
-                if (overlay_item != nullptr && overlay_item->wants_fullscreen_overlay_when_opened_in_bar()) {
-                    // Structural events (OPEN, PAGE_ENTER, INVALIDATE) always require the bar to run
-                    // so active_overlay_item gets set on first open and after full-screen clears.
-                    // The overlay's declared policy governs live-update redraws beyond that.
-                    const MenuItem_RedrawPolicy structural =
-                        REDRAW_ON_OPEN | REDRAW_ON_PAGE_ENTER | REDRAW_ON_INVALIDATE | REDRAW_ON_CLOSE;
-                    const MenuItem_RedrawPolicy ovl_policy = overlay_item->get_overlay_redraw_policy() | structural;
-                    if (this->pending_redraw_events & ovl_policy)
-                        return true;
-                    // Bar does not need to run — overlay is handled via active_overlay_item.
-                    return false;
+            // While a fullscreen-overlay child is open, only force a bar redraw when the
+            // overlay's declared policy fires (e.g. OWN_INPUT for static selectors, TICK for
+            // graphs). This prevents the bar from re-rendering every frame for static overlays,
+            // which was the main cause of fps drop. The overlay itself is kept alive via
+            // Menu::active_overlay_item, so it can still be drawn even when the bar skips.
+                if (opened && this->currently_opened >= 0 && this->currently_opened < (int)this->items->size()) {
+                    MenuItem *overlay_item = this->items->get(this->currently_opened);
+                    if (overlay_item != nullptr && overlay_item->wants_fullscreen_overlay_when_opened_in_bar()) {
+                        // Structural events (OPEN, PAGE_ENTER, INVALIDATE) always require the bar to run
+                        // so active_overlay_item gets set on first open and after full-screen clears.
+                        // The overlay's declared policy governs live-update redraws beyond that.
+                        const MenuItem_RedrawPolicy structural =
+                            REDRAW_ON_OPEN | REDRAW_ON_PAGE_ENTER | REDRAW_ON_INVALIDATE | REDRAW_ON_CLOSE;
+                        const MenuItem_RedrawPolicy ovl_policy = overlay_item->get_overlay_redraw_policy() | structural;
+                        if (this->pending_redraw_events & ovl_policy)
+                            return true;
+                        // Bar does not need to run — overlay is handled via active_overlay_item.
+                        return false;
+                    }
                 }
-            }
-        #endif
 
-        // Check children, so that we redraw if any of them need redraw
-        for (auto* item : *this->items) {
-            if (item->needs_redraw(
-                item == this->items->get(this->currently_selected), 
-                item == this->items->get(this->currently_opened)
-            )) return true;
+            // Check children, so that we redraw if any of them need redraw
+            for (auto* item : *this->items) {
+                if (item->needs_redraw(
+                    item == this->items->get(this->currently_selected), 
+                    item == this->items->get(this->currently_opened)
+                )) return true;
+            }
+            return false;
         }
-        return false;
-    }
-    virtual void mark_rendered(bool selected, bool opened, int16_t draw_height) override {
-        SubMenuItem::mark_rendered(selected, opened, draw_height);
-        for (auto* item : *this->items) {
-            item->mark_rendered(
-                item == this->items->get(this->currently_selected), 
-                item == this->items->get(this->currently_opened),
-                draw_height // we need to pass something in so that the draw_height check doesn't force a render
-            );
+        virtual void mark_rendered(bool selected, bool opened, int16_t draw_height) override {
+            SubMenuItem::mark_rendered(selected, opened, draw_height);
+            for (auto* item : *this->items) {
+                item->mark_rendered(
+                    item == this->items->get(this->currently_selected), 
+                    item == this->items->get(this->currently_opened),
+                    draw_height // we need to pass something in so that the draw_height check doesn't force a render
+                );
+            }
         }
-    }
-    virtual void post_event(MenuItem_RedrawPolicy event_bit) override {
-        SubMenuItem::post_event(event_bit);
-        for (auto* item : *this->items) {
-            item->post_event(event_bit);
+        virtual void post_event(MenuItem_RedrawPolicy event_bit) override {
+            SubMenuItem::post_event(event_bit);
+            for (auto* item : *this->items) {
+                item->post_event(event_bit);
+            }
         }
-    }
+    #endif
 
 };
 
@@ -165,5 +164,3 @@ class DualMenuItem : public SubMenuItemColumns {
             }
         }
 };
-
-#endif

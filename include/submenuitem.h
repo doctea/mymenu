@@ -199,22 +199,22 @@ class SubMenuItem : public MenuItem {
                 if (currently_selected>=0) {
                     if (items->get(currently_selected)->action_opened()) {
                         currently_opened = currently_selected;
-                        MENU_STATIC_REDRAW(items->get(currently_opened)->post_event(REDRAW_ON_OPEN);)
+                        IF_MENU_PERF_PARTIAL_UPDATES(items->get(currently_opened)->post_event(REDRAW_ON_OPEN);)
                         return false;
                     } else {
-                        MENU_STATIC_REDRAW(items->get(currently_selected)->post_event(REDRAW_ON_OWN_INPUT);)
+                        IF_MENU_PERF_PARTIAL_UPDATES(items->get(currently_selected)->post_event(REDRAW_ON_OWN_INPUT);)
                         return false;
                     }
                 }
             } else {
                 //Serial.printf("in submenuitem(%s)#button_select() on currently_opened=%i (%s)\n", this->get_label(), currently_opened, items->get(currently_opened)->get_label());
                 // an item is currently opened, so call select on that item
-                MENU_STATIC_REDRAW(items->get(currently_opened)->post_event(REDRAW_ON_OWN_INPUT);)
+                IF_MENU_PERF_PARTIAL_UPDATES(items->get(currently_opened)->post_event(REDRAW_ON_OWN_INPUT);)
                 if (items->get(currently_opened)->button_select()) {
                     const int just_closed = currently_opened;
                     currently_selected = currently_opened;
                     currently_opened = -1;
-                    MENU_STATIC_REDRAW(items->get(just_closed)->post_event(REDRAW_ON_CLOSE | REDRAW_ON_DESELECTION);)
+                    IF_MENU_PERF_PARTIAL_UPDATES(items->get(just_closed)->post_event(REDRAW_ON_CLOSE | REDRAW_ON_DESELECTION);)
                     return false;
                 } else {
                     return false;
@@ -231,7 +231,7 @@ class SubMenuItem : public MenuItem {
                 currently_selected = currently_opened;
                 currently_opened = -1;
                 // Post close+deselection so the item redraws out of its highlighted/opened visual state.
-                MENU_STATIC_REDRAW(items->get(just_closed)->post_event(REDRAW_ON_CLOSE | REDRAW_ON_DESELECTION | REDRAW_ON_OWN_INPUT);)
+                IF_MENU_PERF_PARTIAL_UPDATES(items->get(just_closed)->post_event(REDRAW_ON_CLOSE | REDRAW_ON_DESELECTION | REDRAW_ON_OWN_INPUT);)
                 if (items->size()==1)       // if there's only one item, exit out of the submenu
                     return button_back();   // todo: recursive?! maybe we meant to call parent?
             } else if (!is_opened()) {

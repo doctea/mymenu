@@ -29,9 +29,9 @@ extern const char *label_off;
 
 #if MENU_PERF_PARTIAL_UPDATES
     // Wrap optional calls so call sites stay readable while methods only exist in partial-update builds.
-    #define MENU_STATIC_REDRAW(code) code
+    #define IF_MENU_PERF_PARTIAL_UPDATES(code) code
 #else
-    #define MENU_STATIC_REDRAW(code)
+    #define IF_MENU_PERF_PARTIAL_UPDATES(code)
 #endif
 
 // ---------------------------------------------------------------------------
@@ -325,7 +325,9 @@ class PinnedPanelMenuItem : public MenuItem {
         #endif
 
         PinnedPanelMenuItem(const char *label) : MenuItem(label) {
-            redraw_policy |= REDRAW_ON_TICK | REDRAW_ON_CUSTOM | REDRAW_ON_BPM_CLOCK_CHANGE;
+            IF_MENU_PERF_PARTIAL_UPDATES(
+                redraw_policy |= REDRAW_ON_TICK | REDRAW_ON_CUSTOM | REDRAW_ON_BPM_CLOCK_CHANGE;
+            )
         };
 
         virtual void update_ticks(unsigned long ticks) override {
@@ -396,7 +398,7 @@ class SeparatorMenuItem : virtual public MenuItem {
             this->draw_lines = draw_lines;
             // Separators can't be selected, so use PAGE_ENTER + INVALIDATE only.
             // They will be redrawn when the page is entered or explicitly invalidated.
-            MENU_STATIC_REDRAW(set_redraw_policy(REDRAW_ON_PAGE_ENTER | REDRAW_ON_INVALIDATE);)
+            IF_MENU_PERF_PARTIAL_UPDATES(set_redraw_policy(REDRAW_ON_PAGE_ENTER | REDRAW_ON_INVALIDATE);)
         }
         SeparatorMenuItem(const char *label, uint16_t default_fg, int textSize = 0, bool draw_lines = true) : SeparatorMenuItem(label, textSize, draw_lines) {
             this->default_fg = default_fg;

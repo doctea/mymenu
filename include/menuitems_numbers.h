@@ -10,7 +10,7 @@
 class NumberControlBase : public MenuItem {
     public:
         NumberControlBase(const char *label) : MenuItem(label) {
-            this->add_redraw_policy(REDRAW_ON_OWN_INPUT | REDRAW_ON_CUSTOM);
+            IF_MENU_PERF_PARTIAL_UPDATES(this->add_redraw_policy(REDRAW_ON_OWN_INPUT | REDRAW_ON_CUSTOM);)
         };
 
         // double version because otherwise we can't set breakpoints on the method in the derived class due to the template!
@@ -191,19 +191,21 @@ class NumberControl : public NumberControlBase {
             return this->float_unit;
         }
 
-        virtual DataType get_test_value(bool selected, bool opened) {
-            return opened ? this->get_internal_value() : this->get_current_value();
-        }
-        DataType last_value = (DataType)0;
-        virtual bool check_needs_redraw_custom(bool selected, bool opened) override {
-            DataType test_value = get_test_value(selected, opened);
-            if (last_value != test_value) {
-                last_value = test_value;
-                return true;
+        #if MENU_PERF_PARTIAL_UPDATES
+            virtual DataType get_test_value(bool selected, bool opened) {
+                return opened ? this->get_internal_value() : this->get_current_value();
             }
-            last_value = test_value;
-            return false;
-        }
+            DataType last_value = (DataType)0;
+            virtual bool check_needs_redraw_custom(bool selected, bool opened) override {
+                DataType test_value = get_test_value(selected, opened);
+                if (last_value != test_value) {
+                    last_value = test_value;
+                    return true;
+                }
+                last_value = test_value;
+                return false;
+            }
+        #endif
 
         virtual const char *getFormattedValue() {
             // this->request_redraw_if_changed(this->get_current_value());
@@ -488,38 +490,6 @@ class DirectNumberControl : public NumberControl<DataType> {
     DirectNumberControl(const char* label, DataType (*getter)(), void (*setter)(DataType value), DataType min_value, DataType max_value, void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr)
             : NumberControl<DataType>(label, getter, setter, min_value, max_value, true, true, on_change_handler) {
     }
-
-    /*virtual bool knob_left() override {
-        if (this->readOnly) return false;
-        //Serial.printf("------ DirectNumberControl#knob_left, internal_value=%f\n", (double)this->internal_value);
-        this->decrease_value();
-        //Serial.printf("------ DirectNumberControl#knob_left, about to call change_value(%f)\n", (double)this->internal_value);
-        //this->change_value(this->internal_value);
-        //Serial.printf(">------<\n");
-
-        //this->last_changed_at = millis();
-        return true;
-    }
-    virtual bool knob_right() override {
-        if (this->readOnly) return false;
-        //Serial.printf(F("------ DirectNumberControl#knob_right, internal_value=%f\n"), (double)this->internal_value);
-        this->increase_value();
-        //Serial.printf(F("------ DirectNumberControl#knob_right, about to call change_value(%f)\n"), (double)this->internal_value);
-        //this->change_value(this->internal_value);
-        //Serial.printf(F(">------<\n"));
-
-        //this->last_changed_at = millis();
-        return true;
-    }
-    virtual bool button_select() override {
-        if (this->readOnly) return true;
-
-        //Serial.printf("DirectNumberControl#button_select() in %s - value is %i (%3.3f)\n", this->label, this->get_current_value(), this->get_current_value());
-
-        this->change_value(this->get_internal_value());
-
-        return this->go_back_on_select;
-    }*/
 };
 
 #endif
