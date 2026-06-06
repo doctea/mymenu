@@ -486,10 +486,19 @@ int Menu::display() {
                     // Blank this item's area. For opened items use full remaining height
                     // to prevent ghost pixels from the previous (shorter) closed state.
                     const int16_t cached_h = item->get_cached_draw_height();
-                    const int erase_h = item_opened
+                    // cached_h == -1: first render, erase a default amount
+                    // cached_h ==  0: zero-height item, erase nothing (avoids clobbering adjacent items)
+                    // cached_h  > 0: normal item, erase its previous footprint
+                    //
+                    // Only use full-screen-height erase for genuine takeover items (e.g. SubMenuItem
+                    // opened as a full page). Bars and inline selectors do NOT allow_takeover() and
+                    // must only erase their own row; over-erasing blanks items below and wipes the
+                    // screen region that overlays rely on already having content in it.
+                    const int erase_h = (item_opened && item->allow_takeover())
                         ? (tft->height() - item_start_y)
-                        : ((cached_h > 0) ? cached_h : tft->getRowHeight() * 2);
-                    tft->fillRect(0, item_start_y, tft->width(), erase_h, BLACK);
+                        : (cached_h > 0 ? cached_h : (cached_h < 0 ? tft->getRowHeight() * 2 : 0));
+                    if (erase_h > 0)
+                        tft->fillRect(0, item_start_y, tft->width(), erase_h, BLACK);
                     
                     y = item->display(pos, item_selected, item_opened) + 1;
                     item->mark_rendered(item_selected, item_opened, y - item_start_y - 1);
@@ -497,10 +506,11 @@ int Menu::display() {
                 } else {
                     // Skip render, advance y by cached height
                     const int16_t cached_h = item->get_cached_draw_height();
-                    if (cached_h > 0) {
+                    if (cached_h >= 0) {
+                        // cached_h == 0: zero-height item, advance y by just the 1-pixel spacing
                         y = item_start_y + cached_h + 1;
                     } else {
-                        // No cache yet, must render
+                        // cached_h == -1: never rendered yet, must render now
                         tft->fillRect(0, item_start_y, tft->width(), tft->getRowHeight() * 2, BLACK);
                         y = item->display(pos, item_selected, item_opened) + 1;
                         item->mark_rendered(item_selected, item_opened, y - item_start_y - 1);
@@ -572,6 +582,27 @@ int Menu::display() {
         // a region taller than the base item's cached height. Mark from the overlay
         // start to the bottom of the screen dirty so the DMA push includes it all.
         tft->set_dirty_region(this->pending_overlay_y, tft->height());
+    }
+
+    // Overlay exit cleanup: when an overlay was drawn last frame but not this frame,
+    // fill the region it occupied with black and force all items to repaint next frame.
+    // This prevents stale overlay pixels lingering after the user closes the overlay.
+    {
+        static MenuItem *last_overlay_item = nullptr;
+        static int last_overlay_y = 0;
+        if (last_overlay_item != nullptr && this->pending_overlay_item == nullptr) {
+            const int clear_h = tft->height() - last_overlay_y;
+            if (clear_h > 0) {
+                tft->fillRect(0, last_overlay_y, tft->width(), clear_h, BLACK);
+                tft->set_dirty_region(last_overlay_y, tft->height());
+            }
+            #if MENU_PERF_PARTIAL_UPDATES
+            for (auto* item : *items)
+                item->request_redraw();
+            #endif
+        }
+        last_overlay_item = this->pending_overlay_item;
+        last_overlay_y = this->pending_overlay_y;
     }
 
     //tft->updateScreenAsync(false);

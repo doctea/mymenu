@@ -159,7 +159,7 @@ class MenuItem {
             MenuItem_RedrawPolicy pending_redraw_events = REDRAW_ON_PAGE_ENTER; // force first render
             int8_t last_rendered_selected = -1;
             int8_t last_rendered_opened = -1;
-            int16_t cached_draw_height = 0;
+            int16_t cached_draw_height = -1; // -1 = not yet rendered; 0 = rendered with zero height; >0 = normal
 
             virtual void set_redraw_policy(MenuItem_RedrawPolicy policy) {
                 // Always preserve PAGE_ENTER and INVALIDATE so items respond to full-screen
@@ -181,9 +181,9 @@ class MenuItem {
                 pending_redraw_events |= reason;
             }
             /// Returns true if this item should be redrawn this frame.
-            virtual bool needs_redraw(bool currently_selected, bool currently_opened) {
+            virtual bool needs_redraw(bool selected, bool opened) {
                 bool debug = true;
-                if (cached_draw_height <= 0) {
+                if (cached_draw_height < 0) {
                     if (debug) Serial.printf("%s: needs_redraw() true because cached_draw_height is %i\n", this->label, cached_draw_height);
                     return true;
                 }
@@ -195,14 +195,14 @@ class MenuItem {
                     if (debug) Serial.printf("%s: needs_redraw() true because policy %s met by %s\n", this->label, get_redraw_policies_description(redraw_policy), get_redraw_policies_description(pending_redraw_events));
                     return true;
                 }
-                if ((redraw_policy & REDRAW_ON_CUSTOM) && check_needs_redraw_custom(currently_selected, currently_opened)) {
+                if ((redraw_policy & REDRAW_ON_CUSTOM) && check_needs_redraw_custom(selected, opened)) {
                     if (debug) Serial.printf("%s: needs_redraw() true because REDRAW_ON_CUSTOM is set and check_needs_redraw_custom() returned true\n", this->label);
                     return true;
                 }
                 return false;
             }
             /// Override to implement custom redraw logic (checked when policy has REDRAW_ON_CUSTOM).
-            virtual bool check_needs_redraw_custom(bool currently_selected, bool currently_opened) { return false; }
+            virtual bool check_needs_redraw_custom(bool selected, bool opened) { return false; }
             virtual void mark_rendered(bool selected, bool opened) {
                 last_rendered_selected = (int8_t)selected;
                 last_rendered_opened = (int8_t)opened;
@@ -270,6 +270,10 @@ class MenuItem {
         // When true, SubMenuItemBar will render this control once more after row layout
         // so it can draw an overlay/popout while opened.
         virtual bool wants_fullscreen_overlay_when_opened_in_bar() { return false; }
+        /// Redraw policy the parent bar should apply while this item is live as a fullscreen overlay.
+        /// REDRAW_ON_OWN_INPUT (default) keeps the overlay current when the user interacts with it.
+        /// Override to REDRAW_ON_TICK for overlays that display live/animated data (graphs, etc.).
+        virtual MenuItem_RedrawPolicy get_overlay_redraw_policy() const { return REDRAW_ON_OWN_INPUT; }
         // whether we should be allowed to hover over this one
         virtual bool is_selectable ();
         // whether 'tis openable -- ie, that it can be 'opened' without having an effect, eg submenuitem... basically anything except an action?!

@@ -336,6 +336,8 @@ class LambdaActionConfirmItem : public LambdaActionItem {
 };
 
 // you might also call this LambdaMenuItem
+// TODO: need a way to add a check_needs_redraw_custom callback and policy so that we can invalidate them
+// without needing to redraw the whole menu when the underlying data changes..
 class CallbackMenuItem : public MenuItem {
     using label_callback_def = vl::Func<const char*(void)>;
     using colour_callback_def = vl::Func<uint16_t(void)>;

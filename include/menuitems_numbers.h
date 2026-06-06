@@ -191,12 +191,12 @@ class NumberControl : public NumberControlBase {
             return this->float_unit;
         }
 
-        virtual DataType get_test_value(bool currently_selected, bool currently_opened) {
-            return currently_opened ? this->get_internal_value() : this->get_current_value();
+        virtual DataType get_test_value(bool selected, bool opened) {
+            return opened ? this->get_internal_value() : this->get_current_value();
         }
         DataType last_value = (DataType)0;
-        virtual bool check_needs_redraw_custom(bool currently_selected, bool currently_opened) override {
-            DataType test_value = get_test_value(currently_selected, currently_opened);
+        virtual bool check_needs_redraw_custom(bool selected, bool opened) override {
+            DataType test_value = get_test_value(selected, opened);
             if (last_value != test_value) {
                 last_value = test_value;
                 return true;

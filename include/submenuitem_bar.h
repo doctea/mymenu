@@ -32,6 +32,19 @@ class SubMenuItemBar : public SubMenuItem {
     virtual bool needs_redraw(bool currently_selected, bool currently_opened) override {
         if (SubMenuItem::needs_redraw(currently_selected, currently_opened)) return true;
 
+        // While a fullscreen-overlay child is open, always redraw so that:
+        // (a) pending_overlay_item is re-set every frame — the deferred overlay draw at the
+        //     end of Menu::display() only fires if the bar's display() ran, so we must
+        //     guarantee that it runs on every frame while the overlay is visible; and
+        // (b) live-data overlays (graphs, etc.) are updated every tick automatically.
+        #if MENU_PERF_PARTIAL_UPDATES
+        if (currently_opened && this->currently_opened >= 0 && this->currently_opened < (int)this->items->size()) {
+            MenuItem *overlay_item = this->items->get(this->currently_opened);
+            if (overlay_item != nullptr && overlay_item->wants_fullscreen_overlay_when_opened_in_bar())
+                return true;
+        }
+        #endif
+
         // Check children, so that we redraw if any of them need redraw
         for (auto* item : *this->items) {
             if (item->needs_redraw(
@@ -57,7 +70,7 @@ class SubMenuItemBar : public SubMenuItem {
             item->post_event(event_bit);
         }
     }
-    
+
 };
 
 class SubMenuItemBarCustomProportions : public SubMenuItemBar {
