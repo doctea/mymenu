@@ -82,13 +82,11 @@ int Menu::display() {
 	    return 0;
     }
 
-    uint32_t display_started = 0;
     static int frames_drawn = 0;
     static int frames_in_last_second = 0;
     static uint32_t current_second = 0, last_second = 0;
 
     if (profile_enable) {
-        display_started = micros();
         current_second = micros()/(1000*1000);
         if (current_second!=last_second) {
             frames_in_last_second = frames_drawn;
@@ -467,7 +465,9 @@ int Menu::display() {
         auto it = items->begin();
         for (int_fast16_t s = 0; s < start_panel && it != items->end(); ++s, ++it) {}
         
-        int list_bottom_y = list_start_y; // track where list actually ends
+        #if MENU_PERF_PARTIAL_UPDATES
+            int list_bottom_y = list_start_y; // track where list actually ends
+        #endif
         
         for (int_fast16_t i = start_panel; it != items->end(); ++it, ++i) {
             //if (debug) { Serial.printf("display()=> about to get item %i\n", i); Serial_flush(); }
@@ -537,8 +537,7 @@ int Menu::display() {
                 tft->printf("Took: %lu\n", micros() - time_micros);
                 y = y + tft->getRowHeight();
             }
-
-            list_bottom_y = y;
+            IF_MENU_PERF_PARTIAL_UPDATES(list_bottom_y = y;)
 
             // panel_bottom stores absolute cumulative bottoms from a full top-to-bottom
             // pass. During partial viewport renders (bottoms_computed=true), y is
