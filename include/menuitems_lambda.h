@@ -20,8 +20,9 @@ class LambdaNumberControl : public NumberControl<DataType> {
         getter_func_def getter_func,
         void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr,
         bool go_back_on_select = false,
-        bool direct = false
-    ) : NumberControl<DataType>(label, go_back_on_select, direct) {
+        bool direct = false,
+        override_label_t<DataType> *override_output = nullptr
+    ) : NumberControl<DataType>(label, go_back_on_select, direct, override_output) {
         this->getter_func = getter_func;
         this->setter_func = setter_func;
 
@@ -40,8 +41,9 @@ class LambdaNumberControl : public NumberControl<DataType> {
         DataType minimumDataValue,
         DataType maximumDataValue,
         bool go_back_on_select = false,
-        bool direct = false
-    ) : LambdaNumberControl<DataType>(label, setter_func, getter_func, on_change_handler, go_back_on_select, direct) {
+        bool direct = false,
+        override_label_t<DataType> *override_output = nullptr
+    ) : LambdaNumberControl<DataType>(label, setter_func, getter_func, on_change_handler, go_back_on_select, direct, override_output) {
         this->minimumDataValue = minimumDataValue;
         this->maximumDataValue = maximumDataValue;
     }

@@ -211,10 +211,9 @@ class SubMenuItem : public MenuItem {
                 // an item is currently opened, so call select on that item
                 IF_MENU_PERF_PARTIAL_UPDATES(items->get(currently_opened)->post_event(REDRAW_ON_OWN_INPUT);)
                 if (items->get(currently_opened)->button_select()) {
-                    const int just_closed = currently_opened;
+                    IF_MENU_PERF_PARTIAL_UPDATES(items->get(currently_opened)->post_event(REDRAW_ON_CLOSE | REDRAW_ON_DESELECTION);)
                     currently_selected = currently_opened;
                     currently_opened = -1;
-                    IF_MENU_PERF_PARTIAL_UPDATES(items->get(just_closed)->post_event(REDRAW_ON_CLOSE | REDRAW_ON_DESELECTION);)
                     return false;
                 } else {
                     return false;
@@ -227,11 +226,13 @@ class SubMenuItem : public MenuItem {
             //needs_redraw = true;    // force a redraw if we've selected
             if (is_opened() && !items->get(currently_opened)->button_back()) {
                 //Serial.println("submenuitem#button_back() got a false back from the selected item's button_back, setting currently_opened etc then returning true");
-                const int just_closed = currently_opened;
+                #if MENU_PERF_PARTIAL_UPDATES
+                    // Post close+deselection so the item redraws out of its highlighted/opened visual state.
+                    const int just_closed = currently_opened;
+                    items->get(just_closed)->post_event(REDRAW_ON_CLOSE | REDRAW_ON_DESELECTION | REDRAW_ON_OWN_INPUT);
+                #endif
                 currently_selected = currently_opened;
                 currently_opened = -1;
-                // Post close+deselection so the item redraws out of its highlighted/opened visual state.
-                IF_MENU_PERF_PARTIAL_UPDATES(items->get(just_closed)->post_event(REDRAW_ON_CLOSE | REDRAW_ON_DESELECTION | REDRAW_ON_OWN_INPUT);)
                 if (items->size()==1)       // if there's only one item, exit out of the submenu
                     return button_back();   // todo: recursive?! maybe we meant to call parent?
             } else if (!is_opened()) {

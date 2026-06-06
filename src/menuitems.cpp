@@ -173,7 +173,7 @@ int SeparatorMenuItem::header(const char *text, Coord pos, bool selected, bool o
     tft->setTextSize(textSize);
     colours(false, this->default_fg, this->default_bg);
 
-    int end_x;
+    int end_x;  // only used if draw_lines is true
     const unsigned int label_width = (text_len != (unsigned int)-1) ? text_len : strlen(text);
 
     if (this->draw_lines) {
@@ -192,7 +192,7 @@ int SeparatorMenuItem::header(const char *text, Coord pos, bool selected, bool o
     tft->println();
     tft->setTextWrap(wasTextWrap);
     // have to draw this after the text for some reason, otherwise it doesn't get drawn/gets wiped out??
-    if (draw_lines) {
+    if (this->draw_lines) {
         tft->drawLine(0, pos.y+6, end_x, pos.y+6, this->default_fg);
         tft->setCursor(0, tft->getCursorY()+2);
     }

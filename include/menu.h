@@ -927,8 +927,8 @@ class Menu {
             tft->setTextSize(tft->default_textsize);
             const int start_y = tft->getCursorY();
             const int row_h = tft->getRowHeight();
-            const int min_reserved_h = row_h + 3;
             IF_MENU_PERF_PARTIAL_UPDATES(
+                const int min_reserved_h = row_h + 3;
                 if (!should_redraw_message_row() && get_cached_message_row_height() > 0) {
                     const int cached_h = get_cached_message_row_height();
                     const int advance_h = (cached_h > min_reserved_h) ? cached_h : min_reserved_h;
@@ -939,7 +939,6 @@ class Menu {
 
             //tft.setCursor(0,0);
             // draw the last status message
-            // tft->fillRect(0, start_y, tft->width(), min_reserved_h, BLACK);
             tft->setCursor(0, start_y);
             tft->setTextColor(message_colour,BLACK);
             bool was_wrap = tft->isTextWrap();
@@ -970,25 +969,25 @@ class Menu {
             static uint32_t last_updated_ticks = 0;
             if (ticks==last_updated_ticks)
                 return;
-            const uint32_t prev_ticks = last_updated_ticks;
-            last_updated_ticks = ticks;
-
-            // Auto-detect step/beat/bar boundaries using bpm.h macros.
-            // BPM_PHASE_TICKS adjusts for time-signature phase offset when ENABLE_TIME_SIGNATURE is active.
+            
             #if MENU_PERF_PARTIAL_UPDATES
             {
+                // Auto-detect step/beat/bar boundaries using bpm.h macros.
+                // BPM_PHASE_TICKS adjusts for time-signature phase offset when ENABLE_TIME_SIGNATURE is active.
                 // Every tick: items with REDRAW_ON_TICK (e.g. REDRAW_LIVE) always get this.
                 pending_page_events |= REDRAW_ON_TICK;
                 const uint32_t cur  = BPM_PHASE_TICKS(ticks);
-                const uint32_t prev = BPM_PHASE_TICKS(prev_ticks);
+                const uint32_t prev = BPM_PHASE_TICKS(last_updated_ticks);
                 if (TICKS_PER_STEP > 0 && (cur / TICKS_PER_STEP) != (prev / TICKS_PER_STEP))
-                    pending_page_events |= REDRAW_ON_STEP;
+                pending_page_events |= REDRAW_ON_STEP;
                 if (PPQN > 0 && (cur / PPQN) != (prev / PPQN))
-                    pending_page_events |= REDRAW_ON_BEAT;
+                pending_page_events |= REDRAW_ON_BEAT;
                 if (TICKS_PER_BAR > 0 && (cur / TICKS_PER_BAR) != (prev / TICKS_PER_BAR))
-                    pending_page_events |= REDRAW_ON_BAR;
+                pending_page_events |= REDRAW_ON_BAR;
             }
             #endif
+
+            last_updated_ticks = ticks;
 
             if (pinned_panel!=nullptr)
                 pinned_panel->update_ticks(ticks);

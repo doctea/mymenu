@@ -347,7 +347,7 @@ int Menu::display() {
         const int current_character_width = tft->currentCharacterWidth();
         
         // Track tabs section for dirty region
-        int tabs_start_y = y;
+        IF_MENU_PERF_PARTIAL_UPDATES(int tabs_start_y = y;)
 
         /////// draw tabs for the pages
         // NOTE: left as index-based loop — starts at selected_page_index and wraps with modulo,
@@ -436,9 +436,24 @@ int Menu::display() {
             if (page_changed || page_index_changed) {
                 tft->set_dirty_region(header_start_y, y);
             }
+            // When the scroll position changes, items render at different Y coordinates than last frame.
+            // Clear the list area and force all items to repaint so no stale content is left behind.
+            #if MENU_PERF_PARTIAL_UPDATES
+                {
+                    static int last_start_panel_rendered = -1;
+                    if (start_panel != last_start_panel_rendered) {
+                        const int clear_h = tft->height() - list_start_y;
+                        if (clear_h > 0)
+                            tft->fillRect(0, list_start_y, tft->width(), clear_h, BLACK);
+                        tft->set_dirty_region(list_start_y, tft->height());
+                        for (auto* item : *items)
+                            item->request_redraw();
+                        last_start_panel_rendered = start_panel;
+                    }
+                }
+    
+            #endif
         #else
-            IF_MENU_PERF_PARTIAL_UPDATES(tft->set_dirty_region(header_start_y, y);)
-
             // Without selective redraw, blank the whole list area up front
             const int list_h = tft->height() - list_start_y;
             if (list_h > 0) {
@@ -446,33 +461,15 @@ int Menu::display() {
             }
         #endif
 
-        // When the scroll position changes, items render at different Y coordinates than last frame.
-        // Clear the list area and force all items to repaint so no stale content is left behind.
-        #if MENU_PERF_PARTIAL_UPDATES
-            {
-                static int last_start_panel_rendered = -1;
-                if (start_panel != last_start_panel_rendered) {
-                    const int clear_h = tft->height() - list_start_y;
-                    if (clear_h > 0)
-                        tft->fillRect(0, list_start_y, tft->width(), clear_h, BLACK);
-                    tft->set_dirty_region(list_start_y, tft->height());
-                    for (auto* item : *items)
-                        item->request_redraw();
-                    last_start_panel_rendered = start_panel;
-                }
-            }
-
-        #endif
-
         // draw each menu item
         //if (debug) { Serial.println("display()=> about to start drawing the items.."); Serial_flush(); }
         // start_panel is the number of panels to skip from the top in order to get the selected panel on screen, so we need to get an iterator to that point in the list before we start rendering
         auto it = items->begin();
-        for (uint_fast16_t s = 0; s < start_panel && it != items->end(); ++s, ++it) {}
+        for (int_fast16_t s = 0; s < start_panel && it != items->end(); ++s, ++it) {}
         
         int list_bottom_y = list_start_y; // track where list actually ends
         
-        for (uint_fast16_t i = start_panel; it != items->end(); ++it, ++i) {
+        for (int_fast16_t i = start_panel; it != items->end(); ++it, ++i) {
             //if (debug) { Serial.printf("display()=> about to get item %i\n", i); Serial_flush(); }
             MenuItem *item = *it;
 
@@ -487,8 +484,10 @@ int Menu::display() {
 
             const bool item_selected = ((int)i==currently_selected);
             const bool item_opened = ((int)i==currently_opened);
-            int item_start_y = y;
-
+            
+            IF_MENU_PERF_PARTIAL_UPDATES(
+                int_fast16_t item_start_y = y;
+            )
             #if MENU_PERF_PARTIAL_UPDATES
                 if (item->needs_redraw(item_selected, item_opened)) {
                     // Blank this item's area. For opened items use full remaining height

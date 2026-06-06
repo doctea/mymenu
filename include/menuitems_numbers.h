@@ -6,6 +6,13 @@
 #include "menu.h"
 #include "colours.h"
 
+// use these to set an override label for a specific value, eg setting -1 to show "None" instead of "-1"
+template<class DataType = int>
+struct override_label_t {
+    const char *label = nullptr;
+    DataType value;
+};
+
 // type-agnostic ancestor
 class NumberControlBase : public MenuItem {
     public:
@@ -64,13 +71,16 @@ class NumberControl : public NumberControlBase {
 
         uint32_t last_changed_at_decreased = 0, last_changed_at_increased = 0;
 
-        NumberControl(const char* label, bool go_back_on_select = false, bool direct = false) : NumberControlBase(label) {
+        override_label_t<DataType> *override_output = nullptr;
+
+        NumberControl(const char* label, bool go_back_on_select = false, bool direct = false, override_label_t<DataType> *override_output = nullptr) : NumberControlBase(label) {
             this->step = this->get_default_step_for_type((DataType)0);    // setup default step based on our template DataType
             this->go_back_on_select = go_back_on_select;
             this->direct = direct;
+            this->override_output = override_output;
         }
-        NumberControl(const char* label, DataType start_value, DataType min_value, DataType max_value, bool go_back_on_select = false, bool direct = false) 
-            : NumberControl(label, go_back_on_select, direct) 
+        NumberControl(const char* label, DataType start_value, DataType min_value, DataType max_value, bool go_back_on_select = false, bool direct = false, override_label_t<DataType> *override_output = nullptr) 
+            : NumberControl(label, go_back_on_select, direct, override_output) 
             //: internal_value(start_value), minimumDataValue(min_value), maximumDataValue(max_value)
             {
             this->internal_value = start_value;
@@ -135,11 +145,12 @@ class NumberControl : public NumberControlBase {
             return fmt;
         }*/
         virtual const char *getFormattedValue(bool value) {
-            // this->request_redraw_if_changed((DataType)value);
-            return value ? label_on : label_off;
+            return value ? ::label_on : ::label_off;    // global labels for "On"/"Off"
         }
         virtual const char *getFormattedValue(int value) {
-            // this->request_redraw_if_changed((DataType)value);
+            if (this->override_output != nullptr && (DataType)value == (DataType)this->override_output->value) {
+                return this->override_output->label;
+            }
             static char fmt[15] = "      ";
             if (this->debug)
                 snprintf(fmt, 14, "%-5i [int]", value);
@@ -148,7 +159,9 @@ class NumberControl : public NumberControlBase {
             return fmt;
         }
         virtual const char *getFormattedValue(uint32_t value) {
-            // this->request_redraw_if_changed((DataType)value);
+            if (this->override_output != nullptr && (DataType)value == (DataType)this->override_output->value) {
+                return this->override_output->label;
+            }
             static char fmt[15] = "      ";
             if (this->debug)
                 snprintf(fmt, 14, "%-5u [ulong]", (unsigned int) value);
@@ -165,7 +178,9 @@ class NumberControl : public NumberControlBase {
             return fmt;
         }*/
         virtual const char *getFormattedValue(int32_t value) {
-            // this->request_redraw_if_changed((DataType)value);
+            if (this->override_output != nullptr && (DataType)value == (DataType)this->override_output->value) {
+                return this->override_output->label;
+            }
             static char fmt[15] = "      ";
             if (this->debug)
                 snprintf(fmt, 14, "%-5i [long]", (int)value);
@@ -174,7 +189,9 @@ class NumberControl : public NumberControlBase {
             return fmt;
         }
         virtual const char *getFormattedValue(double value) {
-            // this->request_redraw_if_changed((DataType)value);
+            if (this->override_output != nullptr && (DataType)value == (DataType)this->override_output->value) {
+                return this->override_output->label;
+            }
             static char fmt[20] = "      ";
             if (this->debug)
                 snprintf(fmt, 20, "%-3.2f [double]", value);
