@@ -30,6 +30,7 @@ class ResettableButton : public Bounce2::Button {
       //this->stateChangeLastTime = 0; //millis();
       this->durationOfPreviousState = 0;
       this->stateChangeLastTime = millis();
+      this->state = !this->getPressedState();
       this->update();
     }
 };
