@@ -40,25 +40,7 @@ extern Menu *menu;
 
 static const char *remote_viewer_feature_flags() {
     return
-        "DISPLAY_RGB332_FB_MODE="
-        #if defined(DISPLAY_RGB332_FB_MODE)
-            "1;"
-        #else
-            "0;"
-        #endif
-        "DISPLAY_RGB332_DMA_PINGPONG="
-        #if defined(DISPLAY_RGB332_DMA_PINGPONG)
-            "1;"
-        #else
-            "0;"
-        #endif
-        "DISPLAY_RGB332_DIRTY_FLUSH="
-        #if defined(DISPLAY_RGB332_DIRTY_FLUSH)
-            "1;"
-        #else
-            "0;"
-        #endif
-        "MENU_PERF_PARTIAL_UPDATES="
+            "MENU_PERF_PARTIAL_UPDATES="
         #if defined(MENU_PERF_PARTIAL_UPDATES)
             "1;"
         #else
@@ -79,25 +61,6 @@ static const char *remote_viewer_build_flags() {
         "ENABLE_SCREEN=1;"
         "TFT_BODMER=1;"
         "BODMER_SPRITE=1;"
-        "DISPLAY_RGB332_FB_MODE="
-        #if defined(DISPLAY_RGB332_FB_MODE)
-            "1;"
-        #else
-            "0;"
-        #endif
-        "DISPLAY_RGB332_DMA_PINGPONG="
-        #if defined(DISPLAY_RGB332_DMA_PINGPONG)
-            RV_STRINGIFY(DISPLAY_RGB332_DMA_PINGPONG) ";"
-        #else
-            "0;"
-        #endif
-        "DISPLAY_RGB332_DIRTY_FLUSH="
-        #if defined(DISPLAY_RGB332_DIRTY_FLUSH)
-            RV_STRINGIFY(DISPLAY_RGB332_DIRTY_FLUSH) ";"
-        #else
-            "0;"
-        #endif
-        "DISPLAY_RGB332_DMA_CHUNK_LINES=" RV_STRINGIFY(DISPLAY_RGB332_DMA_CHUNK_LINES) ";"
         "MENU_PERF_PARTIAL_UPDATES="
         #if defined(MENU_PERF_PARTIAL_UPDATES)
             RV_STRINGIFY(MENU_PERF_PARTIAL_UPDATES) ";"

@@ -10,76 +10,11 @@ Example:
 
 ```ini
 build_flags =
-  -DDISPLAY_RGB332_FB_MODE
-  -DDISPLAY_RGB332_DMA_PINGPONG=1
-  -DDISPLAY_RGB332_DMA_CHUNK_LINES=16
-  -DDISPLAY_RGB332_DIRTY_FLUSH=1
   -DMENU_SELECTIVE_STATIC_REDRAW=1
   -DREMOTE_VIEWER_LIVE_MAX_FPS=10
 ```
 
 ## Display Pipeline Options
-
-### DISPLAY_RGB332_FB_MODE
-
-What it does:
-- Uses an internal 8-bit RGB332 framebuffer when rendering with Bodmer sprite mode.
-- Converts to RGB565 when pushing to panel.
-
-Benefits:
-- Large RAM reduction vs internal RGB565 sprite.
-
-Costs and risks:
-- Extra conversion work per flush.
-- Slight color precision reduction.
-- Requires `BODMER_SPRITE`.
-
-Notes:
-- Compile-time guard exists in `display_bodmer.h` and will error if `BODMER_SPRITE` is missing.
-
-### DISPLAY_RGB332_DMA_CHUNK_LINES
-
-What it does:
-- Controls how many scanlines are converted/pushed per DMA chunk.
-
-Benefits:
-- Lets you tune smoothness vs memory pressure.
-
-Costs and risks:
-- Larger chunk size: fewer DMA submissions, but larger stage buffers.
-- Smaller chunk size: lower transient memory per chunk, but more overhead.
-
-Practical guidance:
-- Start at `16`.
-- If RAM is tight, reduce.
-- If tearing/stutter increases, try increasing cautiously.
-
-### DISPLAY_RGB332_DMA_PINGPONG
-
-What it does:
-- Uses two stage buffers to overlap conversion and DMA.
-
-Benefits:
-- Better throughput on some targets.
-
-Costs and risks:
-- Extra RAM for second stage buffer.
-- When debugging memory regressions, disable first to isolate impact.
-
-### DISPLAY_RGB332_DIRTY_FLUSH
-
-What it does:
-- Tracks dirty region and flushes only changed area (RGB332 path).
-
-Benefits:
-- Can reduce transferred pixels when UI changes are localized.
-
-Costs and risks:
-- UI patterns with broad redraws may see little gain.
-- Dirty-rectangle bugs can create stale artifacts if bounds tracking is wrong.
-
-Practical guidance:
-- Keep enabled only if measured benefit exists on your real workload.
 
 ## Menu Redraw Option
 
@@ -136,20 +71,12 @@ Practical guidance:
 ### Safe Baseline
 
 ```ini
--DDISPLAY_RGB332_FB_MODE
--DDISPLAY_RGB332_DMA_PINGPONG=0
--DDISPLAY_RGB332_DMA_CHUNK_LINES=16
--DDISPLAY_RGB332_DIRTY_FLUSH=0
 -DMENU_SELECTIVE_STATIC_REDRAW=0
 ```
 
 ### Throughput-Focused (validated carefully on device)
 
 ```ini
--DDISPLAY_RGB332_FB_MODE
--DDISPLAY_RGB332_DMA_PINGPONG=1
--DDISPLAY_RGB332_DMA_CHUNK_LINES=16
--DDISPLAY_RGB332_DIRTY_FLUSH=1
 -DMENU_SELECTIVE_STATIC_REDRAW=1
 ```
 
