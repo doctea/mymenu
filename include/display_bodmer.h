@@ -301,7 +301,7 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
 
     virtual void updateDisplay() override {
         #ifdef BODMER_SPRITE
-        //spr.fillSprite(random(0,pow(2,16)));
+            //spr.fillSprite(random(0,pow(2,16)));
             if (this->ready()) {
                 // Serial.println("updateDisplay sprite mode");
                 int s_w, s_h;

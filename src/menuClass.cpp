@@ -73,9 +73,12 @@ int Menu::display() {
     PROFILE_SCOPE(p_menu_display);
     bool debug = this->debug;
 
-    // Reset deferred overlay request for this frame.
-    this->pending_overlay_item = nullptr;
-    this->pending_overlay_y = 0;
+    // Reset the per-frame "bar ran" signal.  active_overlay_item is persistent and must NOT
+    // be reset here — it survives frames where the bar skips so the overlay keeps drawing.
+    this->overlay_bar_ran_this_frame = false;
+    // Snapshot the active overlay pointer BEFORE the items loop so the post-loop
+    // close-transition check can detect that the overlay just closed this frame.
+    this->prev_overlay_item_tracking = this->active_overlay_item;
 
     // early return if display isn't ready for writing (mostly used for dma checks)
     if (!this->tft->ready()) {
@@ -124,16 +127,27 @@ int Menu::display() {
         last_selected_page_index_rendered = selected_page_index;
         last_opened_page_index_rendered = opened_page_index;
 
+        // Consume the deferred-full-clear flag set by the overlay close-transition check last frame.
+        const bool pending_full_clear = this->deferred_full_clear;
+        this->deferred_full_clear = false;
+
         const bool is_takeover = is_item_opened() && items->get(currently_opened)->allow_takeover();
         // opened_changed is included because an item changing height (open/close) shifts all items
         // below it — those items must repaint at their new Y positions even if their content is stale.
-        const bool requires_full_clear = is_takeover || mode==DISPLAY_ONE || page_changed || page_index_changed || opened_page_changed || opened_changed || recalculate_bottoms;
+        // pending_full_clear: overlay just closed last frame — do a full clear to erase stale pixels.
+        const bool requires_full_clear = pending_full_clear || is_takeover || mode==DISPLAY_ONE || page_changed || page_index_changed || opened_page_changed || opened_changed || recalculate_bottoms;
         if (requires_full_clear) {
             tft->clear();
             mark_message_dirty();
             if (pinned_panel!=nullptr) {
                 pinned_panel->request_redraw();
             }
+            // Clear persistent overlay state so a stale active_overlay_item is never used after
+            // page/selection changes that would make the pointer meaningless.
+            this->active_overlay_item = nullptr;
+            this->active_overlay_y = 0;
+            this->active_overlay_box_y = 0;
+            this->active_overlay_box_bottom = 0;
             // Post PAGE_ENTER to all items on the incoming page
             for (auto* item : *items) {
                 item->post_event(REDRAW_ON_PAGE_ENTER);
@@ -451,23 +465,6 @@ int Menu::display() {
                 }
             }
 
-            if (this->prev_overlay_item_tracking != nullptr) {
-                // An overlay was active last frame. First, black-fill the entire overlay region
-                // so that stale overlay pixels (graph fragments, box borders, gaps between items)
-                // are gone before anything renders. Items then repaint cleanly on top of the black.
-                // This is done in the same pass as the normal item renders so only one frame is sent.
-                const int prev_fill_h = tft->height() - this->prev_overlay_y_tracking;
-                if (prev_fill_h > 0) {
-                    tft->fillRect(0, this->prev_overlay_y_tracking, tft->width(), prev_fill_h, BLACK);
-                    tft->set_dirty_region(this->prev_overlay_y_tracking, tft->height());
-                }
-                // Force all items to redraw so their pixels are repainted over the now-black region.
-                // Covers both cases with no blank-frame transition:
-                //   • Overlay still open:  items render under the live overlay as normal.
-                //   • Overlay just closed: items cover the stale overlay pixels immediately.
-                for (auto* item : *items)
-                    item->request_redraw();
-            }
         #endif
 
         // draw each menu item
@@ -575,7 +572,21 @@ int Menu::display() {
         #endif
         
         bottoms_computed = true;
-        
+
+        #if MENU_PERF_PARTIAL_UPDATES
+            // Close-transition check: runs AFTER the items loop so active_overlay_item reflects
+            // what the bar set (or cleared) during this frame's item renders.
+            // prev_overlay_item_tracking was saved at the START of display() and still holds
+            // the value from the previous frame.
+            if (this->prev_overlay_item_tracking != nullptr && this->active_overlay_item == nullptr) {
+                // Overlay just closed this frame.  Schedule a full clear + repaint for the NEXT frame
+                // via deferred_full_clear, which is folded into requires_full_clear at the top of
+                // display().  This avoids a visible one-frame black flash (which fillRect caused by
+                // clearing AFTER items had already painted in the same frame).
+                this->deferred_full_clear = true;
+            }
+        #endif
+
         // control debug output (knob positions / button presses)
         /*if (y < tft->height()) {
             tft->setCursor(0, y);
@@ -590,18 +601,27 @@ int Menu::display() {
     }
 
     // Draw deferred overlay after the page has fully rendered so it appears on top.
-    if (this->pending_overlay_item!=nullptr) {
-        this->pending_overlay_item->display(Coord(0, this->pending_overlay_y), true, true);
-        // The overlay paints on top of the already-rendered list, potentially covering
-        // a region taller than the base item's cached height. Mark from the overlay
-        // start to the bottom of the screen dirty so the DMA push includes it all.
-        tft->set_dirty_region(this->pending_overlay_y, tft->height());
-    }
+    // Use active_overlay_item (persistent) rather than pending_overlay_item (per-frame scratch)
+    // so the overlay continues to be drawn on frames where the bar skipped its render.
+    // active_overlay_item is cleared by requires_full_clear (page/selection change).
+    if (this->active_overlay_item != nullptr) {
+        // Redraw the overlay when:
+        //   (a) the bar ran this frame (bar re-rendered its UI, so overlay must repaint on top), or
+        //   (b) the bar skipped but the overlay's own declared policy fired (e.g. REDRAW_ON_TICK).
+        const bool should_draw_overlay =
+            this->overlay_bar_ran_this_frame ||
+            (this->active_overlay_item->pending_redraw_events & this->active_overlay_item->get_overlay_redraw_policy());
 
-    // Update overlay tracking for next frame (read at the START of the next display() call,
-    // before the items loop, so items can be pre-dirtied when the overlay closes).
-    this->prev_overlay_item_tracking = this->pending_overlay_item;
-    this->prev_overlay_y_tracking    = this->pending_overlay_y;
+        if (should_draw_overlay) {
+            this->active_overlay_item->display(Coord(0, this->active_overlay_y), true, true);
+            // Approximate box bounds: active_overlay_y is the anchor row; getCursorY() is
+            // left at box_y + box_h + 1 after menu_draw_selector_takeover_overlay returns.
+            this->active_overlay_box_y      = this->active_overlay_y;
+            this->active_overlay_box_bottom = tft->getCursorY();
+        }
+        // Constrain DMA push to the overlay box only (not the full area below the anchor row).
+        tft->set_dirty_region(this->active_overlay_box_y, this->active_overlay_box_bottom);
+    }
 
     //tft->updateScreenAsync(false);
     if (debug) { Debug_println("display()=> about to tft->updateDisplay()"); Serial_flush(); }

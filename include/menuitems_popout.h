@@ -28,6 +28,11 @@ struct SelectorTakeoverOverlaySpec {
     // Raw function pointer + userdata: zero heap allocation per frame (unlike vl::Func which heap-allocates the invoker on every assignment).
     void (*draw_extra_fn)(void *userdata, DisplayTranslator *tft, int x, int y, int max_width, int max_height) = nullptr;
     void *draw_extra_userdata = nullptr;
+
+    // Output fields — written by menu_draw_selector_takeover_overlay() so the caller can
+    // cheaply obtain the precise box bounds for a minimal dirty-region DMA push.
+    int out_box_y = 0;
+    int out_box_bottom = 0;
 };
 
 inline void menu_draw_centered_text(
@@ -64,7 +69,7 @@ inline void menu_draw_centered_text(
 inline int menu_draw_selector_takeover_overlay(
     DisplayTranslator *tft,
     Coord pos,
-    const SelectorTakeoverOverlaySpec &spec
+    SelectorTakeoverOverlaySpec &spec
 ) {
     if (tft==nullptr)
         return pos.y;
@@ -127,5 +132,8 @@ inline int menu_draw_selector_takeover_overlay(
     tft->print(right_hint);
 
     tft->setCursor(0, box_y + box_h + 1);
+    // Write precise box bounds into the spec so the caller can constrain its dirty region.
+    spec.out_box_y      = box_y;
+    spec.out_box_bottom = box_y + box_h;
     return tft->getCursorY();
 }

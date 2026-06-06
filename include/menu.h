@@ -235,14 +235,31 @@ class Menu {
             bool keypad_enabled = false;
         #endif
 
-        // Optional deferred overlay pass: controls can request a late draw so
-        // popouts render on top of subsequent rows.
-        MenuItem *pending_overlay_item = nullptr;
-        int pending_overlay_y = 0;
-        /// Previous frame's overlay state — used to pre-emptively mark items dirty before the
-        /// items loop so that stale overlay pixels are covered in the same frame as close.
+        // Deferred overlay state — bar controls draw their full-screen popout at the END of
+        // Menu::display() so it appears on top of all page items.
+
+        /// True when SubMenuItemBar::display() ran this frame and confirmed an overlay is open.
+        /// Reset to false at the top of every display() call.
+        bool overlay_bar_ran_this_frame = false;
+
+        /// Snapshot of active_overlay_item taken at the START of display() (before the items
+        /// loop) so the post-loop close-transition check can detect that the overlay just closed.
         MenuItem *prev_overlay_item_tracking = nullptr;
-        int prev_overlay_y_tracking = 0;
+
+        /// Persistent active overlay pointer.  Set by the bar when a child opens, explicitly
+        /// cleared by the bar when it closes, and cleared on page/selection change.
+        /// Survives frames where the bar skips so the overlay keeps drawing without re-running.
+        MenuItem *active_overlay_item = nullptr;
+        int active_overlay_y = 0;
+
+        /// Bounding box of the last-drawn overlay, used to constrain dirty-region DMA push
+        /// to only the overlay pixels instead of everything below the anchor row.
+        int active_overlay_box_y = 0;
+        int active_overlay_box_bottom = 0;
+
+        /// Set by the post-loop close-transition check to trigger a full tft->clear() + repaint
+        /// at the START of the NEXT frame, avoiding a visible one-frame black flash.
+        bool deferred_full_clear = false;
         
         bool auto_update = true;    // whether to send update to tft at end of every display() call, or to allow host app to decide
     

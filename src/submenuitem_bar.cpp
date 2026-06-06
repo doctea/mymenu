@@ -125,9 +125,18 @@ int SubMenuItemBar::display(Coord pos, bool selected, bool opened) {
     if (opened && this->currently_opened>=0 && this->currently_opened < (int)this->items->size()) {
         MenuItem *opened_item = this->items->get(this->currently_opened);
         if (opened_item!=nullptr && opened_item->wants_fullscreen_overlay_when_opened_in_bar() && menu!=nullptr) {
-            menu->pending_overlay_item = opened_item;
-            menu->pending_overlay_y = start_y;
+            menu->overlay_bar_ran_this_frame = true;
+            menu->active_overlay_item = opened_item;
+            menu->active_overlay_y = start_y;
+        } else if (menu != nullptr) {
+            // Bar ran but no overlay child is open — explicitly clear so the close transition fires.
+            menu->active_overlay_item = nullptr;
+            menu->active_overlay_y = 0;
         }
+    } else if (opened && menu != nullptr) {
+        // Bar is opened but currently_opened is out of range — clear active overlay.
+        menu->active_overlay_item = nullptr;
+        menu->active_overlay_y = 0;
     }
 
     tft->setTextColor(this->default_fg, this->default_bg);
@@ -259,6 +268,22 @@ int SubMenuItemColumns::display(Coord pos, bool selected, bool opened) {
 
     tft->setTextColor(this->default_fg, this->default_bg);
     //tft->setTextSize(0);
+
+    // Overlay pass: same as SubMenuItemBar::display() — must be present in all display() overrides.
+    if (opened && this->currently_opened >= 0 && this->currently_opened < (int)this->items->size()) {
+        MenuItem *opened_item = this->items->get(this->currently_opened);
+        if (opened_item != nullptr && opened_item->wants_fullscreen_overlay_when_opened_in_bar() && menu != nullptr) {
+            menu->overlay_bar_ran_this_frame = true;
+            menu->active_overlay_item = opened_item;
+            menu->active_overlay_y = finish_y;
+        } else if (menu != nullptr) {
+            menu->active_overlay_item = nullptr;
+            menu->active_overlay_y = 0;
+        }
+    } else if (opened && menu != nullptr) {
+        menu->active_overlay_item = nullptr;
+        menu->active_overlay_y = 0;
+    }
 
     //Debug_printf(F("End of display, y=%i\n--------\n"), finish_y);
     return finish_y;//tft->getCursorY();
