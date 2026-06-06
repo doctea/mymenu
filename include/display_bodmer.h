@@ -129,110 +129,110 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
     }
 
     #if defined(BODMER_SPRITE) && defined(DISPLAY_RGB332_FB_MODE)
-    void initRGB332Lut() {
-        if (rgb332LutReady) return;
-        const uint8_t blue[] = {0, 11, 21, 31};
-        for (uint16_t c = 0; c < 256; c++) {
-            uint8_t msb = (c & 0x1C) >> 2 | (c & 0xC0) >> 3 | (c & 0xE0);
-            uint8_t lsb = (c & 0x1C) << 3 | blue[c & 0x03];
-            // pushImageDMA() uses byte-swap on RP2040 when _swapBytes is false,
-            // so store pre-swapped words to keep colours correct on panel.
-            rgb332_to_565[c] = (uint16_t(lsb) << 8) | msb;
+        void initRGB332Lut() {
+            if (rgb332LutReady) return;
+            const uint8_t blue[] = {0, 11, 21, 31};
+            for (uint16_t c = 0; c < 256; c++) {
+                uint8_t msb = (c & 0x1C) >> 2 | (c & 0xC0) >> 3 | (c & 0xE0);
+                uint8_t lsb = (c & 0x1C) << 3 | blue[c & 0x03];
+                // pushImageDMA() uses byte-swap on RP2040 when _swapBytes is false,
+                // so store pre-swapped words to keep colours correct on panel.
+                rgb332_to_565[c] = (uint16_t(lsb) << 8) | msb;
+            }
+            rgb332LutReady = true;
         }
-        rgb332LutReady = true;
-    }
 
-    bool ensureDMAStageBuffers(int width) {
-        if (width <= 0) return false;
-        uint32_t chunkLines = DISPLAY_RGB332_DMA_CHUNK_LINES;
-        if (chunkLines == 0) chunkLines = 1;
+        bool ensureDMAStageBuffers(int width) {
+            if (width <= 0) return false;
+            uint32_t chunkLines = DISPLAY_RGB332_DMA_CHUNK_LINES;
+            if (chunkLines == 0) chunkLines = 1;
 
-        uint32_t neededPixels = uint32_t(width) * chunkLines;
-        if (neededPixels <= dmaStageCapacityPixels && dmaStageA != nullptr) return true;
+            uint32_t neededPixels = uint32_t(width) * chunkLines;
+            if (neededPixels <= dmaStageCapacityPixels && dmaStageA != nullptr) return true;
 
-        if (dmaStageA != nullptr) { free(dmaStageA); dmaStageA = nullptr; }
-        #if DISPLAY_RGB332_DMA_PINGPONG
-            if (dmaStageB != nullptr) { free(dmaStageB); dmaStageB = nullptr; }
-        #endif
-        dmaStageCapacityPixels = 0;
-
-        dmaStageA = (uint16_t*)malloc(sizeof(uint16_t) * neededPixels);
-        #if DISPLAY_RGB332_DMA_PINGPONG
-            dmaStageB = (uint16_t*)malloc(sizeof(uint16_t) * neededPixels);
-        #endif
-
-        #if DISPLAY_RGB332_DMA_PINGPONG
-            if (dmaStageA == nullptr || dmaStageB == nullptr) {
-        #else
-            if (dmaStageA == nullptr) {
-        #endif
             if (dmaStageA != nullptr) { free(dmaStageA); dmaStageA = nullptr; }
             #if DISPLAY_RGB332_DMA_PINGPONG
                 if (dmaStageB != nullptr) { free(dmaStageB); dmaStageB = nullptr; }
             #endif
-            return false;
+            dmaStageCapacityPixels = 0;
+
+            dmaStageA = (uint16_t*)malloc(sizeof(uint16_t) * neededPixels);
+            #if DISPLAY_RGB332_DMA_PINGPONG
+                dmaStageB = (uint16_t*)malloc(sizeof(uint16_t) * neededPixels);
+            #endif
+
+            #if DISPLAY_RGB332_DMA_PINGPONG
+                if (dmaStageA == nullptr || dmaStageB == nullptr) {
+            #else
+                if (dmaStageA == nullptr) {
+            #endif
+                if (dmaStageA != nullptr) { free(dmaStageA); dmaStageA = nullptr; }
+                #if DISPLAY_RGB332_DMA_PINGPONG
+                    if (dmaStageB != nullptr) { free(dmaStageB); dmaStageB = nullptr; }
+                #endif
+                return false;
+            }
+
+            dmaStageCapacityPixels = neededPixels;
+            return true;
         }
 
-        dmaStageCapacityPixels = neededPixels;
-        return true;
-    }
-
-    inline void convertRGB332ChunkTo565(const uint8_t* src, uint16_t* dst, uint32_t count) {
-        while (count--) {
-            *dst++ = rgb332_to_565[*src++];
-        }
-    }
-
-    #if DISPLAY_RGB332_DIRTY_FLUSH
-    inline void markDirtyRect(int x, int y, int w, int h) {
-        if (w <= 0 || h <= 0) return;
-
-        int maxW = width();
-        int maxH = height();
-        if (maxW <= 0 || maxH <= 0) return;
-
-        int x0 = x;
-        int y0 = y;
-        int x1 = x + w - 1;
-        int y1 = y + h - 1;
-
-        if (x1 < 0 || y1 < 0 || x0 >= maxW || y0 >= maxH) return;
-
-        if (x0 < 0) x0 = 0;
-        if (y0 < 0) y0 = 0;
-        if (x1 >= maxW) x1 = maxW - 1;
-        if (y1 >= maxH) y1 = maxH - 1;
-
-        if (!dirtyPending) {
-            dirtyPending = true;
-            dirtyX0 = x0;
-            dirtyY0 = y0;
-            dirtyX1 = x1;
-            dirtyY1 = y1;
-            return;
+        inline void convertRGB332ChunkTo565(const uint8_t* src, uint16_t* dst, uint32_t count) {
+            while (count--) {
+                *dst++ = rgb332_to_565[*src++];
+            }
         }
 
-        if (x0 < dirtyX0) dirtyX0 = x0;
-        if (y0 < dirtyY0) dirtyY0 = y0;
-        if (x1 > dirtyX1) dirtyX1 = x1;
-        if (y1 > dirtyY1) dirtyY1 = y1;
-    }
+        #if DISPLAY_RGB332_DIRTY_FLUSH
+            inline void markDirtyRect(int x, int y, int w, int h) {
+                if (w <= 0 || h <= 0) return;
 
-    inline void markDirtyFull() {
-        int maxW = width();
-        int maxH = height();
-        if (maxW <= 0 || maxH <= 0) return;
-        dirtyPending = true;
-        dirtyX0 = 0;
-        dirtyY0 = 0;
-        dirtyX1 = maxW - 1;
-        dirtyY1 = maxH - 1;
-    }
+                int maxW = width();
+                int maxH = height();
+                if (maxW <= 0 || maxH <= 0) return;
 
-    inline void clearDirty() {
-        dirtyPending = false;
-    }
-    #endif
+                int x0 = x;
+                int y0 = y;
+                int x1 = x + w - 1;
+                int y1 = y + h - 1;
+
+                if (x1 < 0 || y1 < 0 || x0 >= maxW || y0 >= maxH) return;
+
+                if (x0 < 0) x0 = 0;
+                if (y0 < 0) y0 = 0;
+                if (x1 >= maxW) x1 = maxW - 1;
+                if (y1 >= maxH) y1 = maxH - 1;
+
+                if (!dirtyPending) {
+                    dirtyPending = true;
+                    dirtyX0 = x0;
+                    dirtyY0 = y0;
+                    dirtyX1 = x1;
+                    dirtyY1 = y1;
+                    return;
+                }
+
+                if (x0 < dirtyX0) dirtyX0 = x0;
+                if (y0 < dirtyY0) dirtyY0 = y0;
+                if (x1 > dirtyX1) dirtyX1 = x1;
+                if (y1 > dirtyY1) dirtyY1 = y1;
+            }
+
+            inline void markDirtyFull() {
+                int maxW = width();
+                int maxH = height();
+                if (maxW <= 0 || maxH <= 0) return;
+                dirtyPending = true;
+                dirtyX0 = 0;
+                dirtyY0 = 0;
+                dirtyX1 = maxW - 1;
+                dirtyY1 = maxH - 1;
+            }
+
+            inline void clearDirty() {
+                dirtyPending = false;
+            }
+        #endif
     #endif
 
     // for this translator (Adafruit GFX + GFX_Buffer), we seem to need to initialise dynamically instead of statically
@@ -428,27 +428,27 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
 
     // Dirty rectangle tracking methods for selective Y-range DMA push
     #if MENU_PERF_PARTIAL_UPDATES
-    virtual void set_dirty_region(int y_min, int y_max) override {
-        #ifdef BODMER_SPRITE
-        if (y_min < dirty_y_min) dirty_y_min = y_min;
-        if (y_max > dirty_y_max) dirty_y_max = y_max;
-        #endif
-    }
-    
-    virtual void reset_dirty_region() override {
-        #ifdef BODMER_SPRITE
-        dirty_y_min = INT_MAX;
-        dirty_y_max = 0;
-        #endif
-    }
-    
-    virtual bool has_dirty_region() const override {
-        #ifdef BODMER_SPRITE
-        return dirty_y_max > dirty_y_min;
-        #else
-        return false;
-        #endif
-    }
+        virtual void set_dirty_region(int y_min, int y_max) override {
+            #ifdef BODMER_SPRITE
+                if (y_min < dirty_y_min) dirty_y_min = y_min;
+                if (y_max > dirty_y_max) dirty_y_max = y_max;
+            #endif
+        }
+        
+        virtual void reset_dirty_region() override {
+            #ifdef BODMER_SPRITE
+                dirty_y_min = INT_MAX;
+                dirty_y_max = 0;
+            #endif
+        }
+        
+        virtual bool has_dirty_region() const override {
+            #ifdef BODMER_SPRITE
+                return dirty_y_max > dirty_y_min;
+            #else
+                return false;
+            #endif
+        }
     #endif // MENU_PERF_PARTIAL_UPDATES
 
     virtual void start() override {
