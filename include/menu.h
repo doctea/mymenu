@@ -238,10 +238,6 @@ class Menu {
         // Deferred overlay state — bar controls draw their full-screen popout at the END of
         // Menu::display() so it appears on top of all page items.
 
-        /// True when SubMenuItemBar::display() ran this frame and confirmed an overlay is open.
-        /// Reset to false at the top of every display() call.
-        bool overlay_bar_ran_this_frame = false;
-
         /// Snapshot of active_overlay_item taken at the START of display() (before the items
         /// loop) so the post-loop close-transition check can detect that the overlay just closed.
         MenuItem *prev_overlay_item_tracking = nullptr;

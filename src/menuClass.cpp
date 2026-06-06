@@ -73,9 +73,6 @@ int Menu::display() {
     PROFILE_SCOPE(p_menu_display);
     bool debug = this->debug;
 
-    // Reset the per-frame "bar ran" signal.  active_overlay_item is persistent and must NOT
-    // be reset here — it survives frames where the bar skips so the overlay keeps drawing.
-    this->overlay_bar_ran_this_frame = false;
     // Snapshot the active overlay pointer BEFORE the items loop so the post-loop
     // close-transition check can detect that the overlay just closed this frame.
     this->prev_overlay_item_tracking = this->active_overlay_item;
@@ -605,20 +602,16 @@ int Menu::display() {
     // so the overlay continues to be drawn on frames where the bar skipped its render.
     // active_overlay_item is cleared by requires_full_clear (page/selection change).
     if (this->active_overlay_item != nullptr) {
-        // Redraw the overlay when:
-        //   (a) the bar ran this frame (bar re-rendered its UI, so overlay must repaint on top), or
-        //   (b) the bar skipped but the overlay's own declared policy fired (e.g. REDRAW_ON_TICK).
-        const bool should_draw_overlay =
-            this->overlay_bar_ran_this_frame ||
-            (this->active_overlay_item->pending_redraw_events & this->active_overlay_item->get_overlay_redraw_policy());
-
-        if (should_draw_overlay) {
-            this->active_overlay_item->display(Coord(0, this->active_overlay_y), true, true);
-            // Approximate box bounds: active_overlay_y is the anchor row; getCursorY() is
-            // left at box_y + box_h + 1 after menu_draw_selector_takeover_overlay returns.
-            this->active_overlay_box_y      = this->active_overlay_y;
-            this->active_overlay_box_bottom = tft->getCursorY();
-        }
+        // Always redraw the overlay when one is active.  The fps cost that motivated selective
+        // redraw here was the BAR running every frame (re-rendering all its column children);
+        // the overlay itself is a single cheap display() call.  Skipping it risks any item
+        // underneath (e.g. a REDRAW_ON_TICK bar on the Harmony page) painting over the overlay
+        // pixels and "showing through" the popup.
+        this->active_overlay_item->display(Coord(0, this->active_overlay_y), true, true);
+        // Approximate box bounds: active_overlay_y is the anchor row; getCursorY() is
+        // left at box_y + box_h + 1 after menu_draw_selector_takeover_overlay returns.
+        this->active_overlay_box_y      = this->active_overlay_y;
+        this->active_overlay_box_bottom = tft->getCursorY();
         // Constrain DMA push to the overlay box only (not the full area below the anchor row).
         tft->set_dirty_region(this->active_overlay_box_y, this->active_overlay_box_bottom);
     }

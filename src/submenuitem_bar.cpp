@@ -125,7 +125,6 @@ int SubMenuItemBar::display(Coord pos, bool selected, bool opened) {
     if (opened && this->currently_opened>=0 && this->currently_opened < (int)this->items->size()) {
         MenuItem *opened_item = this->items->get(this->currently_opened);
         if (opened_item!=nullptr && opened_item->wants_fullscreen_overlay_when_opened_in_bar() && menu!=nullptr) {
-            menu->overlay_bar_ran_this_frame = true;
             menu->active_overlay_item = opened_item;
             menu->active_overlay_y = start_y;
         } else if (menu != nullptr) {
@@ -273,7 +272,6 @@ int SubMenuItemColumns::display(Coord pos, bool selected, bool opened) {
     if (opened && this->currently_opened >= 0 && this->currently_opened < (int)this->items->size()) {
         MenuItem *opened_item = this->items->get(this->currently_opened);
         if (opened_item != nullptr && opened_item->wants_fullscreen_overlay_when_opened_in_bar() && menu != nullptr) {
-            menu->overlay_bar_ran_this_frame = true;
             menu->active_overlay_item = opened_item;
             menu->active_overlay_y = finish_y;
         } else if (menu != nullptr) {
