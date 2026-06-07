@@ -111,6 +111,7 @@ class ObjectMultiToggleControl : public MenuItem {
         
         int initial_on_count = 0;
         
+        // TODO: replace these LinkedLists with a dedicated MultiToggleItemList class
         LinkedList<MultiToggleItemBase*> items = LinkedList<MultiToggleItemBase*>();
 
         ObjectMultiToggleControl(const char *label) : MenuItem(label) {}

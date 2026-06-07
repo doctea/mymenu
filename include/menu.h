@@ -843,7 +843,7 @@ class Menu {
 
         // add a linkedlist of menuitems; delete the LinkedList object when finished!
         FLASHMEM 
-        void add(LinkedList<MenuItem *> *items, uint16_t default_fg_colour = C_WHITE) {
+        void add(MenuItemList *items, uint16_t default_fg_colour = C_WHITE) {
             //Serial.println("starting add"); Serial.flush();
             if (items==nullptr) {
                 if (Serial) Serial.println("WARNING: nullptr list passed to menu#add, skipping!");

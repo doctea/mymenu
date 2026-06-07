@@ -68,7 +68,7 @@ class SubMenuItem : public MenuItem {
                 //Serial.println("WARNING: SubMenuItem#add passed a nullptr!");
             }
         }
-        virtual void add(LinkedList<MenuItem*> *items) {
+        virtual void add(MenuItemList *items) {
             for (auto* item : *items) {
                 this->add(item);
             }
