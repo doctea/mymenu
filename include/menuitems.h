@@ -182,7 +182,7 @@ class MenuItem {
             }
             /// Returns true if this item should be redrawn this frame.
             virtual bool needs_redraw(bool selected, bool opened) {
-                bool debug = true;
+                bool debug = false;
                 if (cached_draw_height < 0) {
                     if (debug) Serial.printf("%s: needs_redraw() true because cached_draw_height is %i\n", this->label, cached_draw_height);
                     return true;
