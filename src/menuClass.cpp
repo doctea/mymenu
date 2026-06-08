@@ -239,7 +239,7 @@ int Menu::display() {
         //static int *panel_bottom = nullptr;
         bool bottoms_computed = false;
         if (selected_page->panel_bottom == nullptr) {
-            selected_page->panel_bottom = (int*)CALLOC_FUNC(this->get_num_panels(), sizeof(int));
+            selected_page->panel_bottom = (int16_t*)CALLOC_FUNC(this->get_num_panels(), sizeof(int16_t));
         } else {
             if (!this->recalculate_bottoms)
                 bottoms_computed = true;
@@ -247,7 +247,7 @@ int Menu::display() {
                 this->recalculate_bottoms = false;
         }
 
-        int *panel_bottom = selected_page->panel_bottom;
+        int16_t *panel_bottom = selected_page->panel_bottom;
         if (panel_bottom == nullptr) {
             return 0;
         }
@@ -682,11 +682,15 @@ int Menu::display() {
 #include "menuitems_quickpage.h"
 
 void Menu::setup_quickjump() {
-    all_page_index = add_page("All Pages Index");
-    menu->add(new AllPagesIndexMenuItem("All Pages Index"));
-    menu->remember_opened_page(-1, true);  // add the All Pages Index page to the all pages index by default
+    // all_page_index = add_page("All Pages Index");
+    // menu->add(new AllPagesIndexMenuItem("All Pages Index"));
+    // menu->remember_opened_page(-1, true);  // add the All Pages Index page to the all pages index by default
 
-    quick_page_index = add_page("QuickJump");
+    all_page_index = add_page("All Pages Index", BLUE, true, "Navigation");
+    menu->add(new PageGroupIndexMenuItem("All Pages Index"));
+    menu->remember_opened_page(all_page_index, true);  // add the All Pages Index page to the all pages index by default
+
+    quick_page_index = add_page("QuickJump", BLUE, true, "Navigation");
     menu->add(new QuickPagesMenuItem("QuickJump history"));
 }
 

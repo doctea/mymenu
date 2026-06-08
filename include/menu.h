@@ -119,26 +119,47 @@ public:
     const MenuItem** end()   const { return (const MenuItem**)_items + _count; }
 };
 
+struct page_group_t; // forward declaration for page_t
 struct page_t {
+    page_group_t *group = nullptr;
     const char *title = "Default"; //[MAX_PAGE_TITLE];
     uint8_t title_len = 7;
     uint16_t colour = C_WHITE;
-    volatile int currently_selected = -1;
-    int currently_opened = -1;
-    int *panel_bottom = nullptr;
-    int num_panels = 0;
+    volatile int16_t currently_selected = -1;
+    int16_t currently_opened = -1;
+    int16_t *panel_bottom = nullptr;
+    int16_t num_panels = 0;
     MenuItemList *items = nullptr;
     bool scrollable = true;
     const char *header_text = nullptr;  // pinned column-header line shown below the tab bar
-    int header_text_size = 2;           // size of the header text
+    uint16_t header_text_size = 2;           // size of the header text
 };
+
+// ... pages were getting ridiculous, so now we have groups of pages (lol)
+struct page_group_t {
+    const char *group_name = "Default";
+    uint16_t colour = C_WHITE;
+    bool open = false;
+    LinkedList<page_t*> pages;  // todo: replace with a PageList that uses a flat array like MenuItemList to save RAM and avoid malloc overhead; we can even make it a single array of page_t instead of pointers since page_t is pretty small and doesn't have any complex construction needs, and that would save even more RAM by eliminating the pointer indirection and malloc overhead 
+
+    void add_page(page_t* page) {
+        page->group = this;
+        pages.add(page);
+    }
+};
+
 
 class Menu {
     int opened_page_index = -1;
     int selected_page_index = 0;
     int before_quickjump_page_index = -1;
     page_t *selected_page = nullptr;
-    LinkedList<page_t*> *pages = nullptr;
+
+    public:
+    LinkedList<page_t*> *pages = nullptr;           // todo: replace with a PageList that uses a flat array like MenuItemList to save RAM and avoid malloc overhead; we can even make it a single array of page_t instead of pointers since page_t is pretty small and doesn't have any complex construction needs, and that would save even more RAM by eliminating the pointer indirection and malloc overhead
+    LinkedList<page_group_t*> *groups = nullptr;    // todo: replace with a PageGroupList that uses a flat array like MenuItemList to save RAM and avoid malloc overhead; we can even make it a single array of page_group_t instead of pointers since page_group_t is pretty small and doesn't have any complex construction needs, and that would save even more RAM by eliminating the pointer indirection and malloc overhead
+
+    private:
 
     PinnedPanelMenuItem *pinned_panel = nullptr;
     CircularMessageLog *messages_log = nullptr;
@@ -267,6 +288,7 @@ class Menu {
         Menu(DisplayTranslator *dt, bool button_mode_rise_on_click = false) {
             this->tft = dt;
             this->pages = new LinkedList<page_t*>();
+            this->groups = new LinkedList<page_group_t*>();
             this->select_page(this->add_page("Main"));
             this->remember_opened_page(-1, true);
             this->screen_height_cutoff = (int)(0.75f*(float)tft->height());
@@ -569,7 +591,7 @@ class Menu {
         bool button_back_longpress() {
             if (!back_held) {
                 back_held = true;
-                select_page_quickjump();
+                quickjump_button_pressed();
             } 
             return false;
         }
@@ -613,12 +635,12 @@ class Menu {
             }
         }
 
-        int add_page(const char *title, uint16_t colour = C_WHITE, bool scrollable = true) {
+        int add_page(const char *title, uint16_t colour = C_WHITE, bool scrollable = true, const char *group_name = "Default") {
             //Serial.printf("add_page(%s) has current size of %i\n", title, this->pages->size());
-            return insert_page(title, this->pages->size()>0 ? this->pages->size() : 0, colour, scrollable);
+            return insert_page(title, this->pages->size()>0 ? this->pages->size() : 0, colour, scrollable, group_name);
         }
         //FLASHMEM //causes a section type conflict with 'virtual void DeviceBehaviour_Keystep::setup_callbacks()'
-        int insert_page(const char *title, unsigned int position, uint16_t colour = C_WHITE, bool scrollable = true) {
+        int insert_page(const char *title, unsigned int position, uint16_t colour = C_WHITE, bool scrollable = true, const char *group_name = "Default") {
             //Serial.printf("insert_page() passed position %i\n", position);
             if (position > this->pages->size()) 
                 position = this->pages->size();
@@ -637,11 +659,30 @@ class Menu {
             p->colour = colour;
             p->scrollable = scrollable;
 
+            this->add_page_to_group(p, group_name);
+
             this->pages->add(position, p);
 
             this->select_page(position);
             selected_page->items = new MenuItemList();
             return position;
+        }
+
+        void add_page_to_group(page_t* page, const char* group_name) {
+            // find the group with the given name, or create it if it doesn't exist
+            page_group_t* group = nullptr;
+            for (int i = 0; i < this->groups->size(); i++) {
+                if (strcmp(this->groups->get(i)->group_name, group_name) == 0) {
+                    group = this->groups->get(i);
+                    break;
+                }
+            }
+            if (group == nullptr) {
+                group = new page_group_t;
+                group->group_name = group_name;
+                this->groups->add(group);
+            }
+            group->add_page(page);
         }
 
         FLASHMEM void setup_display() {
@@ -660,6 +701,7 @@ class Menu {
         int quick_page_history_head = 0;
         int quick_page_history_total = 0;
         int quick_page_index = 0;
+        int last_quickjump_origin_index = 0;
         struct quick_page_entry_t {
             int16_t page_index = -1;
             bool permanent = false;
@@ -712,21 +754,33 @@ class Menu {
             return get_page(quick_pages[page_index].page_index);
         }
         void setup_quickjump();
-        void select_page_quickjump() {
+        // called when quickjump button is pressed:
+        // if we're already on the quickjump page, jump back to the previously open page
+        // if we're not on a quickjump page, then open the most recently quickjumped-to page
+        void quickjump_button_pressed() {
             if (quick_page_index>=0) {
                 this->unwind_page_opened_state(this->selected_page);
-                if (before_quickjump_page_index>=0 && quick_page_index==selected_page_index) {
+                if (before_quickjump_page_index>=0 && (quick_page_index==selected_page_index || all_page_index==selected_page_index)) {
                     // if we're already on the quickjump page, then jump back to the previous page instead
+
                     this->open_page(this->before_quickjump_page_index);
                 } else {
+                    // quickjump back to the *quickjump* page that we last quickjumped from
+
                     this->before_quickjump_page_index = selected_page_index;
                     selected_page_index = opened_page_index = -1;
-                    this->open_page(this->quick_page_index);
+
+                    this->open_page(this->last_quickjump_origin_index, true, true); //this->quick_page_index);
                 }
             }
         }
+        void quickjump_to_page(int page_index) {
+            this->last_quickjump_origin_index = selected_page_index;
+            this->open_page(page_index, false);
+        }
 
         // get the index of a page based on title string; returns -1 if not found
+        // todo: its plausible that we could have multiple pages with the same title.. so we might want to rework this a bit.
         int get_page_index_for_name(const char *title) {
             int idx = 0;
             for (auto* page : *pages) {
@@ -738,6 +792,15 @@ class Menu {
         }
         int get_number_pages() {
             return pages->size();
+        }
+        int get_index_for_page(page_t *page) {
+            int idx = 0;
+            for (auto* p : *pages) {
+                if (p==page)
+                    return idx;
+                ++idx;
+            }
+            return -1;
         }
 
         page_t *get_previous_page() {
@@ -775,10 +838,12 @@ class Menu {
             this->select_page(this->selected_page_index - 1);
         }
 
-        void select_page(unsigned int p) {
+        void select_page(unsigned int p, bool unwind = true) {
             // unselect current first
             if (this->selected_page!=nullptr) {
-                this->unwind_page_opened_state(this->selected_page);
+                if (unwind) {
+                    this->unwind_page_opened_state(this->selected_page);
+                }
                 this->selected_page->currently_selected = this->selected_page->currently_opened = -1;
             }
 
@@ -795,11 +860,11 @@ class Menu {
         void select_page_for_name(const char *name) {
             select_page(get_page_index_for_name(name));
         }
-        void open_page(unsigned int page_index) {
+        void open_page(unsigned int page_index, bool unwind_current = true, bool unwind_target = true) {
             //Serial.printf("open_page %i\n", page_index);
             page_index = constrain(page_index, (unsigned int)0, pages->size() - 1);
 
-            select_page(page_index);
+            select_page(page_index, unwind_current);
 
             //Serial.printf("opening page %i, currently_selected is %i\n", page_index, selected_page->currently_selected);
 
@@ -807,10 +872,12 @@ class Menu {
             if (selected_page!=nullptr) {
                 opened_page_index = page_index;
 
-                select_first_selectable_item();
-                if (selected_page->currently_selected==-1) {
-                    // close the page, as couldn't find a selectable item on it!
-                    this->opened_page_index = -1;
+                if (unwind_target) {
+                    select_first_selectable_item();
+                    if (selected_page->currently_selected==-1) {
+                        // close the page, as couldn't find a selectable item on it!
+                        this->opened_page_index = -1;
+                    }
                 }
             }
 
