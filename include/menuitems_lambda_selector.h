@@ -161,5 +161,12 @@ class LambdaSelectorControl : public LambdaNumberControl<DataType> {
             this->maximumDataValue = (DataType)(available_values->size() - 1);
         }
     }
+    virtual void set_available_values(labelled_value_list_t<DataType> *available_values) {
+        if (this->available_values==nullptr)
+            this->setup_available_values();
+        for (auto& entry : *available_values) {
+            this->add_available_value(entry.value, entry.label);
+        }
+    }
 
 };
