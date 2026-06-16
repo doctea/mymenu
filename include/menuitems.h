@@ -123,6 +123,20 @@ public:
     bool empty() const { return _count == 0; }
     void clear() { _count = 0; }
 
+    void remove(const char *label_to_remove) {
+        for (int i = 0; i < _count; ++i) {
+            if (strcmp(_items[i].label, label_to_remove) == 0) {
+                // Shift remaining items down to fill the gap
+                for (int j = i; j < _count - 1; ++j) {
+                    _items[j] = _items[j + 1];
+                }
+                --_count;
+                return;
+            }
+        }
+    }
+    // todo: add a 'remove by value' function too
+
     T* begin() { return _items; }
     T* end()   { return _items + _count; }
     const T* begin() const { return _items; }

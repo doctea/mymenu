@@ -13,6 +13,53 @@ struct override_label_t {
     DataType value;
 };
 
+
+// for mapping values to labels in menus (and parameter menuitems); 
+// todo: adopt this more widely
+// todo: and maybe subclasses that can support only overriding single values, and for bucketing values into ranges
+// todo: move this into its own header file, something like useful_datatypes.h where we can put other useful structs and datatypes that don't really belong anywhere else
+template<class DataType = int8_t>
+struct labelled_value_t {
+    DataType value;
+    const char *label;
+};
+
+template<class DataType = int8_t>
+struct labelled_value_list_t {
+    public: 
+    labelled_value_t<DataType> *list;
+    size_t size;
+
+    template<size_t N>
+    labelled_value_list_t(labelled_value_t<DataType> (&list)[N]) 
+        : list(list), size(N) {}
+
+    DataType minimum_value() {
+        DataType min = list[0].value;
+        for (size_t i = 1; i < size; i++) {
+            if (list[i].value < min) min = list[i].value;
+        }
+        return min;
+    }
+    DataType maximum_value() {
+        DataType max = list[0].value;
+        for (size_t i = 1; i < size; i++) {
+            if (list[i].value > max) max = list[i].value;
+        }
+        return max;
+    }
+    const char* get_label_for_value(DataType value) {
+        for (size_t i = 0; i < size; i++) {
+            if (list[i].value == value) return list[i].label;
+        }
+        return "??";
+    }
+
+    const labelled_value_t<DataType>* begin() const { return list; }
+    const labelled_value_t<DataType>* end()   const { return list + size; }
+};
+
+
 // type-agnostic ancestor
 class NumberControlBase : public MenuItem {
     public:

@@ -343,6 +343,14 @@ class LambdaActionConfirmItem : public LambdaActionItem {
 class CallbackMenuItem : public MenuItem {
     using label_callback_def = vl::Func<const char*(void)>;
     using colour_callback_def = vl::Func<uint16_t(void)>;
+    using redraw_policy_callback_def = vl::Func<bool(bool selected, bool opened)>;
+
+    #ifdef MENU_PERF_PARTIAL_UPDATES
+        virtual bool check_needs_redraw_custom(bool selected, bool opened) override {
+            return redraw_policy_callback_func(selected, opened);
+        }
+        redraw_policy_callback_def redraw_policy_callback_func = [=](bool selected, bool opened) -> bool { return false; };
+    #endif
 
     public:
     label_callback_def label_callback_func;
@@ -359,6 +367,20 @@ class CallbackMenuItem : public MenuItem {
         label_callback_func(label_callback_func), colour_callback_func(colour_callback_func) {
         this->selectable = false;
     }
+
+    #if MENU_PERF_PARTIAL_UPDATES
+        CallbackMenuItem(const char *label, label_callback_def label_callback_func, colour_callback_def colour_callback_func, redraw_policy_callback_def redraw_policy_callback_func, bool show_header = true) : 
+            MenuItem(label, false, show_header), 
+            label_callback_func(label_callback_func), colour_callback_func(colour_callback_func), redraw_policy_callback_func(redraw_policy_callback_func) {
+            this->selectable = selectable;
+                this->add_redraw_policy(REDRAW_ON_CUSTOM);
+            }
+
+        virtual void add_redraw_custom_policy(redraw_policy_callback_def redraw_policy_callback_func) {
+            this->redraw_policy_callback_func = redraw_policy_callback_func;
+            this->add_redraw_policy(REDRAW_ON_CUSTOM);
+        }
+    #endif
 
     virtual int display(Coord pos, bool selected, bool opened) override {
         pos.y = this->show_header ? 
@@ -384,6 +406,7 @@ class CallbackMenuItem : public MenuItem {
         return tft->getCursorY();
     }
 };
+using LambdaCallbackMenuItem = CallbackMenuItem;  // alias for backwards compatibility
 
 #include <functional-vlpp.h>
 #include "menuitems_lambda_selector.h"

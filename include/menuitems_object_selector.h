@@ -1,5 +1,6 @@
-#ifndef MENUITEMS_OBJECT_SELECTOR__INCLUDED
-#define MENUITEMS_OBJECT_SELECTOR__INCLUDED
+#pragma once
+
+#include "menu.h"
 
 template<class TargetClass, class DataType>
 class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
@@ -175,7 +176,13 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
             }*/
         }
     }
+    virtual void set_available_values(labelled_value_list_t<DataType> *available_values) {
+        if (this->available_values==nullptr)
+            this->setup_available_values();
+        this->available_values->clear();
+        for (auto& entry : *available_values) {
+            this->add_available_value(entry.value, entry.label);
+        }
+    }
 
 };
-
-#endif

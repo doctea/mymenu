@@ -1,11 +1,10 @@
+#pragma once
+
 #if (defined __GNUC__) && (__GNUC__ >= 5) && (__GNUC_MINOR__ >= 3) && (__GNUC_PATCHLEVEL__ >= 1)
     #pragma GCC diagnostic ignored "-Wpragmas"
     #pragma GCC diagnostic ignored "-Wformat-truncation"
     #pragma GCC diagnostic ignored "-Wstringop-truncation"
 #endif
-
-#ifndef MENU_LIB_INCLUDED
-#define MENU_LIB_INCLUDED
 
 #define LONGPRESS_MILLIS 250    // how long is considered to be a 'long press' of button
 
@@ -57,54 +56,6 @@
     #include <functional-vlpp.h>
     using button_matrix_event_callback_func = vl::Func<void(int, int, bool)>;
 #endif
-
-
-
-// for mapping values to labels in menus (and parameter menuitems); 
-// todo: adopt this more widely
-// todo: maybe this should live in mymenu instead?
-// todo: and maybe subclasses that can support only overriding single values, and for bucketing values into ranges
-// todo: move this into its own header file, something like useful_datatypes.h where we can put other useful structs and datatypes that don't really belong anywhere else
-template<class DataType = int8_t>
-struct labelled_value_t {
-    DataType value;
-    const char *label;
-};
-template<class DataType = int8_t>
-struct labelled_value_list_t {
-    public: 
-    labelled_value_t<DataType> *list;
-    size_t size;
-
-    labelled_value_list_t(labelled_value_t<DataType> *list, size_t size) {
-        this->list = list;
-        this->size = size;
-    }
-
-    DataType minimum_value() {
-        DataType min = list[0].value;
-        for (size_t i = 1; i < size; i++) {
-            if (list[i].value < min) min = list[i].value;
-        }
-        return min;
-    }
-    DataType maximum_value() {
-        DataType max = list[0].value;
-        for (size_t i = 1; i < size; i++) {
-            if (list[i].value > max) max = list[i].value;
-        }
-        return max;
-    }
-    const char* get_label_for_value(DataType value) {
-        for (size_t i = 0; i < size; i++) {
-            if (list[i].value == value) return list[i].label;
-        }
-        return "??";
-    }
-
-    const labelled_value_t<DataType>* begin() const { return list; }
-    const labelled_value_t<DataType>* end()   const { return list + size; }
-};
 
 // todo: add some kind of page grouping system to allow for like 'Output' pages and 'Pattern' pages and 'CV' pages etc, and then show the group name in the header of each page; maybe also add a 'grouped page index' menu item that shows all pages grouped by their group, to make it easier to find things when there are lots of pages
 // eg a page_group_t struct 
@@ -1314,6 +1265,3 @@ class Menu {
 };
 
 extern Menu *menu;
-
-#endif
-
