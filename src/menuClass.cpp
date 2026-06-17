@@ -648,9 +648,9 @@ int Menu::display() {
         frames_drawn++;
     }
 
-    if (send_frame) {
-        bool should_send = true;
-        #ifdef ENABLE_REMOTE_VIEWER
+    #ifdef ENABLE_REMOTE_VIEWER
+        if (send_frame) {
+            bool should_send = true;
             if (send_frame_live) {
                 static uint32_t last_live_frame_sent_at = 0;
                 #ifndef REMOTE_VIEWER_LIVE_MAX_FPS
@@ -665,16 +665,16 @@ int Menu::display() {
                     last_live_frame_sent_at = now_ms;
                 }
             }
-        #endif
-
-        if (should_send) {
-            this->tft->push_framebuffer_serial();
-            if(!send_frame_live) {
-                send_frame = false;
+            
+            if (should_send) {
+                this->tft->push_framebuffer_serial();
+                if(!send_frame_live) {
+                    send_frame = false;
+                }
             }
         }
-    }
-
+    #endif
+        
     return y;
 }
 

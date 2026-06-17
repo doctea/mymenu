@@ -111,6 +111,24 @@ public:
         }
     }
 
+    void remove(int idx) {
+        if (idx < 0 || idx >= (int)_count) return;
+        for (int i = idx; i < (int)_count - 1; ++i) {
+            _items[i] = _items[i + 1];
+        }
+        --_count;
+    }
+    MenuItem *get_and_remove_by_label(const char* label) {
+        for (int i = 0; i < (int)_count; ++i) {
+            if (_items[i] != nullptr && strcmp(_items[i]->get_label(), label) == 0) {
+                MenuItem* item = _items[i];
+                remove(i);
+                return item;
+            }
+        }
+        return nullptr;
+    }
+
     // Iterator support — begin()/end() return MenuItem** so range-based for yields MenuItem*
     MenuItem** begin() { return _items; }
     MenuItem** end()   { return _items + _count; }
