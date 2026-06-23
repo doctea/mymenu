@@ -287,7 +287,7 @@ class ObjectActionConfirmItem : public ObjectActionItem<TargetClass> {
         setter_def setter
     ) : ObjectActionItem<TargetClass>(label, target_object) {
         this->setter = setter;
-        this->go_back_on_select = true;
+        this->flags.go_back_on_select = true;
     };
 
     virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
@@ -328,7 +328,7 @@ class ObjectActionConfirmItem : public ObjectActionItem<TargetClass> {
         //msg[this->tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
         menu_set_last_message(msg,GREEN);
 
-        return this->go_back_on_select;    // return to menu
+        return this->flags.go_back_on_select;    // return to menu
     }
 
 };

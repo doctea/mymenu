@@ -69,7 +69,7 @@ class QuickPagesMenuItem : public MenuItem {
 class CustomQuickPagesMenuItem : virtual public QuickPagesMenuItem {
     public:
         // TODO: replace with a more memory-efficient structure
-        LinkedList<page_t*> *pages = new LinkedList<page_t*>();
+        GenericList<page_t*> *pages = new GenericList<page_t*>();
 
         CustomQuickPagesMenuItem(const char *label) : QuickPagesMenuItem(label) {}
 

@@ -20,8 +20,8 @@ class SubMenuItem : public MenuItem {
 
         SubMenuItem(const char *label, bool show_header = true, bool scrollable = true) : MenuItem(label) {
             this->items = new MenuItemList();
-            go_back_on_select = true;
-            this->show_header = show_header;
+            this->flags.go_back_on_select = true;
+            this->flags.show_header = show_header;
             this->scrollable = scrollable;
         }
         // always_show argument determines whether to show items even when menu isn't opened
@@ -219,7 +219,7 @@ class SubMenuItem : public MenuItem {
                     return false;
                 }
             }
-            return go_back_on_select;
+            return this->flags.go_back_on_select;
         }
 
         virtual bool button_back() override {
@@ -267,7 +267,7 @@ class SubMenuItem : public MenuItem {
         }
 
         virtual void add(MenuItem *item) override {
-            item->show_header = false;
+            item->flags.show_header = false;
             SubMenuItem::add(item);
         }
 

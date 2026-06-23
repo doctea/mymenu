@@ -19,6 +19,10 @@
 #define USE_SPI_DMA
 #include <TFT_eSPI.h>
 
+#ifdef USE_TINYUSB
+    extern mutex_t __usb_mutex;
+#endif
+
 // wrapper so that we can get the framebuffer pointer out of the TFT_eSprite, which is needed for pushing out the framebuffer data over serial
 class TFT_eSprite_Wrapper : public TFT_eSprite {
     public:
@@ -451,7 +455,12 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
 
     virtual void push_framebuffer_serial() override {
         // get the framebuffer data from the actual_espi and push it out over serial
-        if (Serial) this->sendRawFrame();
+        if (Serial) {
+            // if (mutex_try_enter(&__usb_mutex, NULL)) {
+                this->sendRawFrame();
+            //     mutex_exit(&__usb_mutex);
+            // }
+        }
     }
     virtual const char* viewer_pixel_format() override { return "BGR565"; }
 };

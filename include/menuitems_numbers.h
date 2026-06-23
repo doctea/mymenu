@@ -122,7 +122,7 @@ class NumberControl : public NumberControlBase {
 
         NumberControl(const char* label, bool go_back_on_select = false, bool direct = false, override_label_t<DataType> *override_output = nullptr) : NumberControlBase(label) {
             this->step = this->get_default_step_for_type((DataType)0);    // setup default step based on our template DataType
-            this->go_back_on_select = go_back_on_select;
+            this->flags.go_back_on_select = go_back_on_select;
             this->direct = direct;
             this->override_output = override_output;
         }
@@ -509,7 +509,7 @@ class NumberControl : public NumberControlBase {
             //Serial.printf("NumberControl#button_select calling change_value(%3.3f)\n", this->get_internal_value());
             this->change_value((DataType)this->get_internal_value());
 
-            return go_back_on_select;
+            return flags.go_back_on_select;
         }
 
         virtual bool action_opened() override {

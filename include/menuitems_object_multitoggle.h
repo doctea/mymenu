@@ -7,7 +7,7 @@
 #ifndef OBJECT_MULTITOGGLED__INCLUDED
 #define OBJECT_MULTITOGGLED__INCLUDED
 
-#include <LinkedList.h>
+#include <GenericList.h>
 
 #include "menuitems.h"
 
@@ -111,12 +111,11 @@ class ObjectMultiToggleControl : public MenuItem {
         
         int initial_on_count = 0;
         
-        // TODO: replace these LinkedLists with a dedicated MultiToggleItemList class
-        LinkedList<MultiToggleItemBase*> items = LinkedList<MultiToggleItemBase*>();
+        GenericList<MultiToggleItemBase*> items;
 
         ObjectMultiToggleControl(const char *label) : MenuItem(label) {}
         ObjectMultiToggleControl(const char *label, bool enable_all_option, bool show_header = false) : ObjectMultiToggleControl(label) {
-            this->show_header = show_header;
+            this->flags.show_header = show_header;
             this->all_option = enable_all_option;
         }
 
@@ -270,7 +269,7 @@ class ObjectMultiToggleControl : public MenuItem {
                 snprintf(tmp, 40, "Toggled %s to %s", item->label, new_mode?label_on:label_off);
                 menu->set_last_message(tmp);
             }
-            return go_back_on_select;
+            return flags.go_back_on_select;
         }
         virtual bool button_select_released() override {
             this->held = false;

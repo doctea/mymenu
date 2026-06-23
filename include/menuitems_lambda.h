@@ -270,7 +270,7 @@ class LambdaActionConfirmItem : public LambdaActionItem {
         setter_2_def setter_func_2,
         bool suppress_fired_message = false
     ) : LambdaActionItem(label, setter_func_2, suppress_fired_message) {
-        this->go_back_on_select = true;
+        this->flags.go_back_on_select = true;
     };
 
     // Getter-based constructor: shows button_label_true when getter returns true,
@@ -283,7 +283,7 @@ class LambdaActionConfirmItem : public LambdaActionItem {
         const char *button_label_false = nullptr,
         bool suppress_fired_message = false
     ) : LambdaActionItem(label, setter_func_2, getter_func, button_label_true, button_label_false, suppress_fired_message) {
-        this->go_back_on_select = true;
+        this->flags.go_back_on_select = true;
     };
 
     virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
@@ -332,7 +332,7 @@ class LambdaActionConfirmItem : public LambdaActionItem {
             menu_set_last_message(msg,GREEN);
         }
 
-        return this->go_back_on_select;    // return to menu
+        return this->flags.go_back_on_select;    // return to menu
     }
 
 };
@@ -345,7 +345,7 @@ class CallbackMenuItem : public MenuItem {
     using colour_callback_def = vl::Func<uint16_t(void)>;
     using redraw_policy_callback_def = vl::Func<bool(bool selected, bool opened)>;
 
-    #ifdef MENU_PERF_PARTIAL_UPDATES
+    #if MENU_PERF_PARTIAL_UPDATES
         virtual bool check_needs_redraw_custom(bool selected, bool opened) override {
             return redraw_policy_callback_func(selected, opened);
         }
@@ -359,20 +359,20 @@ class CallbackMenuItem : public MenuItem {
     CallbackMenuItem(const char *label, label_callback_def label_callback_func, bool show_header = true) : 
         MenuItem(label, false, show_header), 
         label_callback_func(label_callback_func) {
-        this->selectable = false;
+        this->flags.selectable = false;
     }
 
     CallbackMenuItem(const char *label, label_callback_def label_callback_func, colour_callback_def colour_callback_func, bool show_header = true) : 
         MenuItem(label, false, show_header), 
         label_callback_func(label_callback_func), colour_callback_func(colour_callback_func) {
-        this->selectable = false;
+        this->flags.selectable = false;
     }
 
     #if MENU_PERF_PARTIAL_UPDATES
         CallbackMenuItem(const char *label, label_callback_def label_callback_func, colour_callback_def colour_callback_func, redraw_policy_callback_def redraw_policy_callback_func, bool show_header = true) : 
             MenuItem(label, false, show_header), 
             label_callback_func(label_callback_func), colour_callback_func(colour_callback_func), redraw_policy_callback_func(redraw_policy_callback_func) {
-            this->selectable = selectable;
+            this->flags.selectable = selectable;
                 this->add_redraw_policy(REDRAW_ON_CUSTOM);
             }
 
@@ -383,7 +383,7 @@ class CallbackMenuItem : public MenuItem {
     #endif
 
     virtual int display(Coord pos, bool selected, bool opened) override {
-        pos.y = this->show_header ? 
+        pos.y = this->flags.show_header ? 
                     header((const char*)this->label_callback_func(), pos, selected, opened) 
                 : 
                     pos.y;

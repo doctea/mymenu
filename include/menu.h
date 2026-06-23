@@ -32,6 +32,7 @@
 
 #include "bpm.h"       // PPQN, TICKS_PER_STEP, TICKS_PER_BAR, BPM_PHASE_TICKS
 
+#include "GenericList.h"
 #include "mymenu.h"
 #include "menu_io.h"
 
@@ -157,7 +158,7 @@ struct page_group_t {
     const char *group_name = "Default";
     uint16_t colour = C_WHITE;
     bool open = false;
-    LinkedList<page_t*> pages;  // todo: replace with a PageList that uses a flat array like MenuItemList to save RAM and avoid malloc overhead; we can even make it a single array of page_t instead of pointers since page_t is pretty small and doesn't have any complex construction needs, and that would save even more RAM by eliminating the pointer indirection and malloc overhead 
+    GenericList<page_t*> pages;  // flat-array list to save RAM and avoid malloc overhead
 
     void add_page(page_t* page) {
         page->group = this;
@@ -173,8 +174,8 @@ class Menu {
     page_t *selected_page = nullptr;
 
     public:
-    LinkedList<page_t*> *pages = nullptr;           // todo: replace with a PageList that uses a flat array like MenuItemList to save RAM and avoid malloc overhead; we can even make it a single array of page_t instead of pointers since page_t is pretty small and doesn't have any complex construction needs, and that would save even more RAM by eliminating the pointer indirection and malloc overhead
-    LinkedList<page_group_t*> *groups = nullptr;    // todo: replace with a PageGroupList that uses a flat array like MenuItemList to save RAM and avoid malloc overhead; we can even make it a single array of page_group_t instead of pointers since page_group_t is pretty small and doesn't have any complex construction needs, and that would save even more RAM by eliminating the pointer indirection and malloc overhead
+    GenericList<page_t*> *pages = nullptr;           // flat-array list to save RAM and avoid malloc overhead
+    GenericList<page_group_t*> *groups = nullptr;    // flat-array list to save RAM and avoid malloc overhead
 
     private:
 
@@ -304,8 +305,8 @@ class Menu {
     
         Menu(DisplayTranslator *dt, bool button_mode_rise_on_click = false) {
             this->tft = dt;
-            this->pages = new LinkedList<page_t*>();
-            this->groups = new LinkedList<page_group_t*>();
+            this->pages = new GenericList<page_t*>();
+            this->groups = new GenericList<page_group_t*>();
             this->select_page(this->add_page("Main"));
             this->remember_opened_page(-1, true);
             this->screen_height_cutoff = (int)(0.75f*(float)tft->height());
@@ -688,7 +689,7 @@ class Menu {
         void add_page_to_group(page_t* page, const char* group_name) {
             // find the group with the given name, or create it if it doesn't exist
             page_group_t* group = nullptr;
-            for (int i = 0; i < this->groups->size(); i++) {
+            for (unsigned int i = 0; i < this->groups->size(); i++) {
                 if (strcmp(this->groups->get(i)->group_name, group_name) == 0) {
                     group = this->groups->get(i);
                     break;

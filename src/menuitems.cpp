@@ -85,7 +85,7 @@ bool MenuItem::action_opened() {
     return true;
 }
 bool MenuItem::button_select() {
-    return go_back_on_select;
+    return flags.go_back_on_select;
 }
 bool MenuItem::button_select_released() {
     return false;
@@ -106,7 +106,7 @@ bool MenuItem::allow_takeover() {
     return false;
 }
 bool MenuItem::is_selectable () {
-    return this->selectable;
+    return this->flags.selectable;
 }
 int MenuItem::display(Coord pos, bool selected, bool opened) {
     //Serial.printf("MenuItem display()")
@@ -129,7 +129,7 @@ int MenuItem::display(Coord pos, bool selected, bool opened) {
     return tft->getCursorY();
 }
 int MenuItem::header(const char *text, Coord pos, bool selected, bool opened, int textSize, unsigned int text_len) {
-    if (!this->show_header) return pos.y;
+    if (!this->flags.show_header) return pos.y;
 
     tft->drawLine(pos.x, pos.y, tft->width(), pos.y, this->default_fg);
     pos.y+=2;
@@ -168,12 +168,12 @@ int FixedSizeMenuItem::renderValue(bool selected, bool opened, uint16_t max_char
 }
 
 int SeparatorMenuItem::header(const char *text, Coord pos, bool selected, bool opened, int textSize, unsigned int text_len) {
-    if (!this->show_header) return pos.y;
+    if (!this->flags.show_header) return pos.y;
 
     tft->setTextSize(textSize);
     colours(false, this->default_fg, this->default_bg);
 
-    int end_x;  // only used if draw_lines is true
+    int end_x = 0;  // only used if draw_lines is true
     const unsigned int label_width = (text_len != (unsigned int)-1) ? text_len : strlen(text);
 
     if (this->draw_lines) {

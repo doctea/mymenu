@@ -5,10 +5,10 @@
 CircularMessageLog message_log;  // static allocation in BSS, zero-initialised
 
 void messages_log_add(const char* msg) {
-    if (Serial) {
-        Serial.print("messages_log_add: ");
-        Serial.println(msg);
-    }
+    // if (Serial) {
+    //     Serial.print("messages_log_add: ");
+    //     Serial.println(msg);
+    // }
     message_log.add(msg);
 }
 

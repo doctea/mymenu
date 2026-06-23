@@ -157,9 +157,13 @@ class MenuItem {
         uint16_t default_fg = C_WHITE; //0xFFFF;
         uint16_t default_bg = BLACK;
 
-        bool show_header = true;
-        bool selectable = true;
-        bool go_back_on_select = false;
+        // Compact boolean flags into bitfield struct (saves 2 bytes vs 3 separate bools)
+        struct {
+            bool show_header : 1;
+            bool selectable : 1;
+            bool go_back_on_select : 1;
+            // 5 unused bits remain for future flags
+        } flags = {true, true, false};
 
         // Cache text-size decisions for static labels to avoid repeated width scans.
         int8_t cached_label_textsize = -1;
@@ -242,8 +246,8 @@ class MenuItem {
             strncpy(label, in_label, MAX_LABEL_LENGTH);
             label[MAX_LABEL_LENGTH - 1] = '\0';
             label_len = strlen(label);
-            this->selectable = selectable;
-            this->show_header = show_header;
+            this->flags.selectable = selectable;
+            this->flags.show_header = show_header;
         }
         virtual void on_add();
         virtual void update_label(const char *new_label);

@@ -9,19 +9,21 @@ extern const char *sure_message;
 class ActionItem : public MenuItem {
     public:
 
-    char button_label[MENU_C_MAX] = "";
     void(*on_open)() = nullptr;
 
     char *what_to_render = nullptr;
 
     ActionItem(const char *label, void (*on_open)(), bool show_header = false) : MenuItem(label) {
         this->on_open = on_open;
-        this->show_header = show_header;
-        snprintf(button_label, MENU_C_MAX, "> %s <", label);
+        this->flags.show_header = show_header;
         // IF_MENU_PERF_PARTIAL_UPDATES(set_redraw_policy(REDRAW_ON_SELECTION | REDRAW_ON_DESELECTION);)
     }
 
     virtual int display(Coord pos, bool selected, bool opened) override {
+        // Compute button_label on-demand: "> label <"
+        char button_label[MENU_C_MAX];
+        snprintf(button_label, MENU_C_MAX, "> %s <", label);
+        
         //int textSize = ((int)strlen(button_label)*tft->currentCharacterWidth() < tft->width()/2 );
         //int textSize = tft->get_textsize_for_width(button_label, tft->width()-1);
         //colours(opened, opened ? GREEN : this->default_fg, this->default_bg);
@@ -178,7 +180,7 @@ class ActionConfirmItem : public ActionItem {
     public:
 
     ActionConfirmItem(const char *label, void (*on_open)(), bool show_header = true) : ActionItem(label, on_open, show_header) {
-        go_back_on_select = true;
+        flags.go_back_on_select = true;
         // IF_MENU_PERF_PARTIAL_UPDATES(set_redraw_policy(REDRAW_ON_SELECTION_OR_OPEN);)  // expands to SELECTION|DESELECTION|OPEN|CLOSE
     }
 
@@ -200,6 +202,8 @@ class ActionConfirmItem : public ActionItem {
     }
     virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
         colours(selected, opened ? GREEN : this->default_fg, this->default_bg);
+        char button_label[MENU_C_MAX];
+        snprintf(button_label, MENU_C_MAX, "> %s <", label);
         const char *text_to_render = opened ? sure_message : button_label;
 
         int textSize = tft->get_textsize_for_width(text_to_render, tft->width());
@@ -228,7 +232,7 @@ class ActionConfirmItem : public ActionItem {
         //msg[tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
         menu_set_last_message(msg,GREEN);
 
-        return go_back_on_select;    // return to menu
+        return flags.go_back_on_select;    // return to menu
     }
 
 };
