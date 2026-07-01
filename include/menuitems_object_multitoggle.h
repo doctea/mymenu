@@ -143,7 +143,7 @@ class ObjectMultiToggleControl : public MenuItem {
             //tft->printf("width_per_item: %i\n", width_per_item);
             pos.y = tft->getCursorY();
 
-            colours(opened, opened ? GREEN : this->default_fg, this->default_bg);
+            colours(selected, opened ? GREEN : this->default_fg, this->default_bg);
             tft->setTextSize(1);
 
             uint max_height_reached = 0;

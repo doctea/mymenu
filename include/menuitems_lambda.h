@@ -372,7 +372,7 @@ class CallbackMenuItem : public MenuItem {
         CallbackMenuItem(const char *label, label_callback_def label_callback_func, colour_callback_def colour_callback_func, redraw_policy_callback_def redraw_policy_callback_func, bool show_header = true) : 
             MenuItem(label, false, show_header), 
             label_callback_func(label_callback_func), colour_callback_func(colour_callback_func), redraw_policy_callback_func(redraw_policy_callback_func) {
-            this->flags.selectable = selectable;
+                // this->flags.selectable = selectable;
                 this->add_redraw_policy(REDRAW_ON_CUSTOM);
             }
 

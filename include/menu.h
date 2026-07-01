@@ -880,7 +880,7 @@ class Menu {
         }
         void open_page(unsigned int page_index, bool unwind_current = true, bool unwind_target = true) {
             //Serial.printf("open_page %i\n", page_index);
-            page_index = constrain(page_index, (unsigned int)0, pages->size() - 1);
+            page_index = constrain(page_index, (unsigned int)0, (unsigned int)(pages->size() - 1));
 
             select_page(page_index, unwind_current);
 
