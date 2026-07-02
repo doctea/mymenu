@@ -68,6 +68,8 @@ class MenuItemList {
     MenuItem** _items = nullptr;
     uint16_t _count = 0;
     uint16_t _capacity = 0;
+    uint16_t _openable_count = 0;
+    uint16_t _selectable_count = 0;
 
     void grow() {
         uint16_t new_cap = (_capacity == 0) ? 8 : (_capacity + 8);
@@ -88,6 +90,12 @@ public:
         if (_count >= _capacity) grow();
         if (_count < _capacity)
             _items[_count++] = m;
+        if (m != nullptr && m->is_openable()) {
+            _openable_count++;  // increment cached count of openable items
+        }
+        if (m != nullptr && m->is_selectable()) {
+            _selectable_count++;  // increment cached count of selectable items
+        }
     }
 
     MenuItem* get(int idx) const {
@@ -98,7 +106,11 @@ public:
     uint16_t size() const { return _count; }
     bool empty() const { return _count == 0; }
 
-    void clear() { _count = 0; }
+    void clear() { 
+        _count = 0; 
+        _openable_count = 0;  // reset cached count of openable items
+        _selectable_count = 0;  // reset cached count of selectable items
+    }
 
     // Release unused capacity after all items have been added
     void shrink_to_fit() {
@@ -114,6 +126,12 @@ public:
 
     void remove(int idx) {
         if (idx < 0 || idx >= (int)_count) return;
+        if (_items[idx] != nullptr && _items[idx]->is_openable()) {
+            _openable_count--;  // decrement cached count of openable items
+        }
+        if (_items[idx] != nullptr && _items[idx]->is_selectable()) {
+            _selectable_count--;  // decrement cached count of selectable items
+        }
         for (int i = idx; i < (int)_count - 1; ++i) {
             _items[i] = _items[i + 1];
         }
@@ -128,6 +146,14 @@ public:
             }
         }
         return nullptr;
+    }
+
+    uint16_t openable_count() const {
+        return _openable_count;
+    }
+
+    uint16_t selectable_count() const {
+        return _selectable_count;
     }
 
     // Iterator support — begin()/end() return MenuItem** so range-based for yields MenuItem*
@@ -151,6 +177,13 @@ struct page_t {
     bool scrollable = true;
     const char *header_text = nullptr;  // pinned column-header line shown below the tab bar
     uint16_t header_text_size = 2;           // size of the header text
+
+    uint16_t openable_count() {
+        return items->openable_count();
+    }
+    uint16_t selectable_count() {
+        return items->selectable_count();
+    }
 };
 
 // ... pages were getting ridiculous, so now we have groups of pages (lol)
@@ -171,6 +204,7 @@ class Menu {
     int opened_page_index = -1;
     int selected_page_index = 0;
     int before_quickjump_page_index = -1;
+    bool in_manual_jump = false;   // set by jump_to_page_with_return, cleared on return
     page_t *selected_page = nullptr;
 
     public:
@@ -461,12 +495,14 @@ class Menu {
             if (this->selected_page->items->size()==0)
                 return;
             int idx = 0;
+            // Serial.printf("select_first_selectable_item on page %s with %i items - selectable_count=%i\n", selected_page->title, selected_page->items->size(), selected_page->items->selectable_count());
             for (auto* item : *selected_page->items) {
+                // Serial.printf("select_first_selectable_item on page %s checking item %i (%s) selectable=%i\n", selected_page->title, idx, item->label, item->is_selectable());
                 if (item->is_selectable()) {
                     //if (Serial) Serial.printf("select_first_selectable_item on page %s found a selectable item at %i!\n", selected_page->title, idx);
                     selected_page->currently_selected = idx;
-                    if (this->selected_page->items->size()==1) {
-                        //if (Serial) Serial.printf("found only one item, so opening it too!\n", selected_page->title, idx);
+                    if (this->selected_page->selectable_count() == 1) {
+                        if (Serial) Serial.printf("found only one openable item, so opening it too!\n", selected_page->title, idx);
                         //selected_page->currently_opened = selected_page->currently_selected;
                         if (item->is_openable()) {
                             button_select(); button_select_released();
@@ -589,9 +625,10 @@ class Menu {
                 // an item is opened, and it responded false to button_back()
                 Debug_printf("back with currently_opened menuitem %i and no subhandling, setting to -1\n", selected_page->currently_opened); 
                 selected_page->currently_opened = -1;
-                if (selected_page->items->size()==1) {
+                // if (selected_page->items->size()==1) {
+                if (selected_page->openable_count()==1) {
                     // if there is only one item on this page, close the page too
-                    // todo: make this understand if there is only one SELECTABLE item on the page
+                    // todo: make this understand if there is only one openable/SELECTABLE item on the page
                     opened_page_index = -1;
                     selected_page->currently_selected = selected_page->currently_opened = -1;
                 }
@@ -778,23 +815,33 @@ class Menu {
         void quickjump_button_pressed() {
             if (quick_page_index>=0) {
                 this->unwind_page_opened_state(this->selected_page);
-                if (before_quickjump_page_index>=0 && (quick_page_index==selected_page_index || all_page_index==selected_page_index)) {
+                if (in_manual_jump && before_quickjump_page_index>=0) {
+                    // return from a jump_to_page_with_return call
+                    in_manual_jump = false;
+                    int return_to = this->before_quickjump_page_index;
+                    this->before_quickjump_page_index = -1;
+                    this->open_page(return_to);
+                } else if (before_quickjump_page_index>=0 && (quick_page_index==selected_page_index || all_page_index==selected_page_index)) {
                     // if we're already on the quickjump page, then jump back to the previous page instead
-
                     this->open_page(this->before_quickjump_page_index);
                 } else {
                     // quickjump back to the *quickjump* page that we last quickjumped from
-
                     this->before_quickjump_page_index = selected_page_index;
                     selected_page_index = opened_page_index = -1;
-
-                    this->open_page(this->last_quickjump_origin_index, true, true); //this->quick_page_index);
+                    this->open_page(this->last_quickjump_origin_index, true, true);
                 }
             }
         }
         void quickjump_to_page(int page_index) {
             this->last_quickjump_origin_index = selected_page_index;
             this->open_page(page_index, false);
+        }
+        // Navigate to page_index; long-press-back will return to the calling page.
+        void jump_to_page_with_return(int page_index) {
+            if (page_index < 0) return;
+            this->before_quickjump_page_index = selected_page_index;
+            this->in_manual_jump = true;
+            this->open_page(page_index, true);
         }
 
         // get the index of a page based on title string; returns -1 if not found
@@ -884,7 +931,7 @@ class Menu {
 
             select_page(page_index, unwind_current);
 
-            //Serial.printf("opening page %i, currently_selected is %i\n", page_index, selected_page->currently_selected);
+            Serial.printf("opening page %i, currently_selected is %i\n", page_index, selected_page->currently_selected);
 
             // select first selectable item 
             if (selected_page!=nullptr) {

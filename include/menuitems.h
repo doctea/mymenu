@@ -296,7 +296,7 @@ class MenuItem {
         virtual bool is_selectable ();
         // whether 'tis openable -- ie, that it can be 'opened' without having an effect, eg submenuitem... basically anything except an action?!
         virtual bool is_openable () {
-            return true;
+            return is_selectable() && true;
         }
 };
 

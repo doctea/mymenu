@@ -260,17 +260,21 @@ class PageGroupIndexMenuItem : public AllPagesIndexMenuItem {
             
             char count_indicator[8] = "";
             if (group_opened) {
-                sprintf(count_indicator, "[%i/%i]", selected_page_within_group_index+1, group->pages.size());
+                sprintf(count_indicator, "%i/%i", selected_page_within_group_index+1, group->pages.size());
             } else if (o==selected_group_index) {
-                sprintf(count_indicator, "[x/%i]", group->pages.size());
+                sprintf(count_indicator, "x/%i", group->pages.size());
             }
 
+            bool text_wrap = tft->isTextWrap();
+            tft->setTextWrap(false);
             tft->printf(
                 "%s % *s\n", 
                 group->group_name, 
                 (tft->width() / tft->currentCharacterWidth())-strlen(group->group_name)-1, //-strlen(count_indicator), 
                 count_indicator
             );
+            tft->setTextWrap(text_wrap);
+            // tft->println();
 
             colours(false);
 

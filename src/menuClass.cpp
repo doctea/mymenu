@@ -350,7 +350,7 @@ int Menu::display() {
         /////// draw tabs for the pages
         // NOTE: left as index-based loop — starts at selected_page_index and wraps with modulo,
         // so requires random-access get(ci) to compute the wrapped display index each iteration.
-        for (unsigned int i = selected_page_index ; i < pages->size() + selected_page_index ; i++) {
+        for (unsigned int i = selected_page_index ; i < (unsigned int)(pages->size() + selected_page_index) ; i++) {
             int ci = i;
             if (ci >= (int)pages->size())        // wrap around to start of list if we get to the end
                 ci = ci % pages->size();

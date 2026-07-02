@@ -45,7 +45,8 @@ class SubMenuItem : public MenuItem {
             while ((unsigned int)currently_selected < items->size() && !items->get(currently_selected)->is_selectable()) {
                 currently_selected++;
             }
-            if (items->size()==1 && items->get(0)->is_openable())   // if there's only one item, open it
+            // if (items->size()==1 && items->get(0)->is_openable())   // if there's only one item, open it
+            if (items->selectable_count()==1 && items->get(currently_selected)->is_openable())   // if there's only one selectable+openable item, open it
                 button_select();
 
             // if (!always_show) 
@@ -93,23 +94,7 @@ class SubMenuItem : public MenuItem {
         //bool needs_redraw = true;
         int previously_selected = -2;
         virtual int display(Coord pos, bool selected, bool opened) override {
-            //Serial.printf("submenuitem#display currently_selected=%i, previously_selected=%i\n", currently_selected, previously_selected); Serial.flush();            
-            //static int previously_opened = -2;
-            //static bool previously_opened = false;
-
-            // if (currently_selected!=previously_selected || needs_redraw) {
-            //     //Serial.println("SubMenuItem#display: tft->clear ");
-            //     this->tft->clear();
-            // }
             previously_selected = currently_selected;
-            //previously_opened = opened;
-            //if (currently_opened!=previously_opened || needs_redraw || (opened!=previously_opened)) {
-                //Serial.printf("%s is clearing due to needs_redraw (%s) or opened!=previously_opened (currently_opened=%i, previously_opened=%i)\n", this->label, needs_redraw?"true":"false", opened, previously_opened);
-                //tft->clear();
-            //}
-            //needs_redraw = false;
-            //previously_opened = currently_opened;
-            //previously_opened = opened;
 
             int y = header(this->label, pos, selected, opened);
             colours(false,this->default_fg,this->default_bg);
@@ -117,19 +102,14 @@ class SubMenuItem : public MenuItem {
             if (is_opened() && this->items->get(currently_opened)->allow_takeover())
                 return this->items->get(currently_selected)->display(Coord(0,y), true, true);
 
-            //int start_item = currently_selected>=0 ? currently_selected : 0;
             int start_item = scrollable
                 ? constrain(currently_selected-2, 0, (int)this->items->size()-1)
                 : 0;
 
             if (opened || this->always_show) {
-                //if (this->debug) { Serial.printf("submenuitem#display()=> doing opened/always_show display\n", currently_opened); Serial_flush();}
-                //tft->clear();
-                //colours(false, C_WHITE, BLACK);
-                //Serial.println("submenuitem#display opened or always_show"); Serial.flush();            
-
                 auto it = items->begin();
-                for (int s = 0; s < start_item && it != items->end(); ++s, ++it) {}
+                for (int s = 0; s < start_item && it != items->end(); ++s, ++it) {}  // fast-forward through the iterator to the start_item index
+                // Serial.printf("submenuitem#display starting at item %i of %i\n", start_item, items->size()); Serial.flush();
                 for (int i = start_item; it != items->end(); ++it, ++i) {
                     if (this->debug) { Serial.printf("submenuitem#display rendering item %i..\n", i); Serial.flush(); }
                     y = tft->getCursorY();
@@ -137,8 +117,8 @@ class SubMenuItem : public MenuItem {
                     tft->setTextColor(this->default_fg, this->default_bg);
                     pos.x = 0; pos.y = tft->getCursorY();
                     MenuItem *item = *it;
-                    //Serial.printf("got item %i: %s\n", i, item->label); Serial.flush();
-                    //Serial.printf("submenuitem#display about to call display on item %i..\n", i); Serial.flush();            
+                    // Serial.printf("got item %i: %s\n", i, item->label); Serial.flush();
+                    // Serial.printf("submenuitem#display about to call display on item %i; currently_selected=%i, currently_opened=%i\n", i, this->currently_selected, this->currently_opened); Serial.flush();
                     y = item->display(
                         pos, i==this->currently_selected, i==this->currently_opened
                     );
@@ -149,14 +129,10 @@ class SubMenuItem : public MenuItem {
                     if (y>=this->tft->height()) 
                         break;
                 }
+                // Serial.printf("submenuitem#display finished rendering items, y=%i, tft->height()=%i\n", y, this->tft->height()); Serial.flush();
                 // blank to bottom of screen
                 //if (this->debug) { Serial.printf("submenuitem#display blanking\n"); Serial.flush(); }
                 if (!always_show && y < tft->height()) {
-                    /*while (y < tft->height()) {
-                        for (unsigned int i = 0 ; i < tft->get_c_max() ; i++)
-                            tft->print((char*)" ");
-                        y = tft->getCursorY();
-                    }*/
                     tft->drawRect(0, y, 0, tft->height(), BLACK);
                 }
                 //if (this->debug) { Serial.printf("submenuitem#display finished\n"); Serial.flush(); }
@@ -233,7 +209,7 @@ class SubMenuItem : public MenuItem {
                 #endif
                 currently_selected = currently_opened;
                 currently_opened = -1;
-                if (items->size()==1)       // if there's only one item, exit out of the submenu
+                if (items->openable_count()==1)       // if there's only one item, exit out of the submenu
                     return button_back();   // todo: recursive?! maybe we meant to call parent?
             } else if (!is_opened()) {
                 //Serial.println("submenuitem#button_back() nothing selected so settiong currently_selected then returning false");
