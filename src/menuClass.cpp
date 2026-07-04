@@ -301,6 +301,37 @@ int Menu::display() {
             // TODO: fix this behaviour once and for all
         #endif
 
+        // Separator anchoring: pin the last SeparatorMenuItem before currently_selected at the top of the list.
+        // Applied after the -2 adjustment so it takes priority.
+        // Requires bottoms_computed so we can use exact panel_bottom heights rather than unreliable
+        // getRowHeight() estimates (whose result depends on the current text-size state).
+        int page_sep_idx = -1;
+        if (selected_page->anchor_to_separator && bottoms_computed && currently_selected > 0 &&
+            panel_bottom[currently_selected] > 0) {
+            for (int i = currently_selected - 1; i >= 0; --i) {
+                if (items->get(i)->is_separator()) { page_sep_idx = i; break; }
+            }
+            if (page_sep_idx >= 0) {
+                // Exact section height from the first full-render pass stored in panel_bottom.
+                // panel_bottom[i] is the absolute screen-Y of the bottom of item i.
+                const int avail = tft->height() - this->list_area_start_y;
+                const int16_t sep_top_y = (page_sep_idx > 0)
+                    ? panel_bottom[page_sep_idx - 1]
+                    : (int16_t)this->list_area_start_y;
+                const int section_height = panel_bottom[currently_selected] - sep_top_y;
+                if (section_height > 0 && section_height <= avail)
+                    start_panel = page_sep_idx;
+            }
+        }
+
+        // If all items fit inside the screen list area, no scrolling is needed.
+        // panel_bottom stores absolute cumulative Y values from a full top-to-bottom pass,
+        // so panel_bottom[last] <= tft->height() means every item is on screen.
+        if (bottoms_computed && (int)items->size() > 0 &&
+            panel_bottom[(int)items->size() - 1] <= tft->height()) {
+            start_panel = 0;
+        }
+
         tft->setCursor(0,y);
 
         int pinned_start_y = y;
@@ -428,6 +459,7 @@ int Menu::display() {
         }
         
         const int list_start_y = y;
+        this->list_area_start_y = list_start_y;  // cache for next frame's start_panel separator/fit calculations
 
         // Mark header dirty only if page changed
         #if MENU_PERF_PARTIAL_UPDATES

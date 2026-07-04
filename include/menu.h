@@ -175,6 +175,7 @@ struct page_t {
     int16_t num_panels = 0;
     MenuItemList *items = nullptr;
     bool scrollable = true;
+    bool anchor_to_separator = true;  // anchor scroll so the last SeparatorMenuItem before currently_selected stays at top
     const char *header_text = nullptr;  // pinned column-header line shown below the tab bar
     uint16_t header_text_size = 2;           // size of the header text
 
@@ -232,6 +233,7 @@ class Menu {
     bool pending_right_press = false;
 
     uint16_t screen_height_cutoff = 100;
+    int list_area_start_y = 0;  // Y pixel where the item list starts, cached from previous frame for start_panel calculations
 
     int8_t tab_textsize = 1;
 

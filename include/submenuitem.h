@@ -14,6 +14,7 @@ class SubMenuItem : public MenuItem {
     public:
         bool always_show = false;       // whether to hide items until menu is opened or not
         bool scrollable = true;           // whether to scroll to keep currently_selected in view
+        bool anchor_to_separator = true; // whether to anchor scroll so the last SeparatorMenuItem before currently_selected stays at the top
         int currently_selected = -1;
         int currently_opened = -1;
         MenuItemList *items = nullptr;
@@ -102,9 +103,59 @@ class SubMenuItem : public MenuItem {
             if (is_opened() && this->items->get(currently_opened)->allow_takeover())
                 return this->items->get(currently_selected)->display(Coord(0,y), true, true);
 
-            int start_item = scrollable
-                ? constrain(currently_selected-2, 0, (int)this->items->size()-1)
-                : 0;
+            int start_item;
+            if (!scrollable) {
+                start_item = 0;
+            } else {
+                const int available_height = tft->height() - y;
+
+                // Conservative per-item height for non-PERF estimates: getSingleRowHeight()*3 (=24px).
+                // getRowHeight() is NOT used here because it depends on the current text-size state,
+                // which is undefined at this point in the call and varies frame to frame, causing
+                // the height check to non-deterministically pass or fail (flickering).
+                const int min_item_h = tft->getSingleRowHeight() * 3;
+
+                // If all items fit in the available space, no scrolling is needed
+                int total_height = 0;
+                #if MENU_PERF_PARTIAL_UPDATES
+                    for (int i = 0; i < (int)items->size(); ++i) {
+                        const int16_t h = items->get(i)->get_cached_draw_height();
+                        total_height += (h > 0) ? h : min_item_h;
+                    }
+                #else
+                    total_height = (int)items->size() * min_item_h;
+                #endif
+
+                if (total_height <= available_height) {
+                    start_item = 0;
+                } else {
+                    const int default_start = constrain(currently_selected - 2, 0, (int)this->items->size() - 1);
+                    int sep_idx = -1;
+                    if (anchor_to_separator && currently_selected > 0) {
+                        for (int i = currently_selected - 1; i >= 0; --i) {
+                            if (items->get(i)->is_separator()) {
+                                sep_idx = i;
+                                break;
+                            }
+                        }
+                    }
+                    if (sep_idx >= 0) {
+                        // Estimate pixel height of items sep_idx..currently_selected inclusive
+                        int estimated_height = 0;
+                        for (int i = sep_idx; i <= currently_selected; ++i) {
+                            #if MENU_PERF_PARTIAL_UPDATES
+                                const int16_t h = items->get(i)->get_cached_draw_height();
+                                estimated_height += (h > 0) ? h : min_item_h;
+                            #else
+                                estimated_height += min_item_h;
+                            #endif
+                        }
+                        start_item = (estimated_height <= available_height) ? sep_idx : default_start;
+                    } else {
+                        start_item = default_start;
+                    }
+                }
+            }
 
             if (opened || this->always_show) {
                 auto it = items->begin();

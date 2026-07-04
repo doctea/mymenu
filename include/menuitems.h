@@ -294,6 +294,8 @@ class MenuItem {
         virtual MenuItem_RedrawPolicy get_overlay_redraw_policy() const { return REDRAW_ON_OWN_INPUT; }
         // whether we should be allowed to hover over this one
         virtual bool is_selectable ();
+        // whether this item is a visual section separator (e.g. SeparatorMenuItem)
+        virtual bool is_separator() const { return false; }
         // whether 'tis openable -- ie, that it can be 'opened' without having an effect, eg submenuitem... basically anything except an action?!
         virtual bool is_openable () {
             return is_selectable() && true;
@@ -423,6 +425,7 @@ class SeparatorMenuItem : virtual public MenuItem {
             // redraw_policy already set in primary constructor
         }
 
+        virtual bool is_separator() const override { return true; }
         virtual int display(Coord pos, bool selected, bool opened) override;
         virtual int header(const char *text, Coord pos, bool selected = false, bool opened = false, int textSize = 0, unsigned int text_len = (unsigned int)-1);
 };
