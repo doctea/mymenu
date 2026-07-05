@@ -6,6 +6,9 @@
     #pragma GCC diagnostic ignored "-Wstringop-truncation"
 #endif
 
+// Uncomment to log scroll/anchor decisions to Serial every frame (bottoms_computed frames only).
+// #define DEBUG_MENU_SCROLL
+
 #define LONGPRESS_MILLIS 250    // how long is considered to be a 'long press' of button
 
 #define MENU_MESSAGE_MAX (MENU_C_MAX*2)
@@ -171,7 +174,8 @@ struct page_t {
     uint16_t colour = C_WHITE;
     volatile int16_t currently_selected = -1;
     int16_t currently_opened = -1;
-    int16_t *panel_bottom = nullptr;
+    int16_t *panel_bottom = nullptr;  // abs Y of each item's bottom; used by backward scan (tolerates estimates)
+    int16_t *item_height  = nullptr;  // measured height of each item; 0 = not yet seen on-screen
     int16_t num_panels = 0;
     MenuItemList *items = nullptr;
     bool scrollable = true;

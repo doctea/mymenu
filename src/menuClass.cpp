@@ -240,11 +240,19 @@ int Menu::display() {
         bool bottoms_computed = false;
         if (selected_page->panel_bottom == nullptr) {
             selected_page->panel_bottom = (int16_t*)CALLOC_FUNC(this->get_num_panels(), sizeof(int16_t));
+            selected_page->item_height  = (int16_t*)CALLOC_FUNC(this->get_num_panels(), sizeof(int16_t));
         } else {
-            if (!this->recalculate_bottoms)
+            // Lazily allocate item_height for pages that existed before this member was added.
+            if (selected_page->item_height == nullptr)
+                selected_page->item_height = (int16_t*)CALLOC_FUNC(this->get_num_panels(), sizeof(int16_t));
+            if (!this->recalculate_bottoms) {
                 bottoms_computed = true;
-            else
+            } else {
                 this->recalculate_bottoms = false;
+                // Clear item_height so heights are re-measured from fresh on-screen renders.
+                if (selected_page->item_height != nullptr)
+                    memset(selected_page->item_height, 0, this->get_num_panels() * sizeof(int16_t));
+            }
         }
 
         int16_t *panel_bottom = selected_page->panel_bottom;
@@ -311,15 +319,20 @@ int Menu::display() {
             for (int i = currently_selected - 1; i >= 0; --i) {
                 if (items->get(i)->is_separator()) { page_sep_idx = i; break; }
             }
-            if (page_sep_idx >= 0) {
-                // Exact section height from the first full-render pass stored in panel_bottom.
-                // panel_bottom[i] is the absolute screen-Y of the bottom of item i.
+            if (page_sep_idx >= 0 && selected_page->item_height != nullptr) {
+                // Sum measured per-item heights from the separator to end of page.
+                // Using item_height[] gives accurate section size regardless of whether those
+                // items were on-screen during the first full render pass.  Falls back gracefully
+                // (does nothing) if any height in the section hasn't been measured yet.
                 const int avail = tft->height() - this->list_area_start_y;
-                const int16_t sep_top_y = (page_sep_idx > 0)
-                    ? panel_bottom[page_sep_idx - 1]
-                    : (int16_t)this->list_area_start_y;
-                const int section_height = panel_bottom[currently_selected] - sep_top_y;
-                if (section_height > 0 && section_height <= avail)
+                int section_h = 0;
+                bool section_known = true;
+                for (int j = page_sep_idx; j < (int)items->size(); ++j) {
+                    const int16_t h = selected_page->item_height[j];
+                    if (h == 0) { section_known = false; break; }
+                    section_h += h;
+                }
+                if (section_known && section_h > 0 && section_h <= avail)
                     start_panel = page_sep_idx;
             }
         }
@@ -331,6 +344,50 @@ int Menu::display() {
             panel_bottom[(int)items->size() - 1] <= tft->height()) {
             start_panel = 0;
         }
+
+        // Scroll floor: once the backward scan would scroll past the point where all
+        // remaining items fit on-screen, lock start_panel at that ceiling position.
+        // Uses measured per-item heights (item_height[]) for accuracy; skips any
+        // candidate window that contains items whose height hasn't been seen yet.
+        int scroll_ceiling_dbg = -1;
+        if (bottoms_computed && (int)items->size() > 1 && selected_page->item_height != nullptr) {
+            const int sf_avail  = tft->height() - list_area_start_y;
+            const int n_items   = (int)items->size();
+            for (int i = 1; i < n_items; ++i) {
+                int sum_h = 0;
+                bool all_known = true;
+                for (int j = i; j < n_items; ++j) {
+                    const int16_t h = selected_page->item_height[j];
+                    if (h == 0) { all_known = false; break; }
+                    sum_h += h;
+                }
+                if (!all_known) continue;
+                if (sum_h <= sf_avail) {
+                    scroll_ceiling_dbg = i;
+                    break;
+                }
+            }
+            if (scroll_ceiling_dbg >= 0 && start_panel > scroll_ceiling_dbg)
+                start_panel = scroll_ceiling_dbg;
+        }
+
+        #ifdef DEBUG_MENU_SCROLL
+        if (bottoms_computed) {
+            const int _n = (int)items->size();
+            const int _avail = tft->height() - this->list_area_start_y;
+            const int _cs_clamped = (currently_selected >= 0 && currently_selected < _n) ? currently_selected : 0;
+            Serial.printf(
+                "[SCROLL] cs=%d sp=%d sep=%d ceil=%d | avail=%d lasy=%d | pb[cs]=%d pb[N-1]=%d | ih[cs]=%d ih[N-1]=%d | n=%d\n",
+                currently_selected, start_panel, page_sep_idx, scroll_ceiling_dbg,
+                _avail, this->list_area_start_y,
+                (int)panel_bottom[_cs_clamped],
+                _n > 0 ? (int)panel_bottom[_n - 1] : -1,
+                (selected_page->item_height != nullptr) ? (int)selected_page->item_height[_cs_clamped] : -1,
+                (selected_page->item_height != nullptr && _n > 0) ? (int)selected_page->item_height[_n - 1] : -1,
+                _n
+            );
+        }
+        #endif
 
         tft->setCursor(0,y);
 
@@ -500,6 +557,14 @@ int Menu::display() {
         #if MENU_PERF_PARTIAL_UPDATES
             int list_bottom_y = list_start_y; // track where list actually ends
         #endif
+
+        // Fallback height estimate for items that render entirely off-screen during the
+        // first-pass panel_bottom population (bottoms_computed=false).  When pos.y is
+        // already >= tft->height(), item->display() clips at the screen edge and may not
+        // advance the cursor by the real item height, corrupting panel_bottom.  We keep
+        // a running estimate (updated from each successfully on-screen render) and use it
+        // for any off-screen item instead of the unreliable return value from display().
+        int_fast16_t last_pb_height_estimate = tft->getSingleRowHeight() * 2;
         
         for (int_fast16_t i = start_panel; it != items->end(); ++it, ++i) {
             //if (debug) { Serial.printf("display()=> about to get item %i\n", i); Serial_flush(); }
@@ -575,11 +640,38 @@ int Menu::display() {
             // pass. During partial viewport renders (bottoms_computed=true), y is
             // viewport-local and would corrupt the cache, causing scroll snap-back.
             if (!bottoms_computed) {
-                panel_bottom[i] = y;
+                // pos.y is the y-coordinate BEFORE this item's display() call.
+                // If the item was rendered on-screen, display() correctly advanced y and
+                // the returned value is reliable.  If it was off-screen, the TFT clips
+                // the drawing so the cursor may not advance by the true item height;
+                // in that case we estimate using the last valid on-screen height.
+                const int_fast16_t item_top_y = (int_fast16_t)pos.y;
+                if (item_top_y < (int_fast16_t)this->tft->height()) {
+                    // On-screen: y from display() is accurate.
+                    panel_bottom[i] = y;
+                    if (y > item_top_y)
+                        last_pb_height_estimate = y - item_top_y;
+                } else {
+                    // Off-screen: estimate height from last on-screen item.
+                    const int estimated = (i > 0 ? (int)panel_bottom[i-1] : (int)item_top_y)
+                                         + (int)last_pb_height_estimate;
+                    panel_bottom[i] = (int16_t)min(estimated, (int)INT16_MAX);
+                    y = panel_bottom[i]; // keep y consistent for subsequent items
+                }
             }
 
             if (bottoms_computed && y >= this->tft->height())
                 break;
+
+            // Measure per-item height the first time this item is rendered on-screen.
+            // Fires on the first render pass AND on later frames when items scroll into view,
+            // so items that were off-screen during the initial pass eventually get measured.
+            // item_height[i] == 0 means "not yet measured"; we never overwrite a valid measurement.
+            if (selected_page->item_height != nullptr && selected_page->item_height[i] == 0) {
+                const int_fast16_t h = y - (int_fast16_t)pos.y;
+                if (h > 0 && (int_fast16_t)pos.y < (int_fast16_t)this->tft->height())
+                    selected_page->item_height[i] = h;
+            }
         }
         
         #if MENU_PERF_PARTIAL_UPDATES
