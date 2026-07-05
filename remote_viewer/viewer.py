@@ -38,9 +38,7 @@ def read_exact(ser, n):
 START_MARKER = b'==START-FRAME=='
 
 def read_until_start_marker(ser):
-    """Slide byte-by-byte through the serial stream until the start marker is
-    found.  Any bytes that are *not* part of the marker are printed as debug
-    garbage so the caller can see what arrived before the frame started."""
+    """Slide byte-by-byte until ==START-FRAME== is found. Prints any skipped garbage."""
     window = b''
     garbage = b''
     while True:
@@ -48,14 +46,13 @@ def read_until_start_marker(ser):
         if not byte:
             raise IOError("Serial read timeout or disconnect")
         window += byte
-        # Keep only the last len(START_MARKER) bytes in the sliding window
         if len(window) > len(START_MARKER):
             garbage += window[:1]
             window = window[-len(START_MARKER):]
         if window == START_MARKER:
             if garbage:
                 print("Non-frame data skipped before marker:", garbage)
-            return  # marker found, stream is now positioned right after it
+            return
 
 def read_capabilities_block(ser, timeout=2.0):
     deadline = time.time() + timeout
@@ -118,7 +115,6 @@ def send_cmd(ser, prefix, cmd_char):
 
 def read_frame_packet(ser, pixel_format):
     read_until_start_marker(ser)
-
     w = struct.unpack('<H', read_exact(ser, 2))[0]
     h = struct.unpack('<H', read_exact(ser, 2))[0]
     encoding_b = read_exact(ser, 1)
@@ -126,7 +122,6 @@ def read_frame_packet(ser, pixel_format):
         raise IOError("Failed to read encoding byte")
     encoding = encoding_b[0]
     size = struct.unpack('<I', read_exact(ser, 4))[0]
-
     raw = read_exact(ser, size)
 
     expected_raw_bytes = w * h * 2
@@ -148,10 +143,7 @@ def read_frame_packet(ser, pixel_format):
                 filled += cnt
         if filled != total:
             print(f"RLE decode error: expected {total} pixels, got {filled}")
-            if size == expected_raw_bytes:
-                data16 = np.frombuffer(raw, dtype=np.uint16)
-            else:
-                data16 = pixels
+            data16 = np.frombuffer(raw, dtype=np.uint16) if size == expected_raw_bytes else pixels
         else:
             data16 = pixels
     else:
@@ -173,10 +165,6 @@ def read_frame_packet(ser, pixel_format):
                     pixels[filled:filled+cnt] = val
                     filled += cnt
             data16 = pixels
-
-    end = read_exact(ser, len("==END-FRAME=="))
-    if end != b'==END-FRAME==':
-        raise IOError("Bad packet end marker")
 
     if pixel_format == 'BGR565':
         d = data16.byteswap()
@@ -310,7 +298,6 @@ def main(port=PORT):
         print(f"Build flags: {caps.get('build_flags')}")
 
     # Live mode is started automatically by the device on '^' receipt.
-
     win_name = "Remote Viewer"
     cv2.namedWindow(win_name, cv2.WINDOW_NORMAL)
     cv2.setWindowTitle(win_name, f"Remote Viewer {port} {dev_w}\u00d7{dev_h}")
@@ -462,9 +449,14 @@ def main(port=PORT):
             if not ser.in_waiting:
                 continue
 
-            frame = read_frame_packet(ser, pixel_format)
-
-            handle_frame(frame)
+            try:
+                frame = read_frame_packet(ser, pixel_format)
+                handle_frame(frame)
+            except Exception as e:
+                # read_frame_packet handles desync internally; any exception
+                # here is a real I/O failure (disconnect, timeout, etc.).
+                print("Frame read error:", e)
+                continue
 
     except KeyboardInterrupt:
         pass
