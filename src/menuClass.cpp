@@ -264,8 +264,7 @@ int Menu::display() {
         int start_panel = 0;
         if (bottoms_computed && this->selected_page->scrollable && currently_selected >= 0 && currently_selected < (int)items->size() && panel_bottom[currently_selected] >= screen_height_cutoff) {
             start_panel = currently_selected - 1;
-            //#ifdef OLD_SCROLL_METHOD
-            // count backwards to find number of panels we have to go to fit currently_selected on screen...
+            // Count backwards to find how many panels to scroll so currently_selected is on screen.
             int count_y = panel_bottom[currently_selected];
             for (unsigned int i = currently_selected ; i > 0 ; i--) {
                 count_y -= panel_bottom[i];
@@ -274,33 +273,10 @@ int Menu::display() {
                     break;
                 }
             }
-            //#endif
-            #ifdef NEW_SCROLL_METHOD_NONWORKING
-            // count forward until we find the first item we can start on that will include the item on screen
-            int target_y = panel_bottom[currently_selected];
-            int adj_y = 0;
-            for (unsigned int i = 0 ; i < items.size() ; i++) {
-                adj_y += panel_bottom[i];
-                Debug_printf(F("item %i accumulated height %i trying to fit into %i\n"), i, adj_y, tft->height());
-                if (target_y - adj_y < tft->height()) {
-                    Serial.println(F("\tyes!"));
-                    start_panel = i;
-                    break;
-                }                
-            }
-            #endif
-
-            //tft.fillWindow(ST77XX_BLACK);
-            // tft->clear();
-            //tft->fillRect(0, 0, tft->width(), tft->height(), BLACK);
             start_panel = constrain(start_panel, 0, (int)items->size()-1);
         } else {
             start_panel = 0;
-            // tft->clear();
-            //tft->fillRect(0, 0, tft->width(), tft->height(), BLACK);
         }
-        //if (panel_bottom[currently_selected] >= tft->height()/2)
-        //    start_panel = currently_selected - 1;
 
         #ifndef ALT_MENU_POSITIONING
             if(this->selected_page->scrollable)
@@ -351,21 +327,23 @@ int Menu::display() {
         // candidate window that contains items whose height hasn't been seen yet.
         int scroll_ceiling_dbg = -1;
         if (bottoms_computed && (int)items->size() > 1 && selected_page->item_height != nullptr) {
-            const int sf_avail  = tft->height() - list_area_start_y;
-            const int n_items   = (int)items->size();
-            for (int i = 1; i < n_items; ++i) {
-                int sum_h = 0;
-                bool all_known = true;
-                for (int j = i; j < n_items; ++j) {
-                    const int16_t h = selected_page->item_height[j];
-                    if (h == 0) { all_known = false; break; }
-                    sum_h += h;
-                }
-                if (!all_known) continue;
-                if (sum_h <= sf_avail) {
-                    scroll_ceiling_dbg = i;
-                    break;
-                }
+            const int sf_avail = tft->height() - list_area_start_y;
+            const int n_items  = (int)items->size();
+            // Find the leftmost contiguous known suffix by scanning right-to-left until a gap (h==0).
+            int first_known = n_items;
+            for (int j = n_items - 1; j >= 1; --j) {
+                if (selected_page->item_height[j] == 0) break;
+                first_known = j;
+            }
+            // Accumulate a suffix sum right-to-left.  The sum grows monotonically as j decreases,
+            // so the first j where the sum exceeds avail ends the search.
+            int suffix_sum = 0;
+            for (int j = n_items - 1; j >= first_known; --j) {
+                suffix_sum += selected_page->item_height[j];
+                if (suffix_sum <= sf_avail)
+                    scroll_ceiling_dbg = j;
+                else
+                    break; // sum already exceeds avail; no further-left position will fit
             }
             if (scroll_ceiling_dbg >= 0 && start_panel > scroll_ceiling_dbg)
                 start_panel = scroll_ceiling_dbg;

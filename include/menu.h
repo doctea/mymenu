@@ -407,7 +407,7 @@ class Menu {
 
         int mode = NORMAL;
 
-        char last_message[MENU_C_MAX] = ""; //...started up...";
+        char last_message[MENU_MESSAGE_MAX] = ""; //...started up...";
         uint32_t message_colour = C_WHITE;
         #if MENU_PERF_PARTIAL_UPDATES
             bool message_dirty = true;
@@ -426,7 +426,7 @@ class Menu {
                 message_dirty = false;
             }
             void mark_message_dirty_if_changed(const char *msg, uint16_t colour) {
-                if (strncmp(last_message, msg, MENU_C_MAX) != 0 || message_colour != colour)
+                if (strncmp(last_message, msg, MENU_MESSAGE_MAX) != 0 || message_colour != colour)
                     message_dirty = true;
             }
         #endif
@@ -467,7 +467,7 @@ class Menu {
                 post_input_received();  // REDRAW_ON_ANY_INPUT only — SELECTION/DESELECTION handled in display()
             }
             /*if (debug) {
-                char msg[tft->get_c_max()] = "";
+                char msg[MENU_MESSAGE_MAX] = "";
                 sprintf(msg, "knob_left to %i", selected_page->currently_selected);
                 set_last_message(msg);
             }*/
@@ -486,7 +486,7 @@ class Menu {
                 post_input_received();  // REDRAW_ON_ANY_INPUT only
             }
             /*if (debug) {
-                char msg[tft->get_c_max()] = "";
+                char msg[MENU_MESSAGE_MAX] = "";
                 sprintf(msg, "knob_left to %i", selected_page->currently_selected);
                 set_last_message(msg);
             }*/
@@ -1054,8 +1054,8 @@ class Menu {
         // set the message to display at top of display
         void set_last_message(const char *msg, uint16_t colour = C_WHITE) {
             IF_MENU_PERF_PARTIAL_UPDATES(mark_message_dirty_if_changed(msg, colour);)
-            strncpy(last_message, msg, MENU_C_MAX);
-            last_message[MENU_C_MAX - 1] = '\0';
+            strncpy(last_message, msg, MENU_MESSAGE_MAX);
+            last_message[MENU_MESSAGE_MAX - 1] = '\0';
             this->set_message_colour(colour);
             this->add_message(msg);
         }
