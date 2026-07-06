@@ -516,6 +516,12 @@ int Menu::display() {
         }
         
         const int list_start_y = y;
+        if (list_start_y != this->list_area_start_y && selected_page->item_height != nullptr) {
+            // Viewport height changed (e.g. pinned panel expanded/collapsed, or page switch with
+            // a different header height).  Heights measured at the old geometry are wrong for the
+            // new avail, so clear them and let them be re-measured this frame.
+            memset(selected_page->item_height, 0, this->get_num_panels() * sizeof(int16_t));
+        }
         this->list_area_start_y = list_start_y;  // cache for next frame's start_panel separator/fit calculations
 
         // Mark header dirty only if page changed
@@ -663,14 +669,16 @@ int Menu::display() {
             if (bottoms_computed && y >= this->tft->height())
                 break;
 
-            // Measure per-item height the first time this item is rendered on-screen.
-            // Fires on the first render pass AND on later frames when items scroll into view,
-            // so items that were off-screen during the initial pass eventually get measured.
-            // item_height[i] == 0 means "not yet measured"; we never overwrite a valid measurement.
-            if (selected_page->item_height != nullptr && selected_page->item_height[i] == 0) {
+            // Measure per-item height every time this item renders on-screen.
+            // We keep the MAXIMUM seen height because items are taller in their selected state,
+            // and we ALWAYS refresh the currently-selected item so the scroll floor uses
+            // its current (possibly newly-taller) height rather than a stale unselected value.
+            if (selected_page->item_height != nullptr) {
                 const int_fast16_t h = y - (int_fast16_t)pos.y;
-                if (h > 0 && (int_fast16_t)pos.y < (int_fast16_t)this->tft->height())
-                    selected_page->item_height[i] = h;
+                if (h > 0 && (int_fast16_t)pos.y < (int_fast16_t)this->tft->height()) {
+                    if (h > selected_page->item_height[i] || (int)i == currently_selected)
+                        selected_page->item_height[i] = h;
+                }
             }
         }
         
