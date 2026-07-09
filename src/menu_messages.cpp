@@ -2,7 +2,7 @@
 
 #include "menu_messages.h"
 
-CircularMessageLog message_log;  // static allocation in BSS, zero-initialised
+EXTMEM CircularMessageLog message_log;  // EXTMEM: move to PSRAM; UI-only, not DMA/ISR-accessed.
 
 void messages_log_add(const char* msg) {
     // if (Serial) {
