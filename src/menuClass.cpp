@@ -139,8 +139,7 @@ int Menu::display() {
             }
             // Clear persistent overlay state so a stale active_overlay_item is never used after
             // page/selection changes that would make the pointer meaningless.
-            this->active_overlay_item = nullptr;
-            this->active_overlay_y = 0;
+            this->close_overlay();
             this->active_overlay_box_y = 0;
             this->active_overlay_box_bottom = 0;
             // Post PAGE_ENTER to all items on the incoming page

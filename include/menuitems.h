@@ -300,6 +300,10 @@ class MenuItem {
         virtual bool is_openable () {
             return is_selectable() && true;
         }
+
+        virtual void set_overlay_display(bool opened, Coord pos) {
+            // default no-op
+        }
 };
 
 // TODO: verify that this is actually what happens!

@@ -650,6 +650,8 @@ class Menu {
             return true;
         }
         bool button_back_longpress() {
+            // unwind any popup or overlay state before triggering a quickjump
+            this->close_overlay();
             if (!back_held) {
                 back_held = true;
                 quickjump_button_pressed();
@@ -756,6 +758,14 @@ class Menu {
         #endif
         void start() {
             tft->start();
+        }
+
+        void close_overlay() {
+            if (active_overlay_item != nullptr) {
+                //active_overlay_item->close_overlay(); // todo: mebbe we want to do something here to notify the item that its overlay is closing?
+                active_overlay_item = nullptr;
+                active_overlay_y = 0;
+            }
         }
 
         static const int NUM_QUICK_PAGE_HISTORY = 20;

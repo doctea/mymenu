@@ -195,6 +195,25 @@ class SubMenuItem : public MenuItem {
             return y;
         }
 
+
+        virtual void set_overlay_display(bool opened, Coord pos) override {
+            if (menu==nullptr) return;
+
+            // Match SubMenuItemBar behavior: defer opened overlay draw until end of frame.
+            // pending_overlay_item, for the deferred draw so the overlay survives skip frames.
+            if (opened && this->currently_opened>=0 && this->currently_opened < (int)this->items->size()) {
+                MenuItem *opened_item = this->items->get(this->currently_opened);
+                if (opened_item!=nullptr && opened_item->wants_fullscreen_overlay_when_opened_in_bar()) {
+                    menu->active_overlay_item  = opened_item;
+                    menu->active_overlay_y     = pos.y;
+                } else {
+                    menu->close_overlay();
+                }
+            } else {
+                menu->close_overlay();
+            }
+        }
+
         virtual bool knob_left() override {
             if (!is_opened()) {
                 currently_selected--;

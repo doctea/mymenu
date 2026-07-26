@@ -2,7 +2,10 @@
 
 #include "menu_messages.h"
 
-EXTMEM CircularMessageLog message_log;  // EXTMEM: move to PSRAM; UI-only, not DMA/ISR-accessed.
+#ifdef EXTMEM
+    EXTMEM 
+#endif
+CircularMessageLog message_log;  // EXTMEM: move to PSRAM; UI-only, not DMA/ISR-accessed.
 
 void messages_log_add(const char* msg) {
     // if (Serial) {

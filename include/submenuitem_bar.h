@@ -37,21 +37,21 @@ class SubMenuItemBar : public SubMenuItem {
             // graphs). This prevents the bar from re-rendering every frame for static overlays,
             // which was the main cause of fps drop. The overlay itself is kept alive via
             // Menu::active_overlay_item, so it can still be drawn even when the bar skips.
-                if (opened && this->currently_opened >= 0 && this->currently_opened < (int)this->items->size()) {
-                    MenuItem *overlay_item = this->items->get(this->currently_opened);
-                    if (overlay_item != nullptr && overlay_item->wants_fullscreen_overlay_when_opened_in_bar()) {
-                        // Structural events (OPEN, PAGE_ENTER, INVALIDATE) always require the bar to run
-                        // so active_overlay_item gets set on first open and after full-screen clears.
-                        // The overlay's declared policy governs live-update redraws beyond that.
-                        const MenuItem_RedrawPolicy structural =
-                            REDRAW_ON_OPEN | REDRAW_ON_PAGE_ENTER | REDRAW_ON_INVALIDATE | REDRAW_ON_CLOSE;
-                        const MenuItem_RedrawPolicy ovl_policy = overlay_item->get_overlay_redraw_policy() | structural;
-                        if (this->pending_redraw_events & ovl_policy)
-                            return true;
-                        // Bar does not need to run — overlay is handled via active_overlay_item.
-                        return false;
-                    }
+            if (opened && this->currently_opened >= 0 && this->currently_opened < (int)this->items->size()) {
+                MenuItem *overlay_item = this->items->get(this->currently_opened);
+                if (overlay_item != nullptr && overlay_item->wants_fullscreen_overlay_when_opened_in_bar()) {
+                    // Structural events (OPEN, PAGE_ENTER, INVALIDATE) always require the bar to run
+                    // so active_overlay_item gets set on first open and after full-screen clears.
+                    // The overlay's declared policy governs live-update redraws beyond that.
+                    const MenuItem_RedrawPolicy structural =
+                        REDRAW_ON_OPEN | REDRAW_ON_PAGE_ENTER | REDRAW_ON_INVALIDATE | REDRAW_ON_CLOSE;
+                    const MenuItem_RedrawPolicy ovl_policy = overlay_item->get_overlay_redraw_policy() | structural;
+                    if (this->pending_redraw_events & ovl_policy)
+                        return true;
+                    // Bar does not need to run — overlay is handled via active_overlay_item.
+                    return false;
                 }
+            }
 
             // Check children, so that we redraw if any of them need redraw
             for (auto* item : *this->items) {
