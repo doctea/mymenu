@@ -779,7 +779,7 @@ class Menu {
         };
         quick_page_entry_t quick_pages[NUM_QUICK_PAGE_HISTORY];
         int all_page_index = 0;
-        // add the page index to the 'visited history'
+        // add the page index to the 'visited history'; page_index-1 uses the current page
         void remember_opened_page(int page_index = -1, bool permanently = false) {
             if (page_index==-1)
                 page_index = selected_page_index;
@@ -919,6 +919,9 @@ class Menu {
             this->select_page(this->selected_page_index - 1);
         }
 
+        void select_page_by_name(const char *name, bool unwind = true) {
+            select_page(get_page_index_for_name(name), unwind);
+        }
         void select_page(unsigned int p, bool unwind = true) {
             // unselect current first
             if (this->selected_page!=nullptr) {
@@ -937,9 +940,6 @@ class Menu {
 
             selected_page = pages->get(selected_page_index);
             //Serial.printf("Selected page %i\n", selected_page_index);
-        }
-        void select_page_for_name(const char *name) {
-            select_page(get_page_index_for_name(name));
         }
         void open_page(unsigned int page_index, bool unwind_current = true, bool unwind_target = true) {
             //Serial.printf("open_page %i\n", page_index);
