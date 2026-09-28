@@ -113,8 +113,9 @@ class ObjectMultiToggleControl : public MenuItem {
         
         GenericList<MultiToggleItemBase*> items;
 
-        ObjectMultiToggleControl(const char *label) : MenuItem(label) {}
-        ObjectMultiToggleControl(const char *label, bool enable_all_option, bool show_header = false) : ObjectMultiToggleControl(label) {
+        ObjectMultiToggleControl(const char *label, bool enable_all_option, bool show_header = true) 
+                : MenuItem(label, show_header) 
+        {
             this->flags.show_header = show_header;
             this->all_option = enable_all_option;
         }
@@ -136,7 +137,7 @@ class ObjectMultiToggleControl : public MenuItem {
 
         virtual int display(Coord pos, bool selected, bool opened) override {
             pos.y = header(label, pos, selected, opened);
-            tft->setCursor(pos.x,pos.y);
+            tft->setCursor(pos.x, pos.y);
 
             #define FONT_WIDTH 6
 

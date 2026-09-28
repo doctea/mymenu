@@ -631,10 +631,8 @@ class Menu {
                 // an item is opened, and it responded false to button_back()
                 Debug_printf("back with currently_opened menuitem %i and no subhandling, setting to -1\n", selected_page->currently_opened); 
                 selected_page->currently_opened = -1;
-                // if (selected_page->items->size()==1) {
-                if (selected_page->openable_count()==1) {
-                    // if there is only one item on this page, close the page too
-                    // todo: make this understand if there is only one openable/SELECTABLE item on the page
+                // mirror select_first_selectable_item(): only auto-close if entering would have auto-opened the sole item
+                if (selected_page->selectable_count()==1) {
                     opened_page_index = -1;
                     selected_page->currently_selected = selected_page->currently_opened = -1;
                 }

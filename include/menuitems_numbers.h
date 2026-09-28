@@ -1,5 +1,4 @@
-#ifndef MENUITEM_NUMBERS__INCLUDED
-#define MENUITEM_NUMBERS__INCLUDED
+#pragma once
 
 #include "Arduino.h"
 
@@ -556,4 +555,3 @@ class DirectNumberControl : public NumberControl<DataType> {
     }
 };
 
-#endif

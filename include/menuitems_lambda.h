@@ -335,6 +335,10 @@ class LambdaActionConfirmItem : public LambdaActionItem {
         return this->flags.go_back_on_select;    // return to menu
     }
 
+    virtual bool is_openable () override {
+        return true;
+    }
+
 };
 
 // you might also call this LambdaMenuItem

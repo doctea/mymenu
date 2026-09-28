@@ -235,6 +235,10 @@ class ActionConfirmItem : public ActionItem {
         return flags.go_back_on_select;    // return to menu
     }
 
+    virtual bool is_openable () override {
+        return true;
+    }
+
 };
 
 #endif

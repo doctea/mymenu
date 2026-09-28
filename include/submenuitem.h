@@ -279,7 +279,8 @@ class SubMenuItem : public MenuItem {
                 #endif
                 currently_selected = currently_opened;
                 currently_opened = -1;
-                if (items->openable_count()==1)       // if there's only one item, exit out of the submenu
+                // mirror action_opened(): only auto-exit if entering would have auto-opened the sole item
+                if (items->selectable_count()==1)
                     return button_back();   // todo: recursive?! maybe we meant to call parent?
             } else if (!is_opened()) {
                 //Serial.println("submenuitem#button_back() nothing selected so settiong currently_selected then returning false");
