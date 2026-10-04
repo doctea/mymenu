@@ -74,25 +74,35 @@ class MenuItemList {
     uint16_t _openable_count = 0;
     uint16_t _selectable_count = 0;
 
-    void grow() {
-        uint16_t new_cap = (_capacity == 0) ? 8 : (_capacity + 8);
-        MenuItem** new_items = (MenuItem**)realloc(_items, new_cap * sizeof(MenuItem*));
-        if (new_items == nullptr) return; // OOM - item will not be added
+    bool resize(uint16_t capacity) {
+        MenuItem** new_items = nullptr;
+        if (capacity > 0) {
+            new_items = new (std::nothrow) MenuItem*[capacity];
+            if (new_items == nullptr) return false;
+            for (uint16_t index = 0; index < _count; ++index)
+                new_items[index] = _items[index];
+        }
+        delete[] _items;
         _items = new_items;
-        _capacity = new_cap;
+        _capacity = capacity;
+        return true;
+    }
+
+    void grow() {
+        resize((_capacity == 0) ? 8 : (_capacity + 8));
     }
 
 public:
     MenuItemList() = default;
-    ~MenuItemList() { free(_items); }
+    ~MenuItemList() { delete[] _items; }
 
     MenuItemList(const MenuItemList&) = delete;
     MenuItemList& operator=(const MenuItemList&) = delete;
 
     void add(MenuItem* m) {
         if (_count >= _capacity) grow();
-        if (_count < _capacity)
-            _items[_count++] = m;
+        if (_count >= _capacity) return;
+        _items[_count++] = m;
         if (m != nullptr && m->is_openable()) {
             _openable_count++;  // increment cached count of openable items
         }
@@ -117,14 +127,8 @@ public:
 
     // Release unused capacity after all items have been added
     void shrink_to_fit() {
-        if (_capacity > _count) {
-            if (_count == 0) {
-                free(_items); _items = nullptr; _capacity = 0;
-            } else {
-                MenuItem** new_items = (MenuItem**)realloc(_items, _count * sizeof(MenuItem*));
-                if (new_items != nullptr) { _items = new_items; _capacity = _count; }
-            }
-        }
+        if (_capacity > _count)
+            resize(_count);
     }
 
     void remove(int idx) {
@@ -720,12 +724,17 @@ class Menu {
             p->colour = colour;
             p->scrollable = scrollable;
 
-            this->add_page_to_group(p, group_name);
-
+            const uint16_t previous_size = this->pages->size();
             this->pages->add(position, p);
+            if (this->pages->size() == previous_size) {
+                free(title_copy);
+                delete p;
+                return -1;
+            }
 
+            this->add_page_to_group(p, group_name);
+            p->items = new MenuItemList();
             this->select_page(position);
-            selected_page->items = new MenuItemList();
             return position;
         }
 

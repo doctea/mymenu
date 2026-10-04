@@ -298,7 +298,7 @@ class MenuItem {
         virtual bool is_separator() const { return false; }
         // whether 'tis openable -- ie, that it can be 'opened' without having an effect, eg submenuitem... basically anything except an action?!
         virtual bool is_openable () {
-            return is_selectable() && true;
+            return is_selectable();
         }
 
         virtual void set_overlay_display(bool opened, Coord pos) {

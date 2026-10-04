@@ -114,7 +114,7 @@ class ObjectMultiToggleControl : public MenuItem {
         GenericList<MultiToggleItemBase*> items;
 
         ObjectMultiToggleControl(const char *label, bool enable_all_option, bool show_header = true) 
-                : MenuItem(label, show_header) 
+                : MenuItem(label, true, show_header) 
         {
             this->flags.show_header = show_header;
             this->all_option = enable_all_option;
