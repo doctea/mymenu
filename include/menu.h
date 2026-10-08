@@ -954,7 +954,7 @@ class Menu {
 
             select_page(page_index, unwind_current);
 
-            Serial.printf("opening page %i, currently_selected is %i\n", page_index, selected_page->currently_selected);
+            // Serial.printf("opening page %i, currently_selected is %i\n", page_index, selected_page->currently_selected);
 
             // select first selectable item 
             if (selected_page!=nullptr) {
