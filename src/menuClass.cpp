@@ -348,6 +348,30 @@ int Menu::display() {
                 start_panel = scroll_ceiling_dbg;
         }
 
+        // Keep the selected item entirely on screen. The heuristics above assume short
+        // items, so a tall selected item (or one that grew when opened, which panel_bottom[]
+        // doesn't reflect until a full recalculation) can end up partly or wholly below the
+        // screen. Scroll forward, never past the selected item itself, until it fits.
+        // Uses measured heights where known (the selected item is re-measured every frame
+        // it's on screen), else panel_bottom[] differences, which are estimates for items
+        // that were off-screen during the full pass and get corrected once measured.
+        if (bottoms_computed && selected_page->scrollable && selected_page->item_height != nullptr &&
+            currently_selected >= 0 && currently_selected < (int)items->size()) {
+            const int avail = tft->height() - list_area_start_y;
+            auto height_of = [&](int j) -> int {
+                if (selected_page->item_height[j] > 0) return selected_page->item_height[j];
+                const int top = j > 0 ? panel_bottom[j - 1] : list_area_start_y;
+                return max(1, (int)panel_bottom[j] - top);
+            };
+            int needed = 0;
+            for (int j = start_panel; j <= currently_selected; ++j)
+                needed += height_of(j);
+            while (start_panel < currently_selected && needed > avail) {
+                needed -= height_of(start_panel);
+                start_panel++;
+            }
+        }
+
         #ifdef DEBUG_MENU_SCROLL
         if (bottoms_computed) {
             const int _n = (int)items->size();
@@ -643,13 +667,11 @@ int Menu::display() {
                 }
             }
 
-            if (bottoms_computed && y >= this->tft->height())
-                break;
-
             // Measure per-item height every time this item renders on-screen.
             // We keep the MAXIMUM seen height because items are taller in their selected state,
             // and we ALWAYS refresh the currently-selected item so the scroll floor uses
             // its current (possibly newly-taller) height rather than a stale unselected value.
+            // Done before the off-screen break so an item overflowing the bottom is still measured.
             if (selected_page->item_height != nullptr) {
                 const int_fast16_t h = y - (int_fast16_t)pos.y;
                 if (h > 0 && (int_fast16_t)pos.y < (int_fast16_t)this->tft->height()) {
@@ -657,6 +679,9 @@ int Menu::display() {
                         selected_page->item_height[i] = h;
                 }
             }
+
+            if (bottoms_computed && y >= this->tft->height())
+                break;
         }
         
         #if MENU_PERF_PARTIAL_UPDATES
