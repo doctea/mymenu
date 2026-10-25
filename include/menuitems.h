@@ -91,6 +91,13 @@ class Coord {
 
 void menu_set_last_message(const char *msg, int colour);
 
+void format_menu_line(
+    char* out, size_t out_size,
+    const char* label,
+    const char* button_text,
+    const char* fmt_string = " %s: "
+);
+
 // Lightweight flat-array list to replace LinkedList<option> in selector controls.
 // Eliminates per-entry malloc overhead (LinkedList paid 8-byte alloc overhead per 8-byte option node).
 template<typename T>
@@ -304,6 +311,7 @@ class MenuItem {
         virtual void set_overlay_display(bool opened, Coord pos) {
             // default no-op
         }
+
 };
 
 // TODO: verify that this is actually what happens!

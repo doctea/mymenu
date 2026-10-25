@@ -214,4 +214,48 @@ int SeparatorMenuItem::display(Coord pos, bool selected, bool opened) {
     return pos.y;
 }
 
+// take two strings and add them together into a formatted menu line with the second item right-justified
+// todo: this really should live elsewhere, e.g., in a common menu utilities header
+void format_menu_line(
+    char* out, size_t out_size,
+    const char* label,
+    const char* button_text,
+    const char* fmt_string
+) {
+
+    // Build prefix: " label: "
+    char prefix[64];
+    snprintf(prefix, sizeof(prefix), fmt_string, label);
+
+    size_t prefix_len = strlen(prefix);
+    size_t btn_len    = strlen(button_text);
+
+    // Remaining space for the right-justified field
+    if (prefix_len >= MENU_C_MAX) {
+        // Degenerate case: no room for button text
+        strncpy(out, prefix, MENU_C_MAX);
+        out[MENU_C_MAX] = '\0';
+        return;
+    }
+
+    size_t field_width = MENU_C_MAX - prefix_len;
+
+    // If button text is longer than field, just print it
+    size_t pad = (btn_len >= field_width)
+                ? 0
+                : (field_width - btn_len);
+
+    // Write prefix
+    strcpy(out, prefix);
+
+    // Write left padding (to right-justify)
+    memset(out + prefix_len, ' ', pad);
+
+    // Write button text
+    strncpy(out + prefix_len + pad, button_text, btn_len);
+
+    // Terminate
+    out[prefix_len + pad + btn_len] = '\0';
+}
+
 #endif
