@@ -2,6 +2,10 @@
 
 #include "menuitems.h"
 
+#ifdef MENU_ITEM_ARENA
+MenuItemArena *menu_item_arena = nullptr;
+#endif
+
 const char *fired_message = "Fired %s";
 const char *sure_message = "Sure ???";
 const char *set_message = "Set %s to %s (%i)";

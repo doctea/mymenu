@@ -8,6 +8,9 @@
 #define MENUITEMS__INCLUDED
 
 #include <Arduino.h>
+#ifdef MENU_ITEM_ARENA
+#include "menu_arena.h"
+#endif
 
 //#include "menu.h"
 #include "display_abstract.h"
@@ -153,6 +156,48 @@ public:
 // basic line
 class MenuItem {
     public:
+#ifdef MENU_ITEM_ARENA
+        static void *operator new(size_t size) {
+            return menu_item_allocate(size);
+        }
+        static void *operator new(size_t size, const std::nothrow_t&) noexcept {
+            return menu_item_allocate(size, true);
+        }
+        static void *operator new(size_t, void *memory) noexcept {
+            return memory;
+        }
+        static void *operator new[](size_t size) {
+            return menu_item_allocate(size);
+        }
+        static void *operator new[](size_t size, const std::nothrow_t&) noexcept {
+            return menu_item_allocate(size, true);
+        }
+        static void *operator new[](size_t, void *memory) noexcept {
+            return memory;
+        }
+
+        static void operator delete(void *pointer) noexcept {
+            menu_item_deallocate(pointer);
+        }
+        static void operator delete(void *pointer, size_t) noexcept {
+            menu_item_deallocate(pointer);
+        }
+        static void operator delete(void *pointer, const std::nothrow_t&) noexcept {
+            menu_item_deallocate(pointer);
+        }
+        static void operator delete(void*, void*) noexcept {}
+        static void operator delete[](void *pointer) noexcept {
+            menu_item_deallocate(pointer);
+        }
+        static void operator delete[](void *pointer, size_t) noexcept {
+            menu_item_deallocate(pointer);
+        }
+        static void operator delete[](void *pointer, const std::nothrow_t&) noexcept {
+            menu_item_deallocate(pointer);
+        }
+        static void operator delete[](void*, void*) noexcept {}
+    #endif
+
         bool debug = false;
 
         DisplayTranslator *tft = nullptr;
