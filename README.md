@@ -25,6 +25,26 @@ Also extended by the [parameters](https://github.com/doctea/parameters) library 
 
 - See [docs/render-options.md](docs/render-options.md) for the current display/render/viewer flags, trade-offs, and known pitfalls.
 
+## Object Selector Controls
+
+`ObjectSelectorControl<TargetClass, DataType>` uses `NumberControl<int>` for
+option indices. Its internal/current values and numeric editing methods use
+indices, while option values, target getters/setters, and change callbacks use
+`DataType`. Both direct edits and selection map the index to the option value
+once; callbacks receive the target values before and after the setter.
+
+An unmatched target value or missing option list has index `-1` and displays
+`N/A`. Selecting it does not write a default value to the target. With options
+available, the first knob movement selects the first option. Target getters
+are not called from the constructor; selection is synchronized on add/open
+and when replacing the option list.
+
+Run the focused C++11/UBSan regression with Node.js and `g++` available:
+
+```sh
+node test/object_selector_host_test.js
+```
+
 ## todo
 
 - Refactor to improve inheritance and reusability of the menu item code?
