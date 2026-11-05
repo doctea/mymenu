@@ -1,24 +1,15 @@
-#ifndef MENUITEMS_FILEVIEWER__INCLUDED
-#define MENUITEMS_FILEVIEWER__INCLUDED
+#pragma once
 
 #ifdef ENABLE_SD
 
 #include <Arduino.h>
-
 #include <util/atomic.h>
-
-#include "LinkedList.h"
-#include "menuitems.h"
-
 #ifdef ENABLE_SD
     #include "SD.h"
 #endif
 
-int freeRam();
-#ifdef ARDUINO_TEENSY41
-    int freeExtRam();
-#endif
-
+#include "shared_debug.h"
+#include "menuitems.h"
 #include "menuitems_listviewer.h"
 
 class FileViewerMenuItem : public ListViewerMenuItem {
@@ -84,7 +75,5 @@ class FileViewerMenuItem : public ListViewerMenuItem {
     }
 
 };
-
-#endif
 
 #endif

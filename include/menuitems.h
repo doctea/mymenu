@@ -4,8 +4,7 @@
     #pragma GCC diagnostic ignored "-Wstringop-truncation"
 #endif
 
-#ifndef MENUITEMS__INCLUDED
-#define MENUITEMS__INCLUDED
+#pragma once
 
 #include <Arduino.h>
 #ifdef MENU_ITEM_ARENA
@@ -334,6 +333,7 @@ class MenuItem {
         virtual bool button_select_released();
         virtual bool button_back();
         virtual bool button_right();
+        virtual bool button_right_unopened();
         virtual bool knob_left();
         virtual bool knob_right();
         virtual bool allow_takeover();
@@ -490,5 +490,3 @@ class SeparatorMenuItem : virtual public MenuItem {
 #include "menuitems_toggle.h"
 #include "menuitems_object.h"
 #include "menuitems_fileviewer.h"
-
-#endif

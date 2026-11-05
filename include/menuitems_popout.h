@@ -21,7 +21,7 @@ struct SelectorTakeoverOverlaySpec {
     int subtitle_top_gap = 3;
     int max_title_text_size = 1;
     int max_value_text_size = 3;
-    int max_subtitle_text_size = 1;
+    int max_subtitle_text_size = 2;
 
     bool has_extra = false;
     int extra_height = 0;

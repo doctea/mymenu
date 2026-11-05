@@ -1,15 +1,11 @@
 #ifdef ENABLE_SCREEN
 
+#include "shared_debug.h"
+
 #include "menu.h"
 #include "menuitems.h"
 
-#include <LinkedList.h>
 #include <profiling.h>
-
-int freeRam();
-#ifdef ARDUINO_TEENSY41
-    int freeExtRam();
-#endif
 
 #include <string>
 

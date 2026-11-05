@@ -4,25 +4,10 @@
     #pragma GCC diagnostic ignored "-Wstringop-truncation"
 #endif
 
-#ifndef MYMENU__INCLUDED
-#define MYMENU__INCLUDED
+#pragma once
 
-//#include "Config.h"
-
-#include <LinkedList.h>
-//#include <Adafruit_GFX.h>
-//#include "ST7789_t3.h"
 #include "tft.h"
-//#include "menu.h"
-
-//#include "midi_helpers.h"
-//#include "debug.h"
-//#include "bpm.h"
-//#include "project.h"
 
 #include "colours.h"
-
 #include "menu.h"
 #include "menuitems.h"
-
-#endif

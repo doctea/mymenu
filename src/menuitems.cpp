@@ -100,6 +100,9 @@ bool MenuItem::button_back() {
 bool MenuItem::button_right() {
     return false;
 }
+bool MenuItem::button_right_unopened() {
+    return false;
+}
 bool MenuItem::knob_left() {
     return false;
 }

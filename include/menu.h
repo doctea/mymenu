@@ -436,6 +436,9 @@ class Menu {
         #endif
         DisplayTranslator *tft;
 
+        bool is_item_selected() {
+            return this->selected_page->currently_selected!=-1;
+        }
         bool is_item_opened() {
             return this->selected_page->currently_opened!=-1;
         }
@@ -664,16 +667,25 @@ class Menu {
             Debug_println("button_right()");
             if (!is_page_opened()) {
                 open_page(selected_page_index);
-            } else if (is_item_opened()) {
-                MenuItem* item = selected_page->items->get(selected_page->currently_opened);
-                if (item->button_right()) {
-                    Debug_printf("right with currently_opened menuitem %i subhandled!\n", selected_page->currently_opened);
-                } else {
-                    Debug_printf("right with currently_opened menuitem %i not subhandled!\n", selected_page->currently_opened);
-                }
-                post_input_received(item);
             } else {
-                Debug_printf("right with nothing currently_opened\n"); //setting to -1\n", currently_opened);
+                if (is_item_opened()) {
+                    MenuItem* item = selected_page->items->get(selected_page->currently_opened);
+                    if (item->button_right()) {
+                        Debug_printf("right with currently_opened menuitem %i subhandled!\n", selected_page->currently_opened);
+                    } else {
+                        Debug_printf("right with currently_opened menuitem %i not subhandled!\n", selected_page->currently_opened);
+                    }
+                    post_input_received(item);
+                } else if (is_item_selected()) {
+                    Serial.printf("right with nothing currently_opened!\n"); //setting to -1\n", currently_opened);
+                    MenuItem* item = selected_page->items->get(selected_page->currently_selected);
+                    if (item->button_right_unopened()) {
+                        Serial.printf("right with currently_selected menuitem %i subhandled!\n", selected_page->currently_selected);
+                    } else {
+                        Serial.printf("right with currently_selected menuitem %i not subhandled!\n", selected_page->currently_selected);
+                    }
+                    post_input_received(item);
+                }
             }
             return true;
         }

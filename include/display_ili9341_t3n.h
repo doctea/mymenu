@@ -3,22 +3,20 @@
 
 #ifdef TFT_ILI9341_T3N
 
+#include <SPI.h>
+#include <ILI9341_t3n.h>
+// #include <fonts/FreeMono9pt7b.h>
+// #include <ili9341_t3n_font_Arial.h>
+//#include <Adafruit_GFX.h>
+//#include <ILI9341_fonts.h>
+
+#include "menu.h"
 #include "display_abstract.h"
+#include "colours.h"
+#include "tft.h"
 
 #include "debug.h"
 
-#include "menu.h"
-
-//#include <Adafruit_GFX.h>
-#include <SPI.h>
-#include <ILI9341_t3n.h>
-//#include <ILI9341_fonts.h>
-
-//#include <fonts/FreeMono9pt7b.h>
-
-#include "colours.h"
-
-#include "tft.h"
 
 #define SPI_SPEED 50000000
 
@@ -63,6 +61,8 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
         this->setTextWrap(true);
 
         tft->setFontAdafruit();
+        // tft->setFont(Arial_10);
+        // tft->setFont(&FreeMono9pt7b);
 
         tft->fillScreen(BLACK);
         //tft->setTextWrap(false);

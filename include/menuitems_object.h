@@ -23,8 +23,8 @@ class ObjectNumberControl : public NumberControl<DataType> {
         this->getter = getter_func;
         this->setter = setter_func;
         this->on_change_handler = on_change_handler;
-        this->minimumDataValue = 0;
-        this->maximumDataValue = 100;
+        this->minimumDataValue = (DataType)0;
+        this->maximumDataValue = (DataType)100;
 
         if (this->target_object!=nullptr && this->getter!=nullptr) 
             this->set_internal_value( (this->target_object->*getter)() );
@@ -88,7 +88,7 @@ class ObjectNumberControl : public NumberControl<DataType> {
             return v;
         }
         
-        return 0;
+        return (DataType)0;
     }
 
     // override in subclass if need to do something special eg getter/setter
@@ -111,27 +111,33 @@ class ObjectNumberControl : public NumberControl<DataType> {
 };
 
 
-template<class TargetClass>
+template<class TargetClass, class DataType = bool>
 class ObjectToggleControl : public MenuItem {
     public:
         TargetClass *target_object;
+        const char *label_on = ::label_on;
+        const char *label_off = ::label_off;
 
-        void(TargetClass::*setter)(bool) = nullptr;
-        bool(TargetClass::*getter)() = nullptr;
+        void(TargetClass::*setter)(DataType) = nullptr;
+        DataType(TargetClass::*getter)() = nullptr;
 
-        void (*on_change_handler)(bool last_value, bool new_value) = nullptr;
+        void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr;
 
         ObjectToggleControl(
             const char *label, 
             TargetClass *target_object, 
-            void(TargetClass::*setter)(bool), 
-            bool(TargetClass::*getter)(), 
-            void (*on_change_handler)(bool last_value, bool new_value) = nullptr
+            void(TargetClass::*setter)(DataType), 
+            DataType(TargetClass::*getter)(), 
+            void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr,
+            const char *label_on = ::label_on,
+            const char *label_off = ::label_off
         ) : MenuItem(label) {
             this->target_object = target_object;
             this->setter = setter;
             this->getter = getter;
             this->on_change_handler = on_change_handler;
+            this->label_on = label_on;
+            this->label_off = label_off;
         }
 
         virtual int display(Coord pos, bool selected, bool opened) override {
@@ -161,10 +167,10 @@ class ObjectToggleControl : public MenuItem {
 
         virtual bool action_opened() override {
             //if (this->debug) Serial.printf(F("ObjectToggleControl#action_opened on %s\n"), this->label);
-            bool value = !(this->target_object->*getter)();
+            DataType value = !((this->target_object->*getter)());
             //this->internal_value = !this->internal_value;
 
-            (this->target_object->*setter)(value); //(bool)this->internal_value);
+            (this->target_object->*setter)(value); //(DataType)this->internal_value);
             return false;   // don't 'open'
         }
 };

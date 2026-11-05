@@ -3,15 +3,19 @@
 #include "menu.h"
 
 template<class TargetClass, class DataType>
-class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
+class ObjectSelectorControl : public NumberControl<int> {
 
     public:
-    
+
     struct option {
         DataType value;
         const char *label;
     };
 
+    TargetClass *target_object = nullptr;
+    void(TargetClass::*setter)(DataType) = nullptr;
+    DataType(TargetClass::*getter)() = nullptr;
+    void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr;
     OptionList<option> *available_values = nullptr;
 
     ObjectSelectorControl(
@@ -22,54 +26,47 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
         void (*on_change_handler)(DataType last_value, DataType new_value) = nullptr,
         bool go_back_on_select = false,
         bool direct = false
-    ) : ObjectNumberControl<TargetClass,DataType>(label, target_object, setter_func, getter_func, on_change_handler, go_back_on_select, direct) {
-        if (this->target_object!=nullptr && this->getter!=nullptr)
-            this->set_internal_value (this->get_index_for_value( (this->target_object->*this->getter)() ));
-        //this->debug = true;
+    ) : NumberControl<int>(label, go_back_on_select, direct),
+        target_object(target_object), setter(setter_func), getter(getter_func), on_change_handler(on_change_handler) {
+        this->internal_value = -1;
+        this->minimumDataValue = 0;
+        this->maximumDataValue = -1;
+    }
+
+    virtual void on_add() override {
+        NumberControl<int>::on_add();
+        this->set_internal_value(this->get_current_value());
     }
 
     virtual bool action_opened() override {
-        //Serial.printf("ObjectSelectorControl#action_opened, internal_value is currently %i (%s)\n", this->internal_value, getFormattedValue());
-        //Serial.printf("ObjectSelectorControl#action_opened, value from getter is %i\n", (this->target_object->*this->getter)());
-        this->internal_value = this->get_index_for_value((this->target_object->*this->getter)());
-        //Serial.printf("ObjectSelectorControl#action_opened, internal_value setting to %i (%s)\n", this->internal_value, getFormattedValue());
-        return !ObjectNumberControl<TargetClass,DataType>::readOnly;
-        //return ObjectNumberControl<TargetClass,DataType>::action_opened();
+        if (this->readOnly || this->target_object == nullptr || this->getter == nullptr || this->setter == nullptr)
+            return false;
+        this->set_internal_value(this->get_current_value());
+        return true;
     }
 
     virtual int get_index_for_value(DataType value) {
-        if (this->available_values == nullptr) return 0;
+        if (this->available_values == nullptr) return -1;
 
-        int idx = 0;
+        int index = 0;
         for (auto& entry : *available_values) {
-            if (entry.value==value) {
-                //Serial.printf("get_index_for_value(%i) returning %i\n", value, idx);
-                return idx;
-            }
-            ++idx;
+            if (entry.value == value)
+                return index;
+            ++index;
         }
         return -1;
     }
     virtual const DataType get_value_for_index(int index) {
-        if (this->available_values == nullptr) return 0;
-
-        if (index<0 || index>=(int)available_values->size())
-            return 0;
-        //Serial.printf("get_value_for_index(%i) returning %i\n", index, available_values.get(index).value);
+        if (!this->is_valid_index(index))
+            return DataType{};
         return available_values->get(index).value;
     }
-    virtual const char*get_label_for_value(int value) {
-        /*static char value_label[MENU_C_MAX];
-        sprintf(value_label, "%i", value);
-        return value_label;*/
-        int index = get_index_for_value(value);
-        return this->get_label_for_index(index);
+    virtual const char *get_label_for_value(DataType value) {
+        return this->get_label_for_index(this->get_index_for_value(value));
     }
-    virtual const char*get_label_for_index(int index) {
-        if (this->available_values == nullptr) return 0;
-        if (index<0 || index>=(int)available_values->size())
+    virtual const char *get_label_for_index(int index) {
+        if (!this->is_valid_index(index))
             return "N/A";
-        //Serial.printf("get_label_for_index(%i) returning '%s'\n", index, available_values.get(index).label);
         return available_values->get(index).label;
     }
 
@@ -77,71 +74,65 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
         return this->get_label_for_index(this->get_internal_value());
     }
     virtual const char *getFormattedValue() override {
-        return this->get_label_for_value(this->get_current_value());
+        return this->get_label_for_index(this->get_current_value());
+    }
+
+    virtual void set_internal_value(int index) override {
+        this->internal_value = this->is_valid_index(index) ? index : -1;
     }
 
     virtual void increase_value() override {
-        int idx = this->get_internal_value();
-
-        if ((DataType)idx>=this->getMaximumDataValue()) 
-            return; //idx = this->getMaximumDataValue(); //available_values->size();
-
-        idx++;
-
-        //Serial.printf("%s: increase_value got new idx %i (corresponding to value %s)\n", this->label, idx, this->get_label_for_index(idx));
-        this->set_internal_value((DataType)idx);
-        if (this->direct) 
-            this->set_current_value(this->get_value_for_index(idx));
-    }
-    virtual void decrease_value() override {
-        int idx = this->get_internal_value();
-
-        if (idx==this->getMinimumDataValue())   // for protection against unsigned values wrapping around
+        if (this->readOnly || this->available_values == nullptr || this->available_values->empty())
             return;
 
-        idx--;
+        int index = this->get_internal_value();
+        if (index >= this->getMaximumDataValue())
+            return;
 
-        if ((DataType)idx<this->getMinimumDataValue()) 
-            idx = this->getMinimumDataValue();
+        this->set_internal_value(index + 1);
+        if (this->direct)
+            this->change_value(this->get_internal_value());
+    }
+    virtual void decrease_value() override {
+        if (this->readOnly || this->available_values == nullptr || this->available_values->empty())
+            return;
 
-        this->set_internal_value((DataType)idx);
-        if (this->direct) 
-            this->set_current_value(this->get_value_for_index(idx));
+        int index = this->get_internal_value();
+        if (index == this->getMinimumDataValue())
+            return;
+
+        this->set_internal_value(index < 0 ? 0 : index - 1);
+        if (this->direct)
+            this->change_value(this->get_internal_value());
     }
 
-    // override in subclass if need to do something special eg getter/setter
-    /*virtual DataType get_current_value() override {
-        if (this->target_object!=nullptr && this->getter!=nullptr) {
-            if (this->debug) { Serial.printf("ObjectNumberControl#get_current_value in %s about to call getter\n", this->label); Serial_flush(); }
-            DataType v = (this->target_object->*this->getter)();
-            Serial.printf("get_current_value from getter got %i, returning index %i\n", v, this->get_index_for_value(v));
-            if (this->debug) { Serial.println("Called getter!"); Serial_flush(); }
+    virtual int get_current_value() override {
+        if (this->target_object == nullptr || this->getter == nullptr)
+            return -1;
+        return this->get_index_for_value((this->target_object->*this->getter)());
+    }
 
-            return this->get_index_for_value(v);
-        }
-        
-        return 0;
-    }*/
+    virtual void change_value(int index) override {
+        if (this->readOnly || this->target_object == nullptr || this->getter == nullptr || this->setter == nullptr || !this->is_valid_index(index))
+            return;
 
-    // override in subclass if need to do something special eg getter/setter
-    virtual void set_current_value(DataType value) override { 
-        //this->internal_value = value;
-        //if (this->debug) { Serial.printf(F("ObjectSelectorControl#set_current_value() passed value %i "), value); Serial_flush(); }
-        if (this->target_object!=nullptr && this->setter!=nullptr) {
-            //Serial.printf("ObjectSelectorControl#set_current_value() with index %i ", value); Serial_flush(); 
-            value = this->get_value_for_index(value);
-            //Serial.printf(F("\tConverted to value_for_index %i\n"), value); Serial_flush(); 
-            (this->target_object->*this->setter)(value);
+        DataType last_value = (this->target_object->*this->getter)();
+        this->set_internal_value(index);
+        this->set_current_value(index);
+        if (this->on_change_handler != nullptr)
+            this->on_change_handler(last_value, (this->target_object->*this->getter)());
+    }
 
-            char msg[MENU_MESSAGE_MAX];
-            //Serial.printf("about to build msg string...\n");
-            // todo: fix compiler warning / type of value, may need to override or just only print FormattedValue to the message and not the real value
-            snprintf(msg, MENU_MESSAGE_MAX, "Set %8s to %s (%i)", this->label, get_label_for_value(value), value);
-            //Serial.printf("about to set_last_message!");
-            //msg[this->tft->get_c_max()] = '\0'; // limit the string so we don't overflow set_last_message
-            menu_set_last_message(msg,GREEN);
-        }
-        if (this->debug) { Serial.println(F("Done.")); Serial_flush(); }
+    virtual void set_current_value(int index) override {
+        if (this->readOnly || this->target_object == nullptr || this->getter == nullptr || this->setter == nullptr || !this->is_valid_index(index))
+            return;
+
+        DataType value = this->get_value_for_index(index);
+        (this->target_object->*this->setter)(value);
+
+        char message[MENU_MESSAGE_MAX];
+        snprintf(message, MENU_MESSAGE_MAX, "Set %8s to %s", this->label, this->get_label_for_value(value));
+        menu_set_last_message(message, GREEN);
     }
 
     virtual OptionList<option> *setup_available_values() {
@@ -151,13 +142,10 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
     }
 
     virtual void add_available_value(DataType value, const char *label) {
-        if (this->available_values == nullptr) 
+        if (this->available_values == nullptr)
             this->setup_available_values();
-        available_values->add(option { .value = value, .label = label });
-        this->minimumDataValue = (DataType)0;
-        //if (value>this->maximumDataValue)
-        //    this->maximumDataValue = value;
-        this->maximumDataValue = (DataType)(available_values->size() - 1);
+        available_values->add(option { value, label });
+        this->update_index_range();
     }
 
     virtual OptionList<option> *get_available_values() {
@@ -167,22 +155,28 @@ class ObjectSelectorControl : public ObjectNumberControl<TargetClass,DataType> {
     }
     virtual void set_available_values(OptionList<option> *available_values) {
         this->available_values = available_values;
-        if (available_values!=nullptr) {
-            this->maximumDataValue = available_values->size() - 1;
-            /*DataType highest = 0;
-            for (unsigned int i = 0 ; i < available_values->size() ; i++) {
-                if (available_values->get(i).value > highest)
-                    this->maximumDataValue = available_values->get(i).value;
-            }*/
-        }
+        this->update_index_range();
+        this->set_internal_value(this->get_current_value());
     }
     virtual void set_available_values(labelled_value_list_t<DataType> *available_values) {
         if (this->available_values==nullptr)
             this->setup_available_values();
         this->available_values->clear();
-        for (auto& entry : *available_values) {
-            this->add_available_value(entry.value, entry.label);
+        if (available_values != nullptr) {
+            for (auto& entry : *available_values)
+                this->add_available_value(entry.value, entry.label);
         }
+        this->update_index_range();
+        this->set_internal_value(this->get_current_value());
     }
 
+    protected:
+    bool is_valid_index(int index) const {
+        return this->available_values != nullptr && index >= 0 && index < static_cast<int>(this->available_values->size());
+    }
+
+    void update_index_range() {
+        this->minimumDataValue = 0;
+        this->maximumDataValue = this->available_values == nullptr ? -1 : static_cast<int>(this->available_values->size()) - 1;
+    }
 };

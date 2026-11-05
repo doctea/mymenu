@@ -291,16 +291,20 @@ class SubMenuItem : public MenuItem {
             return true;
         }
 
+        virtual bool button_right_unopened() override {
+            if (Serial) Serial.printf("submenuitem button_right_unopened\n");
+            // this would be called when the right button is pressed but the submenu is not opened
+            return false;
+        }
+
         virtual bool button_right() override {
             if (is_opened()) {
-                if (items->get(currently_opened)->button_right()) {
-
-                } else {
-
-                }
-            } else {
-
-            }
+                if (Serial) Serial.printf("submenuitem button_right: is_opened\n");
+                return items->get(currently_opened)->button_right();
+            } else if (currently_selected >= 0) {
+                if (Serial) Serial.printf("submenuitem button_right: currently_selected >= 0\n");
+                return items->get(currently_selected)->button_right_unopened();
+            }               
             return true;
         }
 };
