@@ -16,6 +16,9 @@
 #include "tft.h"
 
 #include "debug.h"
+#ifdef ENABLE_REMOTE_VIEWER
+    #include "serial_output.h"
+#endif
 
 
 #define SPI_SPEED 50000000
@@ -205,20 +208,26 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
     // header is always consistent with the payload.  USB serial has enough throughput.
     void sendRawFrame() {
         uint16_t *pixels = tft->getFrameBuffer();
-        if (!pixels) return;
+        if (!pixels) {
+            foundling::serial_output().println("viewer: framebuffer unavailable");
+            return;
+        }
 
         uint16_t w        = width();
         uint16_t h        = height();
         uint32_t raw_bytes = (uint32_t)w * (uint32_t)h * 2;
         uint8_t  encoding  = 0;
 
-        Serial.print("==START-FRAME==");
-        Serial.write((uint8_t*)&w,         2);
-        Serial.write((uint8_t*)&h,         2);
-        Serial.write(&encoding,            1);
-        Serial.write((uint8_t*)&raw_bytes, 4);
-        Serial.write((uint8_t*)pixels,     raw_bytes);
-        Serial.print("==END-FRAME==");
+        foundling::SerialPacket frame;
+        if (!frame) return;
+        frame.print("==START-FRAME==");
+        frame.write((const uint8_t*)&w,         2);
+        frame.write((const uint8_t*)&h,         2);
+        frame.write(&encoding,                  1);
+        frame.write((const uint8_t*)&raw_bytes,  4);
+        frame.write((const uint8_t*)pixels,     raw_bytes);
+        frame.print("==END-FRAME==");
+        frame.finish();
     }
 
     virtual void push_framebuffer_serial() override {

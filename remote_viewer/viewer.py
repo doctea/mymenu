@@ -26,71 +26,177 @@ def send_to_clipboard(image):
     win32clipboard.SetClipboardData(win32clipboard.CF_DIB, data)
     win32clipboard.CloseClipboard()
 
-def read_exact(ser, n):
-    buf = b''
-    while len(buf) < n:
-        chunk = ser.read(n - len(buf))
-        if not chunk:
-            raise IOError("Serial read timeout or disconnect")
-        buf += chunk
-    return buf
-
 START_MARKER = b'==START-FRAME=='
+END_MARKER = b'==END-FRAME=='
+HELLO_MARKER = b'==VIEWER-HELLO=='
+HELLO_END_MARKER = b'==END-VIEWER-HELLO=='
+FRAME_HEADER = struct.Struct('<HHBI')
+MAX_FRAME_DIMENSION = 1024
+MAX_HELLO_BYTES = 16384
 
-def read_until_start_marker(ser):
-    """Slide byte-by-byte until ==START-FRAME== is found. Prints any skipped garbage."""
-    window = b''
-    garbage = b''
-    while True:
-        byte = ser.read(1)
-        if not byte:
-            raise IOError("Serial read timeout or disconnect")
-        window += byte
-        if len(window) > len(START_MARKER):
-            garbage += window[:1]
-            window = window[-len(START_MARKER):]
-        if window == START_MARKER:
-            if garbage:
-                print("Non-frame data skipped before marker:", garbage)
-            return
+
+class FrameProtocolError(ValueError):
+    pass
+
+
+class ReplayTransport:
+    def __init__(self, source):
+        self.source = source
+        self.size = source.seek(0, 2)
+        source.seek(0)
+
+    @property
+    def in_waiting(self):
+        return self.size - self.source.tell()
+
+    def read(self, size):
+        chunk = self.source.read(size)
+        if not chunk:
+            raise EOFError("End of recorded viewer stream")
+        return chunk
+
+
+class ViewerStream:
+    def __init__(self, transport, recording=None):
+        self.transport = transport
+        self.recording = recording
+        self.buffer = bytearray()
+        self.rejected_frames = 0
+        self.skipped_bytes = 0
+
+    @property
+    def in_waiting(self):
+        return len(self.buffer) + self.transport.in_waiting
+
+    def write(self, data):
+        written = self.transport.write(data)
+        if written != len(data):
+            raise IOError(f"Short command write: {written}/{len(data)} bytes")
+        return written
+
+    def flush(self):
+        self.transport.flush()
+
+    def _receive(self, deadline):
+        while time.monotonic() < deadline:
+            chunk = self.transport.read(min(self.transport.in_waiting or 1, 65536))
+            if chunk:
+                if self.recording is not None:
+                    self.recording.write(chunk)
+                self.buffer.extend(chunk)
+                return
+        raise TimeoutError("Timed out waiting for viewer data")
+
+    def _ensure(self, size, deadline):
+        while len(self.buffer) < size:
+            self._receive(deadline)
+
+    def _skip_non_packet_data(self, size):
+        if size:
+            self.skipped_bytes += size
+            preview = bytes(self.buffer[:min(size, 160)])
+            print(f"Non-packet data ({size} bytes): {preview!r}")
+            del self.buffer[:size]
+
+    def _reject_frame(self, message):
+        self.rejected_frames += 1
+        # Keep subsequent bytes: a truncated packet may contain the next marker.
+        del self.buffer[:1]
+        raise FrameProtocolError(message)
+
+    def read_packet(self, deadline=None):
+        if deadline is None:
+            deadline = time.monotonic() + 2.0
+        while True:
+            positions = [
+                (position, kind)
+                for marker, kind in ((START_MARKER, 'frame'), (HELLO_MARKER, 'hello'))
+                if (position := self.buffer.find(marker)) >= 0
+            ]
+            if not positions:
+                keep = max(len(START_MARKER), len(HELLO_MARKER)) - 1
+                self._skip_non_packet_data(max(0, len(self.buffer) - keep))
+                self._receive(deadline)
+                continue
+            position, kind = min(positions)
+            self._skip_non_packet_data(position)
+
+            if kind == 'hello':
+                while True:
+                    end = self.buffer.find(HELLO_END_MARKER, len(HELLO_MARKER))
+                    if end >= 0:
+                        if end > MAX_HELLO_BYTES:
+                            del self.buffer[:1]
+                            raise FrameProtocolError("Capability block exceeds size limit")
+                        body = bytes(self.buffer[len(HELLO_MARKER):end])
+                        del self.buffer[:end + len(HELLO_END_MARKER)]
+                        # The hello trailer has a newline, unlike frame trailers.
+                        if self.buffer[:2] == b'\r\n':
+                            del self.buffer[:2]
+                        elif self.buffer[:1] == b'\n':
+                            del self.buffer[:1]
+                        return 'hello', body
+                    if len(self.buffer) > MAX_HELLO_BYTES:
+                        del self.buffer[:1]
+                        raise FrameProtocolError("Capability block exceeds size limit")
+                    self._receive(deadline)
+
+            header_size = len(START_MARKER) + FRAME_HEADER.size
+            try:
+                self._ensure(header_size, deadline)
+                w, h, encoding, size = FRAME_HEADER.unpack_from(self.buffer, len(START_MARKER))
+                if not (0 < w <= MAX_FRAME_DIMENSION and 0 < h <= MAX_FRAME_DIMENSION):
+                    self._reject_frame(f"Invalid frame dimensions: {w}x{h}")
+                if encoding not in (0, 1):
+                    self._reject_frame(f"Unknown encoding: {encoding}")
+                if encoding == 0 and size != w * h * 2:
+                    self._reject_frame(f"Invalid raw payload size: {size} for {w}x{h}")
+                if encoding == 1 and (size == 0 or size % 4 or size > w * h * 4):
+                    self._reject_frame(f"Invalid RLE payload size: {size} for {w}x{h}")
+                packet_size = header_size + size + len(END_MARKER)
+                self._ensure(packet_size, deadline)
+            except TimeoutError:
+                self._reject_frame("Incomplete frame: timed out waiting for header/payload/trailer")
+            except EOFError:
+                self._reject_frame("Incomplete frame: end of recorded stream")
+
+            if self.buffer[header_size + size:packet_size] != END_MARKER:
+                self._reject_frame("Invalid frame trailer")
+            raw = bytes(self.buffer[header_size:header_size + size])
+            del self.buffer[:packet_size]
+            return 'frame', (w, h, encoding, raw)
+
+
+def parse_capabilities(body):
+    caps = {}
+    for line in body.decode('ascii', errors='replace').splitlines():
+        if ':' in line:
+            k, v = line.split(':', 1)
+            caps[k.strip()] = v.strip()
+    controls = {}
+    for pair in caps.get('controls', '').split(','):
+        if '=' in pair:
+            char, action = pair.split('=', 1)
+            controls[char.strip()] = action.strip()
+    caps['controls'] = controls
+    caps['width'] = int(caps.get('width', 320))
+    caps['height'] = int(caps.get('height', 240))
+    caps['prefix'] = int(caps.get('prefix', 1))
+    caps['page_index'] = int(caps.get('page_index', -1))
+    caps['pages'] = int(caps.get('pages', 0))
+    caps['pixel_format'] = caps.get('pixel_format', 'RGB565')
+    return caps
 
 def read_capabilities_block(ser, timeout=2.0):
-    deadline = time.time() + timeout
-    in_hello = False
-    lines = []
-    buf = b''
-    while time.time() < deadline:
-        chunk = ser.read(ser.in_waiting or 1)
-        if not chunk:
-            time.sleep(0.01)
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        try:
+            kind, packet = ser.read_packet(deadline)
+        except FrameProtocolError as error:
+            print("Rejected packet during discovery:", error)
             continue
-        buf += chunk
-        while b'\n' in buf:
-            line, buf = buf.split(b'\n', 1)
-            text = line.decode('ascii', errors='replace').strip()
-            if text == '==VIEWER-HELLO==':
-                in_hello = True
-                lines = []
-            elif in_hello and text == '==END-VIEWER-HELLO==':
-                caps = {}
-                for entry in lines:
-                    if ':' in entry:
-                        k, v = entry.split(':', 1)
-                        caps[k.strip()] = v.strip()
-                controls = {}
-                for pair in caps.get('controls', '').split(','):
-                    if '=' in pair:
-                        char, action = pair.split('=', 1)
-                        controls[char.strip()] = action.strip()
-                caps['controls'] = controls
-                caps['width'] = int(caps.get('width', 320))
-                caps['height'] = int(caps.get('height', 240))
-                caps['prefix'] = int(caps.get('prefix', 1))
-                caps['page_index'] = int(caps.get('page_index', -1))
-                caps['pages'] = int(caps.get('pages', 0))
-                return caps
-            elif in_hello:
-                lines.append(text)
+        if kind == 'hello':
+            return parse_capabilities(packet)
     raise TimeoutError("No ==VIEWER-HELLO== received within timeout")
 
 def try_read_capabilities_block(ser, timeout=0.25):
@@ -113,58 +219,35 @@ def discover_capabilities(ser):
 def send_cmd(ser, prefix, cmd_char):
     ser.write(bytes([prefix, ord(cmd_char)]))
 
-def read_frame_packet(ser, pixel_format):
-    read_until_start_marker(ser)
-    w = struct.unpack('<H', read_exact(ser, 2))[0]
-    h = struct.unpack('<H', read_exact(ser, 2))[0]
-    encoding_b = read_exact(ser, 1)
-    if not encoding_b:
-        raise IOError("Failed to read encoding byte")
-    encoding = encoding_b[0]
-    size = struct.unpack('<I', read_exact(ser, 4))[0]
-    raw = read_exact(ser, size)
-
-    expected_raw_bytes = w * h * 2
-    if encoding == 0 or size == expected_raw_bytes:
-        data16 = np.frombuffer(raw, dtype=np.uint16)
-    elif encoding == 1:
+def read_frame_packet(ser, pixel_format, deadline=None):
+    if deadline is None:
+        deadline = time.monotonic() + 2.0
+    while True:
+        kind, packet = ser.read_packet(deadline)
+        if kind == 'frame':
+            break
+        caps = parse_capabilities(packet)
+        print(f"Device summary: page={caps['page_index'] + 1}/{caps['pages']} "
+              f"title={caps.get('page_title', '')} profile={caps.get('profile', '')}")
+        if caps.get('serial_output'):
+            print("Serial output:", caps['serial_output'])
+    w, h, encoding, raw = packet
+    if encoding == 0:
+        data16 = np.frombuffer(raw, dtype='<u2')
+    else:
         total = w * h
         pixels = np.empty(total, dtype=np.uint16)
-        offset = 0
         filled = 0
-        while filled < total and offset + 4 <= len(raw):
-            cnt = struct.unpack('<H', raw[offset:offset+2])[0]
-            val = struct.unpack('<H', raw[offset+2:offset+4])[0]
-            offset += 4
-            if filled + cnt > total:
-                cnt = total - filled
-            if cnt > 0:
-                pixels[filled:filled+cnt] = val
-                filled += cnt
+        for cnt, val in struct.iter_unpack('<HH', raw):
+            if cnt == 0 or filled + cnt > total:
+                ser.rejected_frames += 1
+                raise FrameProtocolError(f"Invalid RLE run: count={cnt}, filled={filled}, total={total}")
+            pixels[filled:filled+cnt] = val
+            filled += cnt
         if filled != total:
-            print(f"RLE decode error: expected {total} pixels, got {filled}")
-            data16 = np.frombuffer(raw, dtype=np.uint16) if size == expected_raw_bytes else pixels
-        else:
-            data16 = pixels
-    else:
-        print(f"Unknown encoding {encoding}, trying raw")
-        if size == expected_raw_bytes:
-            data16 = np.frombuffer(raw, dtype=np.uint16)
-        else:
-            total = w * h
-            pixels = np.empty(total, dtype=np.uint16)
-            offset = 0
-            filled = 0
-            while filled < total and offset + 4 <= len(raw):
-                cnt = struct.unpack('<H', raw[offset:offset+2])[0]
-                val = struct.unpack('<H', raw[offset+2:offset+4])[0]
-                offset += 4
-                if filled + cnt > total:
-                    cnt = total - filled
-                if cnt > 0:
-                    pixels[filled:filled+cnt] = val
-                    filled += cnt
-            data16 = pixels
+            ser.rejected_frames += 1
+            raise FrameProtocolError(f"Incomplete RLE frame: expected {total} pixels, got {filled}")
+        data16 = pixels
 
     if pixel_format == 'BGR565':
         d = data16.byteswap()
@@ -276,12 +359,62 @@ def write_sweep_report(report_path, run_info, page_entries):
     return report_path
 
 
-def main(port=PORT):
-    ser = serial.Serial(port, BAUD, timeout=2)
-    time.sleep(0.1)
+def run_headless(ser, pixel_format, args):
+    output_dir = Path(args.screenshot_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    started = time.monotonic()
+    duration = args.duration_seconds if args.duration_seconds is not None else 10.0
+    deadline = started + duration
+    next_snapshot = started
+    frames = 0
+    snapshots = 0
+    last_snapshot_frame = 0
+    frame = None
+    print(f"Headless observation: {duration:g}s; snapshots in {output_dir}")
+    while time.monotonic() < deadline:
+        if not ser.in_waiting:
+            if args.replay:
+                break
+            time.sleep(0.01)
+            continue
+        try:
+            frame = read_frame_packet(ser, pixel_format, min(deadline, time.monotonic() + 2.0))
+        except FrameProtocolError as error:
+            print("Rejected frame:", error)
+            continue
+        except TimeoutError as error:
+            print("Viewer read timeout:", error)
+            continue
+        except EOFError:
+            if args.replay:
+                break
+            raise
+        frames += 1
+        now = time.monotonic()
+        if now >= next_snapshot:
+            snapshots += 1
+            snapshot = output_dir / f"frame_{snapshots:06d}.png"
+            for path in (snapshot, output_dir / "latest.png"):
+                if not cv2.imwrite(str(path), frame):
+                    raise IOError(f"Could not write snapshot: {path}")
+            print(f"Frame {frames}: saved {snapshot}")
+            last_snapshot_frame = frames
+            next_snapshot = now + args.snapshot_interval_seconds
+    if frames and frames != last_snapshot_frame:
+        snapshots += 1
+        for path in (output_dir / f"frame_{snapshots:06d}.png", output_dir / "latest.png"):
+            if not cv2.imwrite(str(path), frame):
+                raise IOError(f"Could not write snapshot: {path}")
+    elapsed = time.monotonic() - started
+    print(f"Observation complete: frames={frames}, rejected={ser.rejected_frames}, "
+          f"skipped_bytes={ser.skipped_bytes}, elapsed={elapsed:.2f}s")
+    if not frames:
+        raise IOError("Observation received no valid frames")
 
+
+def run_viewer(ser, args):
     print("Requesting device capabilities...")
-    caps = discover_capabilities(ser)
+    caps = read_capabilities_block(ser) if args.replay else discover_capabilities(ser)
     prefix        = caps['prefix']
     controls      = caps['controls']
     dev_w         = caps['width']
@@ -296,11 +429,17 @@ def main(port=PORT):
         print(f"Flags: {caps.get('flags')}")
     if caps.get('build_flags'):
         print(f"Build flags: {caps.get('build_flags')}")
+    if caps.get('serial_output'):
+        print("Serial output:", caps['serial_output'])
+
+    if args.headless:
+        run_headless(ser, pixel_format, args)
+        return
 
     # Live mode is started automatically by the device on '^' receipt.
     win_name = "Remote Viewer"
     cv2.namedWindow(win_name, cv2.WINDOW_NORMAL)
-    cv2.setWindowTitle(win_name, f"Remote Viewer {port} {dev_w}\u00d7{dev_h}")
+    cv2.setWindowTitle(win_name, f"Remote Viewer {args.port} {dev_w}\u00d7{dev_h}")
     double_size = False
     frame = None
 
@@ -314,15 +453,11 @@ def main(port=PORT):
     )
     print(hints)
 
-    auto_sweep = False
-    output_dir = None
-    page_dwell_ms = 2500
     benchmark_frames = 0
     benchmark_started = None
-    if hasattr(main, "args"):
-        auto_sweep = main.args.auto_sweep_pages
-        output_dir = Path(main.args.screenshot_dir) if main.args.screenshot_dir else None
-        page_dwell_ms = main.args.page_dwell_ms
+    auto_sweep = args.auto_sweep_pages
+    output_dir = Path(args.screenshot_dir) if args.screenshot_dir else None
+    page_dwell_ms = args.page_dwell_ms
 
     def handle_frame(frame):
         nonlocal benchmark_frames
@@ -331,10 +466,7 @@ def main(port=PORT):
             display_frame = cv2.resize(frame, (frame.shape[1]*2, frame.shape[0]*2), interpolation=cv2.INTER_NEAREST)
         else:
             display_frame = frame
-        try:
-            cv2.resizeWindow(win_name, display_frame.shape[1], display_frame.shape[0])
-        except Exception:
-            pass
+        cv2.resizeWindow(win_name, display_frame.shape[1], display_frame.shape[0])
         cv2.imshow(win_name, display_frame)
 
     if auto_sweep:
@@ -347,7 +479,7 @@ def main(port=PORT):
         git_info = get_git_summary(Path(__file__).resolve().parent)
         page_entries = []
         run_info = {
-            'port': port,
+            'port': args.port,
             'board': caps.get('board', 'unknown'),
             'cpu_mhz': caps.get('cpu_mhz', '?'),
             'pixel_format': pixel_format,
@@ -402,12 +534,14 @@ def main(port=PORT):
             run_info['sweep_elapsed_sec'] = elapsed
         report_path = output_dir / "sweep_report.md"
         write_sweep_report(report_path, run_info, page_entries)
-        ser.close()
         cv2.destroyAllWindows()
         return
 
+    stop_at = time.monotonic() + args.duration_seconds if args.duration_seconds is not None else None
     try:
         while True:
+            if stop_at is not None and time.monotonic() >= stop_at:
+                break
             key = cv2.waitKey(1) & 0xFF
             if key == ord('s'):
                 if frame is not None:
@@ -450,23 +584,62 @@ def main(port=PORT):
                 continue
 
             try:
-                frame = read_frame_packet(ser, pixel_format)
+                read_deadline = time.monotonic() + 2.0
+                if stop_at is not None:
+                    read_deadline = min(read_deadline, stop_at)
+                frame = read_frame_packet(ser, pixel_format, read_deadline)
                 handle_frame(frame)
-            except Exception as e:
-                # read_frame_packet handles desync internally; any exception
-                # here is a real I/O failure (disconnect, timeout, etc.).
-                print("Frame read error:", e)
+            except FrameProtocolError as error:
+                print("Rejected frame:", error)
+                continue
+            except TimeoutError as error:
+                print("Viewer read timeout:", error)
                 continue
 
     except KeyboardInterrupt:
         pass
     finally:
-        try:
-            send_cmd(ser, prefix, 'X')
-        except Exception:
-            pass
-        ser.close()
+        print(f"Viewing complete: frames={benchmark_frames}, rejected={ser.rejected_frames}, "
+              f"skipped_bytes={ser.skipped_bytes}")
         cv2.destroyAllWindows()
+
+
+def main(port, args):
+    recording = None
+    transport = None
+    replay_source = None
+    try:
+        if args.replay:
+            replay_source = Path(args.replay).open('rb')
+            transport = ReplayTransport(replay_source)
+        else:
+            transport = serial.Serial(port, BAUD, timeout=0.1, write_timeout=2)
+            time.sleep(0.1)
+        if args.record_stream:
+            recording = Path(args.record_stream).open('xb')
+        ser = ViewerStream(transport, recording)
+        run_viewer(ser, args)
+    finally:
+        if transport is not None and not args.replay:
+            try:
+                # The current firmware advertises prefix 1; stop live mode even
+                # when discovery or window initialization fails.
+                send_cmd(ViewerStream(transport), 1, 'X')
+            except (serial.SerialException, OSError) as error:
+                print("Could not stop live streaming:", error)
+            finally:
+                transport.close()
+        if recording is not None:
+            recording.close()
+        if replay_source is not None:
+            replay_source.close()
+
+
+def positive_seconds(value):
+    seconds = float(value)
+    if not np.isfinite(seconds) or seconds <= 0:
+        raise argparse.ArgumentTypeError("Must be a finite number greater than zero")
+    return seconds
 
 
 if __name__ == "__main__":
@@ -474,9 +647,21 @@ if __name__ == "__main__":
     parser.add_argument("port", nargs="?", default=PORT, help=f"Serial port (default: {PORT})")
     parser.add_argument("--auto-sweep-pages", action="store_true", help="step through every page and save a screenshot per page")
     parser.add_argument("--page-dwell-ms", type=int, default=2500, help="milliseconds to stay on each page during auto sweep")
-    parser.add_argument("--screenshot-dir", default="screenshots", help="output directory for auto-sweep screenshots")
+    parser.add_argument("--screenshot-dir", default="screenshots", help="output directory for sweep or headless screenshots")
+    parser.add_argument("--headless", action="store_true", help="observe without a window; save sampled frames and latest.png")
+    parser.add_argument("--duration-seconds", type=positive_seconds, help="stop viewing after this many seconds (headless default: 10)")
+    parser.add_argument("--snapshot-interval-seconds", type=positive_seconds, default=1.0, help="headless snapshot interval (default: 1)")
+    parser.add_argument("--record-stream", help="save received bytes to a new binary file for offline replay")
+    parser.add_argument("--replay", help="replay a recorded stream instead of opening a COM port (requires --headless)")
     args = parser.parse_args()
+    if args.replay and not args.headless:
+        parser.error("--replay requires --headless")
+    if args.replay and args.record_stream:
+        parser.error("--replay and --record-stream cannot be combined")
+    if args.headless and args.auto_sweep_pages:
+        parser.error("--headless and --auto-sweep-pages cannot be combined")
+    if args.auto_sweep_pages and args.duration_seconds is not None:
+        parser.error("--duration-seconds cannot be combined with --auto-sweep-pages")
 
     print(f"Starting viewer on port {args.port}")
-    main.args = args
-    main(args.port)
+    main(args.port, args)

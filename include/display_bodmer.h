@@ -9,6 +9,7 @@
 #include "display_abstract.h"
 
 #include "debug.h"
+#include "serial_output.h"
 
 #include "menu.h"
 
@@ -387,13 +388,16 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         // encoding: 0 = raw (uncompressed 16-bit little-endian words),
         //           1 = RLE (pairs of [count:uint16][value:uint16])
         // Payload for RLE: repeated [count:2][value:2] pairs.
-        Serial.print("==START-FRAME==");
         uint16_t w = width();
         uint16_t h = height();
         uint32_t total = (uint32_t)w * (uint32_t)h;
 
         // pointer to pixel data (16-bit words)
         uint16_t *pixels = (uint16_t*)actual->getPointer();
+        if (!pixels) {
+            foundling::serial_output().println("viewer: framebuffer unavailable");
+            return;
+        }
 
         // First pass: compute encoded payload size for RLE without allocating
         uint32_t encoded_bytes = 0;
@@ -417,40 +421,36 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
             size = raw_bytes;
         }
 
-        Serial.write((uint8_t*)&w, 2);
-        Serial.write((uint8_t*)&h, 2);
-        Serial.write((uint8_t*)&encoding, 1);
-        Serial.write((uint8_t*)&size, 4);
+        foundling::SerialPacket frame;
+        if (!frame) return;
+        frame.print("==START-FRAME==");
+        frame.write((const uint8_t*)&w, 2);
+        frame.write((const uint8_t*)&h, 2);
+        frame.write(&encoding, 1);
+        frame.write((const uint8_t*)&size, 4);
 
         if (encoding == 0) {
             // send raw bytes (little-endian 16-bit words)
-            uint8_t *ptr = (uint8_t*)actual->getPointer();
-            uint32_t remaining = size;
-            while (remaining > 0) {
-                uint32_t chunk = remaining;
-                Serial.write(ptr, chunk);
-                ptr += chunk;
-                remaining -= chunk;
-            }
+            frame.write((const uint8_t*)pixels, size);
         } else {
             // Second pass: stream encoded runs
             i = 0;
-            while (i < total) {
+            while (i < total && frame) {
                 uint16_t val = pixels[i];
                 uint32_t run = 1;
                 while (i + run < total && pixels[i + run] == val && run < 0xFFFF) {
                     run++;
                 }
                 uint16_t run16 = (uint16_t)run;
-                Serial.write((uint8_t*)&run16, 2);
-                Serial.write((uint8_t*)&val, 2);
+                frame.write((const uint8_t*)&run16, 2);
+                frame.write((const uint8_t*)&val, 2);
                 i += run;
             }
         }
 
         // end marker
-        Serial.print("==END-FRAME==");
-        //Serial.flush();
+        frame.print("==END-FRAME==");
+        frame.finish();
     }
 
     virtual void push_framebuffer_serial() override {

@@ -17,6 +17,7 @@
 #ifdef ENABLE_REMOTE_VIEWER
 
 #include "menu.h"
+#include "serial_output.h"
 
 extern Menu *menu;
 
@@ -48,6 +49,12 @@ static const char *remote_viewer_feature_flags() {
         #endif
         "REMOTE_VIEWER_LIVE_MAX_FPS="
         #ifdef REMOTE_VIEWER_LIVE_MAX_FPS
+            "1;"
+        #else
+            "0;"
+        #endif
+        "ENABLE_SERIAL_OUTPUT_QUEUE="
+        #ifdef ENABLE_SERIAL_OUTPUT_QUEUE
             "1;"
         #else
             "0;"
@@ -93,26 +100,34 @@ static _ViewerPendingState _viewer_state;
 // Send the capability announcement to the host over Serial.
 // Called automatically on first serial connection and whenever '^' is received.
 static void send_viewer_hello() {
-    Serial.println("==VIEWER-HELLO==");
-    Serial.printf("width:%d\n",  menu->tft->width());
-    Serial.printf("height:%d\n", menu->tft->height());
-    Serial.println("prefix:1");
-    Serial.printf("pixel_format:%s\n", menu->tft->viewer_pixel_format());
-    Serial.printf("board:%s\n", ARDUINO_BOARD);
-    Serial.printf("cpu_mhz:%lu\n", (unsigned long)(F_CPU / 1000000UL));
-    Serial.printf("pages:%d\n", menu->get_number_pages());
-    Serial.printf("page_index:%d\n", menu->get_selected_page_index());
-    Serial.printf("page_title:%s\n", menu->get_selected_page_title());
-    Serial.printf("profile:%s\n", menu->get_profile_string());
-    Serial.printf("flags:%s\n", remote_viewer_feature_flags());
-    Serial.printf("build_flags:%s\n", remote_viewer_build_flags());
-    Serial.print("controls:d=knob_left,f=knob_right,a=button_back,b=button_select");
+    foundling::SerialPacket hello;
+    if (!hello) return;
+    const foundling::SerialOutputStats stats = foundling::serial_output().stats();
+    hello.println("==VIEWER-HELLO==");
+    hello.printf("width:%d\n",  menu->tft->width());
+    hello.printf("height:%d\n", menu->tft->height());
+    hello.println("prefix:1");
+    hello.printf("pixel_format:%s\n", menu->tft->viewer_pixel_format());
+    hello.printf("board:%s\n", ARDUINO_BOARD);
+    hello.printf("cpu_mhz:%lu\n", (unsigned long)(F_CPU / 1000000UL));
+    hello.printf("pages:%d\n", menu->get_number_pages());
+    hello.printf("page_index:%d\n", menu->get_selected_page_index());
+    hello.printf("page_title:%s\n", menu->get_selected_page_title());
+    hello.printf("profile:%s\n", menu->get_profile_string());
+    hello.printf("flags:%s\n", remote_viewer_feature_flags());
+    hello.printf("build_flags:%s\n", remote_viewer_build_flags());
+    hello.printf("serial_output:queued=%u,dropped=%lu,short_writes=%lu,packets_ok=%lu,packets_failed=%lu\n",
+        (unsigned int)stats.queued_bytes, (unsigned long)stats.dropped_bytes,
+        (unsigned long)stats.short_writes, (unsigned long)stats.packets_completed,
+        (unsigned long)stats.packets_failed);
+    hello.print("controls:d=knob_left,f=knob_right,a=button_back,b=button_select");
     #ifdef PIN_BUTTON_C
-    Serial.print(",n=button_right");
+    hello.print(",n=button_right");
     #endif
-    Serial.print(",[]=page_prev_next,?=summary");
-    Serial.println();
-    Serial.println("==END-VIEWER-HELLO==");
+    hello.print(",[]=page_prev_next,?=summary");
+    hello.println();
+    hello.println("==END-VIEWER-HELLO==");
+    hello.finish();
 }
 
 static void _handle_viewer_command(char cmd) {
