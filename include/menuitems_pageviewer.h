@@ -1,5 +1,6 @@
 #pragma once
 
+#include "shared_debug.h"
 #include <Arduino.h>
 
 #include "LinkedList.h"
@@ -51,16 +52,16 @@ class PageFileViewerMenuItem : public MenuItem {
         const uint64_t MAX_FILE_SIZE = 1024 * 1024 * sizeof(char); // 1MB max file size for now, to avoid running out of memory
         #ifdef ENABLE_SD
         if (file_contents==nullptr) {
-            Serial.printf("Allocating %llu bytes for file_contents buffer...\n", MAX_FILE_SIZE);
+            Serial_printf("Allocating %llu bytes for file_contents buffer...\n", MAX_FILE_SIZE);
             file_contents = (char*)extmem_malloc(MAX_FILE_SIZE);  // allocate 1MB for file contents - todo: make this configurable, or at least define a constant for it
             if (!file_contents) {
-                Serial.printf("Failed to allocate file_contents buffer of size %llu - won't be able to display file!\n", MAX_FILE_SIZE);
+                Serial_printf("Failed to allocate file_contents buffer of size %llu - won't be able to display file!\n", MAX_FILE_SIZE);
                 return false;
             }
         }
 
         if (file_contents == nullptr) {
-            Serial.println("ERROR: file_contents is nullptr, cannot read file!");
+            Serial_println("ERROR: file_contents is nullptr, cannot read file!");
             return false;
         }
 
@@ -68,7 +69,7 @@ class PageFileViewerMenuItem : public MenuItem {
         this->filename[255] = '\0';
 
         if (!SD.exists(filename)) {
-            Serial.printf("readFile: File %s does not exist!\n", filename);
+            Serial_printf("readFile: File %s does not exist!\n", filename);
             // Keep viewer in a safe, empty state so display/scroll cannot crash.
             file_size = 0;
             page_first_line = nullptr;
@@ -80,7 +81,7 @@ class PageFileViewerMenuItem : public MenuItem {
         
         File f = SD.open(filename, FILE_READ);
         if (!f) {
-            Serial.println("readFile: Error opening file for viewing!");
+            Serial_println("readFile: Error opening file for viewing!");
             file_size = 0;
             page_first_line = nullptr;
             start_at = nullptr;
@@ -88,7 +89,7 @@ class PageFileViewerMenuItem : public MenuItem {
         }
 
         if (f.size() > MAX_FILE_SIZE) {
-            Serial.printf("File %s exists and opened, but is %llu bytes, which exceeds the maximum allowed size of %llu bytes!\n", filename, SD.totalSize(), MAX_FILE_SIZE);
+            Serial_printf("File %s exists and opened, but is %llu bytes, which exceeds the maximum allowed size of %llu bytes!\n", filename, SD.totalSize(), MAX_FILE_SIZE);
             f.close();
             file_size = 0;
             page_first_line = nullptr;

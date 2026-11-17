@@ -31,6 +31,7 @@
     #define MALLOC_FUNC malloc
 #endif
 
+#include "shared_debug.h"
 #include "debug.h"
 
 #include "bpm.h"       // PPQN, TICKS_PER_STEP, TICKS_PER_BAR, BPM_PHASE_TICKS
@@ -515,7 +516,7 @@ class Menu {
                     //if (Serial) Serial.printf("select_first_selectable_item on page %s found a selectable item at %i!\n", selected_page->title, idx);
                     selected_page->currently_selected = idx;
                     if (this->selected_page->selectable_count() == 1) {
-                        if (Serial) Serial.printf("found only one openable item, so opening it too!\n", selected_page->title, idx);
+                        Serial_printf("found only one openable item, so opening it too!\n", selected_page->title, idx);
                         //selected_page->currently_opened = selected_page->currently_selected;
                         if (item->is_openable()) {
                             button_select(); button_select_released();
@@ -677,12 +678,12 @@ class Menu {
                     }
                     post_input_received(item);
                 } else if (is_item_selected()) {
-                    Serial.printf("right with nothing currently_opened!\n"); //setting to -1\n", currently_opened);
+                    Serial_printf("right with nothing currently_opened!\n"); //setting to -1\n", currently_opened);
                     MenuItem* item = selected_page->items->get(selected_page->currently_selected);
                     if (item->button_right_unopened()) {
-                        Serial.printf("right with currently_selected menuitem %i subhandled!\n", selected_page->currently_selected);
+                        Serial_printf("right with currently_selected menuitem %i subhandled!\n", selected_page->currently_selected);
                     } else {
-                        Serial.printf("right with currently_selected menuitem %i not subhandled!\n", selected_page->currently_selected);
+                        Serial_printf("right with currently_selected menuitem %i not subhandled!\n", selected_page->currently_selected);
                     }
                     post_input_received(item);
                 }
@@ -1013,7 +1014,7 @@ class Menu {
         void add(MenuItemList *items, uint16_t default_fg_colour = C_WHITE) {
             //Serial.println("starting add"); Serial.flush();
             if (items==nullptr) {
-                if (Serial) Serial.println("WARNING: nullptr list passed to menu#add, skipping!");
+                Serial_println("WARNING: nullptr list passed to menu#add, skipping!");
                 return;
             }
             for (auto* item : *items) {
@@ -1234,25 +1235,25 @@ class Menu {
 
         #ifdef ENABLE_BUTTON_MATRIX
             button_matrix_event_callback_func on_button_matrix_event[4][4] = {
-                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
-                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
-                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
-                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
+                [=](int x, int y, bool pressed){ Serial_printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
+                [=](int x, int y, bool pressed){ Serial_printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
+                [=](int x, int y, bool pressed){ Serial_printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
+                [=](int x, int y, bool pressed){ Serial_printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
 
-                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
-                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
-                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
-                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
+                [=](int x, int y, bool pressed){ Serial_printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
+                [=](int x, int y, bool pressed){ Serial_printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
+                [=](int x, int y, bool pressed){ Serial_printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
+                [=](int x, int y, bool pressed){ Serial_printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
 
-                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
-                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
-                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
-                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
+                [=](int x, int y, bool pressed){ Serial_printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
+                [=](int x, int y, bool pressed){ Serial_printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
+                [=](int x, int y, bool pressed){ Serial_printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
+                [=](int x, int y, bool pressed){ Serial_printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
 
-                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },                    
-                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },            
-                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
-                [=](int x, int y, bool pressed){ Serial.printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); }
+                [=](int x, int y, bool pressed){ Serial_printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
+                [=](int x, int y, bool pressed){ Serial_printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
+                [=](int x, int y, bool pressed){ Serial_printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); },
+                [=](int x, int y, bool pressed){ Serial_printf("button_matrix_event %i,%i %s\n", x, y, pressed ? "pressed" : "released"); }
             };
             void dispatch_button_matrix_event(int x, int y, bool pressed) {
                 this->on_button_matrix_event[x][y](x, y, pressed);

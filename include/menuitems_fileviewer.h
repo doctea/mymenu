@@ -32,17 +32,17 @@ class FileViewerMenuItem : public ListViewerMenuItem {
         #ifdef ENABLE_SD
         ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
             if (debug) {
-                Serial.println("readFile()..."); Serial_flush();
-                Serial.printf("Currently free RAM is %i\n", freeRam()); Serial_flush();
+                Serial_println("readFile()..."); Serial_flush();
+                Serial_printf("Currently free RAM is %i\n", freeRam()); Serial_flush();
             }
             list_contents->clear();
-            if (debug) { Serial.println("readFile(): did list_contents->clear();"); Serial_flush(); }
+            if (debug) { Serial_println("readFile(): did list_contents->clear();"); Serial_flush(); }
             File f = SD.open(filename.c_str(), FILE_READ);
             // ^^ intermittent crashing here when auto_advancing...
-            if (debug) { Serial.printf("readFile(): did SD.open(%s);", filename.c_str()); Serial_flush(); }
+            if (debug) { Serial_printf("readFile(): did SD.open(%s);", filename.c_str()); Serial_flush(); }
             f.setTimeout(0);
             if (!f) {
-                Serial.println("error loading file for viewing!"); Serial_flush();
+                Serial_println("error loading file for viewing!"); Serial_flush();
                 filename = String("(err)") + filename;
                 f.close();
                 return;
@@ -52,18 +52,18 @@ class FileViewerMenuItem : public ListViewerMenuItem {
                 line = f.readStringUntil('\n');
                 list_contents->add(line);
                 if (debug) { 
-                    Serial.printf("readFile(): read a line '%s'\n", line.c_str()); 
-                    Serial.printf("free ram is now %u\n", freeRam());
+                    Serial_printf("readFile(): read a line '%s'\n", line.c_str());
+                    Serial_printf("free ram is now %u\n", freeRam());
                     #ifdef ARDUINO_TEENSY41
-                        Serial.printf("free ext ram is now %u\n", freeExtRam());
+                        Serial_printf("free ext ram is now %u\n", freeExtRam());
                     #endif
-                    Serial_flush(); 
+                    Serial_flush();
                 }
             }
-            if (debug) Serial.println("readFile(): closing.."); Serial_flush();
+            if (debug) Serial_println("readFile(): closing.."); Serial_flush();
             f.close();
-            if (debug) Serial.println("readFile(): did f.close();"); Serial_flush();
-            Serial.println("finished readFile()!");
+            if (debug) Serial_println("readFile(): did f.close();"); Serial_flush();
+            Serial_println("finished readFile()!");
         }
         #endif
     }

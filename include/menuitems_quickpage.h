@@ -1,5 +1,6 @@
 #pragma once
 
+#include "shared_debug.h"
 #include <Arduino.h>
 #include "menuitems.h"
 #include "menu.h"
@@ -58,7 +59,7 @@ class QuickPagesMenuItem : public MenuItem {
         virtual bool button_select() override {
             if (selected_value_index<0)
                 return false;
-            if (Serial && this->debug) Serial.printf("button_select for value %i (%i, %s)\n", selected_value_index, menu->quick_pages[selected_value_index], menu->get_quick_page(selected_value_index)->title);
+            if (this->debug) Serial_printf("button_select for value %i (%i, %s)\n", selected_value_index, menu->quick_pages[selected_value_index], menu->get_quick_page(selected_value_index)->title);
             menu->quickjump_to_page(menu->quick_pages[selected_value_index].page_index);
             return false;
         }
@@ -138,7 +139,7 @@ class CustomQuickPagesMenuItem : virtual public QuickPagesMenuItem {
         virtual bool button_select() override {
             if (selected_value_index<0)
                 return false;
-            if(Serial && this->debug) Serial.printf("button_select for value %i (%i, %s)\n", selected_value_index, pages->get(selected_value_index), menu->get_quick_page(selected_value_index)->title);
+            if (this->debug) Serial_printf("button_select for value %i (%i, %s)\n", selected_value_index, pages->get(selected_value_index), menu->get_quick_page(selected_value_index)->title);
             // todo: why isn't this properly opening the page and selecting first item?!
             menu->quickjump_to_page(menu->get_page_index_for_name(pages->get(selected_value_index)->title));
             //page_t * selected_page = menu->get_selected_page();
@@ -202,7 +203,7 @@ class AllPagesIndexMenuItem : public QuickPagesMenuItem {
         virtual bool button_select() override {
             if (selected_value_index<0)
                 return false;
-            if (Serial && this->debug) Serial.printf("button_select for value %i (%i, %s)\n", selected_value_index, menu->quick_pages[selected_value_index], menu->get_quick_page(selected_value_index)->title);
+            if (this->debug) Serial_printf("button_select for value %i (%i, %s)\n", selected_value_index, menu->quick_pages[selected_value_index], menu->get_quick_page(selected_value_index)->title);
             menu->quickjump_to_page(selected_value_index);
             return false;
         }
@@ -361,7 +362,7 @@ class PageGroupIndexMenuItem : public AllPagesIndexMenuItem {
                 selected_page_within_group_index = 0;
                 return false;
             } else {
-                if (Serial && this->debug) Serial.printf("button_select for value %i (%i, %s)\n", selected_value_index, menu->quick_pages[selected_value_index], menu->get_quick_page(selected_value_index)->title);
+                if (this->debug) Serial_printf("button_select for value %i (%i, %s)\n", selected_value_index, menu->quick_pages[selected_value_index], menu->get_quick_page(selected_value_index)->title);
                 menu->quickjump_to_page(menu->get_index_for_page(this->get_selected_page_within_group()));
                 return false;
             }

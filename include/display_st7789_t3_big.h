@@ -3,6 +3,7 @@
 
 #ifdef TFT_ST7789_T3
 
+#include "shared_debug.h"
 #include "display_st7789_t3.h"
 
 #define TFT_CS        10
@@ -28,13 +29,13 @@ class DisplayTranslator_STeensy_Big : public DisplayTranslator_STeensy {
     };
 
     virtual void setup() {
-        Serial.println(F("steensy_big setup()..")); Serial_flush();
+        Serial_println(F("steensy_big setup()..")); Serial_flush();
         tft->init(240, 320);           // Init ST7789 240x135
         tft->setRotation(2);
         tft->fillScreen(ST77XX_BLACK);
         tft->println("DisplayTranslator_STeensy_Big init()!");
-        Serial.println(F("did init()")); Serial_flush();
-        Serial.println(F("did fillscreen()")); Serial_flush();
+        Serial_println(F("did init()")); Serial_flush();
+        Serial_println(F("did fillscreen()")); Serial_flush();
         delay(500);
         // large block of text
         //testdrawtext("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa, fringilla sed malesuada et, malesuada sit amet turpis. Sed porttitor neque ut ante pretium vitae malesuada nunc bibendum. Nullam aliquet ultrices massa eu hendrerit. Ut sed nisi lorem. In vestibulum purus a tortor imperdiet posuere. ", ST77XX_WHITE);

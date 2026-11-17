@@ -1,5 +1,6 @@
 #pragma once
 
+#include "shared_debug.h"
 #include "Arduino.h"
 
 #include "menu.h"
@@ -272,7 +273,7 @@ class NumberControl : public NumberControlBase {
 
         virtual const char *getFormattedValue() {
             // this->request_redraw_if_changed(this->get_current_value());
-            if (this->debug) Serial.printf("%s:\tNumberControl#getFormattedValue() returning get_current_value=%3.3f\n", this->label, (float)this->get_current_value());
+            if (this->debug) Serial_printf("%s:\tNumberControl#getFormattedValue() returning get_current_value=%3.3f\n", this->label, (float)this->get_current_value());
             return this->getFormattedValue(this->get_current_value());
         }
         virtual const char *getFormattedInternalValue() {
@@ -283,7 +284,7 @@ class NumberControl : public NumberControlBase {
                 "%s", 
                 this->getFormattedValue((DataType)this->get_internal_value())
             );
-            if (this->debug) { Serial.printf("%s:\tNumberControl#getFormattedInternalValue() returning '%s'\n", this->label, tmp); Serial_flush(); }
+            if (this->debug) { Serial_printf("%s:\tNumberControl#getFormattedInternalValue() returning '%s'\n", this->label, tmp); Serial_flush(); }
             return tmp;
         }
 
@@ -307,7 +308,7 @@ class NumberControl : public NumberControlBase {
         // }
 
         virtual int display(Coord pos, bool selected, bool opened) override {
-            if (this->debug) Serial.printf("==== NumberControl#display %s ====\n", this->label);
+            if (this->debug) Serial_printf("==== NumberControl#display %s ====\n", this->label);
             /*if (this->debug) {
                 Serial.println(F("NumberControl#display starting!")); Serial_flush();
                 Serial.printf(F("NumberControl#display in %s starting\n"), this->label); Serial_flush();
@@ -328,9 +329,9 @@ class NumberControl : public NumberControlBase {
             //if (this->debug) { Serial.println("did colours"); Serial_flush(); }
 
             // render the value
-            if (this->debug) Serial.printf(">>>>>==== NumberControl#display calling renderValue %s ====\n", this->label);
+            if (this->debug) Serial_printf(">>>>>==== NumberControl#display calling renderValue %s ====\n", this->label);
             this->renderValue(selected, opened, tft->get_c_max()); //, strlen(tmp)<tft->get_c_max()/2);
-            if (this->debug) Serial.printf("<<<<<==== NumberControl#display called renderValue %s ====\n", this->label);
+            if (this->debug) Serial_printf("<<<<<==== NumberControl#display called renderValue %s ====\n", this->label);
 
             const char *tmp;
             tmp = this->getFormattedExtra();
@@ -349,7 +350,7 @@ class NumberControl : public NumberControlBase {
         virtual int renderValue(bool selected, bool opened, uint16_t max_character_width) override {
             //if (this->debug) Serial.printf(F("%s:\trenderValue() in NumberControl with max_character_width\t%i\n"), this->label, max_character_width);
             const char *tmp = opened ? this->getFormattedInternalValue() : this->getFormattedValue();
-            if (this->debug) { Serial.printf("%s:\trenderValue() did setting tmp to\t'%s' \t(%s,\t%s)\n", this->label, tmp, selected?"selected":"not selected", opened?"opened":"unopened"); Serial_flush(); }
+            if (this->debug) { Serial_printf("%s:\trenderValue() did setting tmp to\t'%s' \t(%s,\t%s)\n", this->label, tmp, selected?"selected":"not selected", opened?"opened":"unopened"); Serial_flush(); }
             
             //if (this->debug) { Serial.printf("NumberControl#renderValue in %s about to do getFormattedValue() ting...\n", this->label); Serial_flush(); }
             /*if (opened) {

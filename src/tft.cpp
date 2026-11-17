@@ -1,3 +1,5 @@
+#include "shared_debug.h"
+
 #ifdef ENABLE_SCREEN
     #include "menu.h"
 #endif
@@ -6,7 +8,7 @@
 #include "tft.h"
 
 void tft_print (const char *text) {
-    if (Serial) Serial.print(text);
+    Serial_print(text);
     //Serial_flush();
     #ifdef ENABLE_SCREEN
         if (menu!=nullptr && menu->tft!=nullptr)

@@ -1,6 +1,7 @@
 #pragma once
 //#include "Config.h"
 
+#include "shared_debug.h"
 #include <Arduino.h>
 
 #ifdef ENABLE_SD
@@ -51,7 +52,7 @@
 #endif
 bool save_screenshot(DisplayTranslator_Configured *display) {
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-    Serial.println(F("save_screenshot!"));
+    Serial_println(F("save_screenshot!"));
 
     #ifdef TFT_ST7789
         ST7789 *screen = display->tft;
@@ -70,13 +71,13 @@ bool save_screenshot(DisplayTranslator_Configured *display) {
     //int px[w*h];                        // actual pixel data (grayscale - added programatically below)
     const uint16_t *px = screen->getFrameBuffer();
     if (px==nullptr) {
-        Serial.println("error: framebuffer points to nullptr!");
+        Serial_println("error: framebuffer points to nullptr!");
         return false;
     }
 
     SdFile file;
 
-    Serial.println(F("Looking for a free filename..")); Serial_flush();
+    Serial_println(F("Looking for a free filename..")); Serial_flush();
     // if name exists, create new filename
     for (unsigned int i=0; i<10000; i++) {
         name[4] = (i/1000)%10 + '0';    // thousands place
@@ -87,7 +88,7 @@ bool save_screenshot(DisplayTranslator_Configured *display) {
             break;
         }
     }
-    Serial.printf(F("Found one in %s!\n"), name); Serial_flush();
+    Serial_printf(F("Found one in %s!\n"), name); Serial_flush();
 
     // set fileSize (used in bmp header)
     const int rowSize = 4 * ((3*w + 3)/4);      // how many bytes in the row (used to create padding)
@@ -152,7 +153,7 @@ bool save_screenshot(DisplayTranslator_Configured *display) {
     free(bmpPad);
 
     //if (debugPrint) {
-        Serial.print("\n\n---\n");
+        Serial_print("\n\n---\n");
     //}
     }
     return true;

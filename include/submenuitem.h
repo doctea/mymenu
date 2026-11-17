@@ -1,6 +1,7 @@
 #ifndef SUBMENUITEM__INCLUDED
 #define SUBMENUITEM__INCLUDED
 
+#include "shared_debug.h"
 #include "Arduino.h"
 
 #include "menu.h"
@@ -162,7 +163,7 @@ class SubMenuItem : public MenuItem {
                 for (int s = 0; s < start_item && it != items->end(); ++s, ++it) {}  // fast-forward through the iterator to the start_item index
                 // Serial.printf("submenuitem#display starting at item %i of %i\n", start_item, items->size()); Serial.flush();
                 for (int i = start_item; it != items->end(); ++it, ++i) {
-                    if (this->debug) { Serial.printf("submenuitem#display rendering item %i..\n", i); Serial.flush(); }
+                    if (this->debug) { Serial_printf("submenuitem#display rendering item %i..\n", i); Serial_flush(); }
                     y = tft->getCursorY();
 
                     tft->setTextColor(this->default_fg, this->default_bg);
@@ -292,17 +293,17 @@ class SubMenuItem : public MenuItem {
         }
 
         virtual bool button_right_unopened() override {
-            if (Serial) Serial.printf("submenuitem button_right_unopened\n");
+            Serial_printf("submenuitem button_right_unopened\n");
             // this would be called when the right button is pressed but the submenu is not opened
             return false;
         }
 
         virtual bool button_right() override {
             if (is_opened()) {
-                if (Serial) Serial.printf("submenuitem button_right: is_opened\n");
+                Serial_printf("submenuitem button_right: is_opened\n");
                 return items->get(currently_opened)->button_right();
             } else if (currently_selected >= 0) {
-                if (Serial) Serial.printf("submenuitem button_right: currently_selected >= 0\n");
+                Serial_printf("submenuitem button_right: currently_selected >= 0\n");
                 return items->get(currently_selected)->button_right_unopened();
             }               
             return true;

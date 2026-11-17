@@ -1,5 +1,6 @@
 #pragma once
 
+#include "shared_debug.h"
 #include "functional-vlpp.h"
 
 #include "menuitems_numbers.h"
@@ -76,7 +77,7 @@ class LambdaNumberControl : public NumberControl<DataType> {
     // override in subclass if need to do something special eg getter/setter
     virtual DataType get_current_value() override {
         DataType v = this->getter_func();
-        if (this->debug) { Serial.printf("%s: LambdaNumberControl#get_current_value(): Called the getter and got value %3.3f!\n", this->label, (float)v); Serial_flush(); }
+        if (this->debug) { Serial_printf("%s: LambdaNumberControl#get_current_value(): Called the getter and got value %3.3f!\n", this->label, (float)v); Serial_flush(); }
         return v;
     }
 
@@ -105,7 +106,7 @@ class LambdaNumberControl : public NumberControl<DataType> {
 
     // override in subclass if need to do something special eg getter/setter
     virtual void set_current_value(DataType value) override { 
-        if (this->debug) { Serial.printf("%s: LambdaNumberControl#set_current_value(%3.3f) (%s)\n", this->label, (float)value, this->getFormattedValue(value)); Serial_flush(); }
+        if (this->debug) { Serial_printf("%s: LambdaNumberControl#set_current_value(%3.3f) (%s)\n", this->label, (float)value, this->getFormattedValue(value)); Serial_flush(); }
 
         //this->set_internal_value(value);
         this->internal_value = value;         // TODO: see if this is needed??

@@ -190,7 +190,7 @@ static void _handle_viewer_command(char cmd) {
 // debug_console).  Intercepts '^' and '\x01'+cmd sequences before they can be
 // absorbed by the debug-console line-buffer.  Leaves all other bytes untouched.
 static void read_viewer_serial() {
-    if (!Serial) {
+    if (!foundling::serial_host_connected()) {
         _viewer_state.hello_sent = false;
         _viewer_state.last_hello_sent_at = 0;
         _viewer_state.hello_auto_send_count = 0;

@@ -10,6 +10,7 @@
 
 #include "debug.h"
 #include "serial_output.h"
+#include "shared_debug.h"
 
 #include "menu.h"
 
@@ -395,7 +396,7 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
         // pointer to pixel data (16-bit words)
         uint16_t *pixels = (uint16_t*)actual->getPointer();
         if (!pixels) {
-            foundling::serial_output().println("viewer: framebuffer unavailable");
+            Warn_println("viewer: framebuffer unavailable");
             return;
         }
 
@@ -455,7 +456,7 @@ class DisplayTranslator_Bodmer : public DisplayTranslator {
 
     virtual void push_framebuffer_serial() override {
         // get the framebuffer data from the actual_espi and push it out over serial
-        if (Serial) {
+        if (foundling::serial_host_connected()) {
             // if (mutex_try_enter(&__usb_mutex, NULL)) {
                 this->sendRawFrame();
             //     mutex_exit(&__usb_mutex);

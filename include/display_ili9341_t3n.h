@@ -3,6 +3,7 @@
 
 #ifdef TFT_ILI9341_T3N
 
+#include "shared_debug.h"
 #include <SPI.h>
 #include <ILI9341_t3n.h>
 // #include <fonts/FreeMono9pt7b.h>
@@ -49,7 +50,7 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
 
     virtual void setup() {
         Debug_println(F("ili9341 setup()..")); Serial_flush();
-        if (Serial) { Serial.println(F("ili9341 setup()..")); Serial_flush(); }
+        Serial_println(F("ili9341 setup()..")); Serial_flush();
         tft->begin(SPI_SPEED);
         tft->setRotation(SCREEN_ROTATION);
         #ifndef DONT_USE_EXTMEM_FRAMEBUFFER
@@ -76,7 +77,7 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
         // large block of text
         //testdrawtext("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa, fringilla sed malesuada et, malesuada sit amet turpis. Sed porttitor neque ut ante pretium vitae malesuada nunc bibendum. Nullam aliquet ultrices massa eu hendrerit. Ut sed nisi lorem. In vestibulum purus a tortor imperdiet posuere. ", ST77XX_WHITE);
         //tft->useFrameBuffer(true);
-        if (Serial) Serial.println("finishing setup()");
+        Serial_println("finishing setup()");
     }
 
     virtual void setTextWrap(bool enable_wrap) {
@@ -209,7 +210,7 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
     void sendRawFrame() {
         uint16_t *pixels = tft->getFrameBuffer();
         if (!pixels) {
-            foundling::serial_output().println("viewer: framebuffer unavailable");
+            Warn_println("viewer: framebuffer unavailable");
             return;
         }
 
@@ -231,7 +232,7 @@ class DisplayTranslator_ILI9341_T3N : public DisplayTranslator {
     }
 
     virtual void push_framebuffer_serial() override {
-        if (Serial) this->sendRawFrame();
+        if (foundling::serial_host_connected()) this->sendRawFrame();
     }
     #endif // ENABLE_REMOTE_VIEWER
 

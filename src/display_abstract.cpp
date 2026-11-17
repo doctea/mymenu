@@ -1,3 +1,4 @@
+#include "shared_debug.h"
 #include "display_abstract.h"
 
 void DisplayTranslator::printf(const char *format, ...) {
@@ -8,9 +9,9 @@ void DisplayTranslator::printf(const char *format, ...) {
     va_end(args);
     this->print(buf);
 }
-void DisplayTranslator::println() { Serial.println(F("WARNING: DisplayTranslator::println(void) not overridden!"));};
-void DisplayTranslator::println(const char *txt) { Serial.println(F("WARNING: DisplayTranslator::println(const char *) not overridden!"));};
-void DisplayTranslator::printc(char c) { Serial.println(F("WARNING: DisplayTranslator::printc(char) not overridden!")); }
+void DisplayTranslator::println() { Serial_println(F("WARNING: DisplayTranslator::println(void) not overridden!"));};
+void DisplayTranslator::println(const char *txt) { Serial_println(F("WARNING: DisplayTranslator::println(const char *) not overridden!"));};
+void DisplayTranslator::printc(char c) { Serial_println(F("WARNING: DisplayTranslator::printc(char) not overridden!")); }
 
 // by ktownsend from https://forums.adafruit.com/viewtopic.php?t=21536
 uint16_t DisplayTranslator::rgb(uint8_t r, uint8_t g, uint8_t b) {

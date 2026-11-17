@@ -30,7 +30,7 @@ int Menu::display_pinned() {
         const int profile_h = row_h + 3;
         tft->fillRect(0, y, tft->width(), profile_h, BLACK);
         tft->setCursor(0, y);
-        Serial.println(profile_string);
+        Serial_println(profile_string);
         bool was_wrap = tft->isTextWrap();
         tft->setTextWrap(false);
         tft->printf(tft->get_message_format(), profile_string);
@@ -94,7 +94,7 @@ int Menu::display() {
     //Serial.printf("display !");
     int y = 0;
     
-    if (debug) { Serial.println("display()=> about to setTextColor()"); Serial_flush(); }
+    if (debug) { Serial_println("display()=> about to setTextColor()"); Serial_flush(); }
     tft->setTextColor(C_WHITE, BLACK);
 
     int currently_opened = selected_page->currently_opened;
@@ -373,7 +373,7 @@ int Menu::display() {
             const int _n = (int)items->size();
             const int _avail = tft->height() - this->list_area_start_y;
             const int _cs_clamped = (currently_selected >= 0 && currently_selected < _n) ? currently_selected : 0;
-            Serial.printf(
+            Serial_printf(
                 "[SCROLL] cs=%d sp=%d sep=%d ceil=%d | avail=%d lasy=%d | pb[cs]=%d pb[N-1]=%d | ih[cs]=%d ih[N-1]=%d | n=%d\n",
                 currently_selected, start_panel, page_sep_idx, scroll_ceiling_dbg,
                 _avail, this->list_area_start_y,
@@ -442,11 +442,11 @@ int Menu::display() {
 
             page_t *page = pages->get(ci);
             if (page==nullptr) {
-                Serial.printf("ERROR: page %i is nullptr!\n", ci);
+                Serial_printf("ERROR: page %i is nullptr!\n", ci);
                 continue;
             }
             if (page->title==nullptr) {
-                Serial.printf("ERROR: page %i has nullptr title!\n", ci);
+                Serial_printf("ERROR: page %i has nullptr title!\n", ci);
                 continue;
             }
 

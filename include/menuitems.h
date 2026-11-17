@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "shared_debug.h"
 #include <Arduino.h>
 #ifdef MENU_ITEM_ARENA
 #include "menu_arena.h"
@@ -253,19 +254,19 @@ class MenuItem {
             virtual bool needs_redraw(bool selected, bool opened) {
                 bool debug = false;
                 if (cached_draw_height < 0) {
-                    if (debug) Serial.printf("%s: needs_redraw() true because cached_draw_height is %i\n", this->label, cached_draw_height);
+                    if (debug) Serial_printf("%s: needs_redraw() true because cached_draw_height is %i\n", this->label, cached_draw_height);
                     return true;
                 }
                 if (redraw_policy == REDRAW_ALWAYS) {
-                    if (debug) Serial.printf("%s: needs_redraw() true because redraw_policy is REDRAW_ALWAYS\n", this->label);
+                    if (debug) Serial_printf("%s: needs_redraw() true because redraw_policy is REDRAW_ALWAYS\n", this->label);
                     return true;
                 }
                 if (pending_redraw_events & redraw_policy) {
-                    if (debug) Serial.printf("%s: needs_redraw() true because policy %s met by %s\n", this->label, get_redraw_policies_description(redraw_policy), get_redraw_policies_description(pending_redraw_events));
+                    if (debug) Serial_printf("%s: needs_redraw() true because policy %s met by %s\n", this->label, get_redraw_policies_description(redraw_policy), get_redraw_policies_description(pending_redraw_events));
                     return true;
                 }
                 if ((redraw_policy & REDRAW_ON_CUSTOM) && check_needs_redraw_custom(selected, opened)) {
-                    if (debug) Serial.printf("%s: needs_redraw() true because REDRAW_ON_CUSTOM is set and check_needs_redraw_custom() returned true\n", this->label);
+                    if (debug) Serial_printf("%s: needs_redraw() true because REDRAW_ON_CUSTOM is set and check_needs_redraw_custom() returned true\n", this->label);
                     return true;
                 }
                 return false;
